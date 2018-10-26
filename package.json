@@ -1,8 +1,8 @@
 {
-  "author": "Nick Fitzgerald <nfitzgerald@mozilla.com>",
-  "name": "create-rust-webpack",
+  "author": "Ron Budnar",
+  "name": "rust-mazes",
   "version": "0.1.4",
-  "repository": "https://github.com/rustwasm/rust-webpack-template",
+  "repository": "https://github.com/rbudnar/rust-webpack-template",
   "license": "Apache-2.0/MIT",
   "scripts": {
     "start": "webpack-dev-server -d",
