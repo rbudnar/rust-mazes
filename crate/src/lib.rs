@@ -83,88 +83,29 @@ pub fn run() {
     // document.import_node(val);
 }
 
-// #[derive(Eq, PartialEq, Debug)]
-// struct Cell<'a> {
-//     row: u32,
-//     column: u32,
 
-//     links: HashSet<Box<&'a Cell<'a>>>, //<'a>
-//     // north: &'a Box<Cell<'a>>,
-//     // north: Option<Box<Cell<'a>>>,
-//     // south: Option<Box<Cell<'a>>>,
-//     // east: Option<Box<Cell<'a>>>,
-//     // west: Option<Box<Cell<'a>>>
-// }
 
-// impl<'a> Cell<'a> {
-//     fn new(row: u32, column: u32) -> Cell<'a> {
-//         Cell {
-//             row, column, //north: None, south: None, east: None, west: None, 
-//             links: HashSet::new()
-//         }
-//     }
 
-//     fn link(&'a mut self, other: &'a mut Cell<'a>, bidir: bool) {
-//         // let b = Box::new(other);
-//         self.links.insert(Box::new(other));
-//         if bidir {
-//             other.link(self, false);
-//         }
-//     }
 
-//     fn unlink(&self, other: &Cell, bidir: bool) {
-        
-//         if bidir {
-//             other.unlink(&self, false);
-//         }
+// impl PartialEq for Cell {
+//     fn eq(&self, other: &Cell) -> bool {
+//         self.row == other.row && self.column == other.column
 //     }
 // }
+// impl Eq for Cell {}
 
-// impl<'a> Hash for Cell<'a> {
+// impl Hash for Cell {
 //     fn hash<H: Hasher>(&self, state: &mut H) {
 //         self.row.hash(state);
 //         self.column.hash(state);
 //     }
 // }
+type CellLinkWeak = Weak<RefCell<Cell>>; // Think of a better name
+type CellLinkStrong = Rc<RefCell<Cell>>;
 
-
-
-
-
-#[derive(Debug)]
-// #[derive(Eq, PartialEq, Debug)]
-struct Cell {
-    row: u32,
-    column: u32,
-
-    // links1: HashSet<Weak<RefCell<Cell>>>,
-    links: Vec<Weak<RefCell<Cell>>>,
-    // north: &'a Box<Cell<'a>>,
-    // north: Option<Box<Cell<'a>>>,
-    // south: Option<Box<Cell<'a>>>,
-    // east: Option<Box<Cell<'a>>>,
-    // west: Option<Box<Cell<'a>>>
-}
-
-impl PartialEq for Cell {
-    fn eq(&self, other: &Cell) -> bool {
-        self.row == other.row && self.column == other.column
-    }
-}
-impl Eq for Cell {}
-
-impl Hash for Cell {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.row.hash(state);
-        self.column.hash(state);
-    }
-}
-
-// pub struct CellWrapper(Rc<RefCell<Cell>>);
-// #[derive(Eq, PartialEq, Debug)]
 #[derive(Debug)]
 pub struct Grid {
-    cells: Vec<Rc<RefCell<Cell>>>,
+    cells: Vec<CellLinkStrong>,
     rows: u32, 
     columns: u32
 }
@@ -190,28 +131,55 @@ impl Grid {
         }
     }
 
-    fn get_cell(&self, row: u32, column: u32) -> Option<Rc<RefCell<Cell>>> {
+    fn get_cell(&self, row: u32, column: u32) -> Option<CellLinkStrong> {
         let mut iter = self.cells.iter();
         iter.find(|ref x| x.borrow().row == row && x.borrow().column == column)
             .map(|ref x| Rc::clone(&x))
     }
 }
 
-fn link(this: Rc<RefCell<Cell>>, other: Rc<RefCell<Cell>>, bidir: bool) {    
+fn link(_self: CellLinkStrong, other: CellLinkStrong, bidir: bool) {    
     let newlink: Weak<RefCell<Cell>> = Rc::downgrade(&other);
-    // let newlink: Rc<RefCell<Cell>> = Rc::clone(&other);
-    this.borrow_mut().links.push(newlink);
+    _self.borrow_mut().links.push(newlink);
     if bidir {
-        link(Rc::clone(&other), Rc::clone(&this), false);
+        link(Rc::clone(&other), Rc::clone(&_self), false);
     }
+}
+
+
+fn unlink(_self: CellLinkStrong, other: CellLinkStrong, bidir: bool) {
+    let index = _self.borrow().index_of_other(Rc::clone(&other));
+
+    if let Some(i) = index {
+        _self.borrow_mut().links.remove(i);
+    }
+
+    if bidir {
+        unlink(Rc::clone(&other), Rc::clone(&_self), false);
+    }
+}
+
+
+#[derive(Debug)]
+struct Cell {
+    row: u32,
+    column: u32,
+    links: Vec<CellLinkWeak>,
+    north: Option<CellLinkWeak>,
+    south: Option<CellLinkWeak>,
+    east: Option<CellLinkWeak>,
+    west: Option<CellLinkWeak>
 }
 
 impl Cell {
     fn new(row: u32, column: u32) -> Cell {
         Cell {
-            row, column, //north: None, south: None, east: None, west: None, 
-            links: Vec::new(),            
-            //links: HashSet::new()
+            row, column, 
+            north: None, 
+            south: None, 
+            east: None, 
+            west: None, 
+            links: Vec::new(), 
         }
     }
 
@@ -221,11 +189,44 @@ impl Cell {
         }
     }
 
-    fn unlink(&self, other: &Cell, bidir: bool) {
-        
-        if bidir {
-            other.unlink(&self, false);
+    // TODO: check this implementation
+    fn neighbors(self) -> Vec<CellLinkWeak> {
+        let mut vec: Vec<CellLinkWeak> = vec![];
+        if self.north.is_some() {
+            let c = self.north.unwrap().upgrade().unwrap();
+            vec.push(Rc::downgrade(&c));
         }
+        if self.south.is_some() {
+            let c = self.south.unwrap().upgrade().unwrap();
+            vec.push(Rc::downgrade(&c));
+        }
+        if self.east.is_some() {
+            let c = self.east.unwrap().upgrade().unwrap();
+            vec.push(Rc::downgrade(&c));
+        }
+        if self.west.is_some() {
+            let c = self.west.unwrap().upgrade().unwrap();
+            vec.push(Rc::downgrade(&c));
+        }
+        vec
+    }
+
+    fn links(&self) -> &Vec<CellLinkWeak> {
+        &self.links
+    }
+
+    fn is_linked(&self, other: CellLinkStrong) -> bool {
+        self.index_of_other(Rc::clone(&other)).is_some()        
+    }
+
+    fn index_of_other(&self, other: CellLinkStrong) -> Option<usize> {
+        let other_row: u32 = other.borrow().row;
+        let other_col: u32 = other.borrow().column;
+        self.links.iter().position(|ref s| {
+            let strong : CellLinkStrong = s.upgrade().unwrap();
+            let c = strong.borrow();
+            c.row == other_row && c.column == other_col
+        })
     }
 }
 
@@ -244,9 +245,17 @@ mod tests {
         let mut c01 = grid.get_cell(0,1).unwrap();
 
         link(Rc::clone(&c00), Rc::clone(&c01), true);
-        println!("c00: {:?}", c00.borrow());
-        println!("c01: {:?}", c01.borrow());
         println!("c00: {:?}", c00.borrow().display_links());
         println!("c01: {:?}", c01.borrow().display_links());
+        println!("c00-c01 islinked {}", c00.borrow().is_linked(Rc::clone(&c01)));
+        println!("c01-c00 islinked {}", c01.borrow().is_linked(Rc::clone(&c00)));
+
+        println!("UNLINKING");
+        unlink(Rc::clone(&c00), Rc::clone(&c01), true);
+        println!("c00: {:?}", c00.borrow().display_links());
+        println!("c01: {:?}", c01.borrow().display_links());
+        println!("c00-c01 islinked {}", c00.borrow().is_linked(Rc::clone(&c01)));
+        println!("c01-c00 islinked {}", c01.borrow().is_linked(Rc::clone(&c00)));
+
     }
 }
