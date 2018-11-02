@@ -1,21 +1,19 @@
-#![feature(use_extern_macros)]
-
+// #![feature(use_extern_macros)]
+#![allow(dead_code)]
 #[macro_use]
 extern crate cfg_if;
-
+extern crate rand;
 extern crate wasm_bindgen;
 extern crate web_sys;
 extern crate js_sys;
 use wasm_bindgen::prelude::*;
-use web_sys::Window;
-use web_sys::Document;
-use web_sys::Element;
-use web_sys::HtmlElement;
+use rand::prelude::*;
+// use web_sys::Window;
+// use web_sys::Document;
+// use web_sys::Element;
+// use web_sys::HtmlElement;
 use web_sys::Node;
 use std::convert::From;
-use std::collections::HashSet;
-use std::collections::HashMap;
-use std::hash::{Hash, Hasher};
 use std::rc::{Rc, Weak};
 use std::cell::RefCell;
 
@@ -118,15 +116,53 @@ impl Grid {
         }
     }
 
+    fn size(&self) -> u32 {
+        self.rows * self.columns
+    }
+
+    fn random_cell(&self) -> Option<CellLinkStrong> {
+        let mut rng = thread_rng();
+        if rng.gen() {
+            let row: u32 = rng.gen_range(0, self.rows);
+            let col: u32 = rng.gen_range(0, self.columns);
+            println!("{} {}", row, col);
+            return self.get_cell(row, col);
+        }
+        None
+    }
+
     fn new_cell(&mut self, row: u32, column: u32) {
         let cell = Rc::new(RefCell::new(Cell::new(row, column)));
         self.cells.push(cell);
     }
 
-    fn link_cells(&mut self) {
-        for (i, cell) in &mut self.cells.iter().enumerate() {
-            if (i > 0) {
-                println!("linking");
+    fn configure_cells(&mut self) {
+        for (_, cell) in &mut self.cells.iter().enumerate() {            
+            // can't subtract from a u32 of 0 apparently
+            let cell_row = cell.borrow().row;
+            if cell_row > 0 {
+                let north = self.get_cell(cell_row - 1, cell.borrow().column);
+                if north.is_some() {
+                    cell.borrow_mut().north = Some(Rc::downgrade(&Rc::clone(&north.unwrap())));
+                }
+            }
+
+            let south = self.get_cell(cell.borrow().row + 1, cell.borrow().column);
+            if south.is_some() {
+                cell.borrow_mut().south = Some(Rc::downgrade(&Rc::clone(&south.unwrap())));
+            }
+
+            let east = self.get_cell(cell.borrow().row, cell.borrow().column + 1);
+            if east.is_some() {
+                cell.borrow_mut().east = Some(Rc::downgrade(&Rc::clone(&east.unwrap())));
+            }
+
+            let cell_column = cell.borrow().column;
+            if cell_column > 0 {
+                let west = self.get_cell(cell.borrow().row, cell_column - 1);
+                if west.is_some() {
+                    cell.borrow_mut().west = Some(Rc::downgrade(&Rc::clone(&west.unwrap())));
+                }
             }
         }
     }
@@ -135,6 +171,14 @@ impl Grid {
         let mut iter = self.cells.iter();
         iter.find(|ref x| x.borrow().row == row && x.borrow().column == column)
             .map(|ref x| Rc::clone(&x))
+    }
+
+    fn prepare_grid(&mut self) {
+        for i in 0..self.rows {
+            for j in 0..self.columns {
+                self.cells.push(Rc::new(RefCell::new(Cell::new(i, j))));
+            }
+        }   
     }
 }
 
@@ -190,23 +234,24 @@ impl Cell {
     }
 
     // TODO: check this implementation
-    fn neighbors(self) -> Vec<CellLinkWeak> {
+    fn neighbors(&self) -> Vec<CellLinkWeak> {
         let mut vec: Vec<CellLinkWeak> = vec![];
         if self.north.is_some() {
-            let c = self.north.unwrap().upgrade().unwrap();
-            vec.push(Rc::downgrade(&c));
+            // let c = self.north.as_ref().unwrap().upgrade().unwrap();
+            let c = self.north.as_ref().unwrap().clone();
+            vec.push(c);
         }
         if self.south.is_some() {
-            let c = self.south.unwrap().upgrade().unwrap();
-            vec.push(Rc::downgrade(&c));
+            let c = self.south.as_ref().unwrap().clone();
+            vec.push(c);
         }
         if self.east.is_some() {
-            let c = self.east.unwrap().upgrade().unwrap();
-            vec.push(Rc::downgrade(&c));
+            let c = self.east.as_ref().unwrap().clone();
+            vec.push(c);
         }
         if self.west.is_some() {
-            let c = self.west.unwrap().upgrade().unwrap();
-            vec.push(Rc::downgrade(&c));
+            let c = self.west.as_ref().unwrap().clone();
+            vec.push(c);
         }
         vec
     }
@@ -234,7 +279,7 @@ impl Cell {
 mod tests {
     use super::*;
     #[test]
-    fn it_works() {
+    fn cell_works() {
         let mut grid = Grid::new(2,2);
         grid.new_cell(0,0);
         grid.new_cell(0,1);
@@ -245,17 +290,28 @@ mod tests {
         let mut c01 = grid.get_cell(0,1).unwrap();
 
         link(Rc::clone(&c00), Rc::clone(&c01), true);
-        println!("c00: {:?}", c00.borrow().display_links());
-        println!("c01: {:?}", c01.borrow().display_links());
-        println!("c00-c01 islinked {}", c00.borrow().is_linked(Rc::clone(&c01)));
-        println!("c01-c00 islinked {}", c01.borrow().is_linked(Rc::clone(&c00)));
+        // println!("c00: {:?}", c00.borrow().display_links());
+        // println!("c01: {:?}", c01.borrow().display_links());
+        // println!("c00-c01 islinked {}", c00.borrow().is_linked(Rc::clone(&c01)));
+        // println!("c01-c00 islinked {}", c01.borrow().is_linked(Rc::clone(&c00)));
 
-        println!("UNLINKING");
+        // println!("UNLINKING");
         unlink(Rc::clone(&c00), Rc::clone(&c01), true);
-        println!("c00: {:?}", c00.borrow().display_links());
-        println!("c01: {:?}", c01.borrow().display_links());
-        println!("c00-c01 islinked {}", c00.borrow().is_linked(Rc::clone(&c01)));
-        println!("c01-c00 islinked {}", c01.borrow().is_linked(Rc::clone(&c00)));
+        // println!("c00: {:?}", c00.borrow().display_links());
+        // println!("c01: {:?}", c01.borrow().display_links());
+        // println!("c00-c01 islinked {}", c00.borrow().is_linked(Rc::clone(&c01)));
+        // println!("c01-c00 islinked {}", c01.borrow().is_linked(Rc::clone(&c00)));
 
+        // println!("neighbors: {:?}", c00.borrow().neighbors());
+    }
+
+    #[test]
+    fn grid_works() {
+        let mut grid = Grid::new(2,2);
+        grid.prepare_grid();
+        grid.configure_cells();
+        // println!("{:#?}", grid);
+
+        println!("{:#?}", grid.random_cell());
     }
 }
