@@ -7,7 +7,6 @@ extern crate wasm_bindgen;
 extern crate web_sys;
 extern crate js_sys;
 use wasm_bindgen::prelude::*;
-use rand::prelude::*;
 // use web_sys::Window;
 // use web_sys::Document;
 // use web_sys::Element;
@@ -15,7 +14,10 @@ use rand::prelude::*;
 use web_sys::Node;
 use std::convert::From;
 use std::rc::{Rc, Weak};
-use std::cell::RefCell;
+mod cell;
+mod grid;
+use cell::*;
+use grid::*;
 
 cfg_if! {
     // When the `console_error_panic_hook` feature is enabled, we can call the
@@ -81,199 +83,6 @@ pub fn run() {
     // document.import_node(val);
 }
 
-
-
-
-
-// impl PartialEq for Cell {
-//     fn eq(&self, other: &Cell) -> bool {
-//         self.row == other.row && self.column == other.column
-//     }
-// }
-// impl Eq for Cell {}
-
-// impl Hash for Cell {
-//     fn hash<H: Hasher>(&self, state: &mut H) {
-//         self.row.hash(state);
-//         self.column.hash(state);
-//     }
-// }
-type CellLinkWeak = Weak<RefCell<Cell>>; // Think of a better name
-type CellLinkStrong = Rc<RefCell<Cell>>;
-
-#[derive(Debug)]
-pub struct Grid {
-    cells: Vec<CellLinkStrong>,
-    rows: u32, 
-    columns: u32
-}
-
-impl Grid {
-    fn new(rows: u32, columns: u32)-> Grid {
-        Grid {
-            cells: Vec::new(),
-            rows, columns            
-        }
-    }
-
-    fn size(&self) -> u32 {
-        self.rows * self.columns
-    }
-
-    fn random_cell(&self) -> Option<CellLinkStrong> {
-        let mut rng = thread_rng();
-        if rng.gen() {
-            let row: u32 = rng.gen_range(0, self.rows);
-            let col: u32 = rng.gen_range(0, self.columns);
-            println!("{} {}", row, col);
-            return self.get_cell(row, col);
-        }
-        None
-    }
-
-    fn new_cell(&mut self, row: u32, column: u32) {
-        let cell = Rc::new(RefCell::new(Cell::new(row, column)));
-        self.cells.push(cell);
-    }
-
-    fn configure_cells(&mut self) {
-        for (_, cell) in &mut self.cells.iter().enumerate() {            
-            // can't subtract from a u32 of 0 apparently
-            let cell_row = cell.borrow().row;
-            if cell_row > 0 {
-                let north = self.get_cell(cell_row - 1, cell.borrow().column);
-                if north.is_some() {
-                    cell.borrow_mut().north = Some(Rc::downgrade(&Rc::clone(&north.unwrap())));
-                }
-            }
-
-            let south = self.get_cell(cell.borrow().row + 1, cell.borrow().column);
-            if south.is_some() {
-                cell.borrow_mut().south = Some(Rc::downgrade(&Rc::clone(&south.unwrap())));
-            }
-
-            let east = self.get_cell(cell.borrow().row, cell.borrow().column + 1);
-            if east.is_some() {
-                cell.borrow_mut().east = Some(Rc::downgrade(&Rc::clone(&east.unwrap())));
-            }
-
-            let cell_column = cell.borrow().column;
-            if cell_column > 0 {
-                let west = self.get_cell(cell.borrow().row, cell_column - 1);
-                if west.is_some() {
-                    cell.borrow_mut().west = Some(Rc::downgrade(&Rc::clone(&west.unwrap())));
-                }
-            }
-        }
-    }
-
-    fn get_cell(&self, row: u32, column: u32) -> Option<CellLinkStrong> {
-        let mut iter = self.cells.iter();
-        iter.find(|ref x| x.borrow().row == row && x.borrow().column == column)
-            .map(|ref x| Rc::clone(&x))
-    }
-
-    fn prepare_grid(&mut self) {
-        for i in 0..self.rows {
-            for j in 0..self.columns {
-                self.cells.push(Rc::new(RefCell::new(Cell::new(i, j))));
-            }
-        }   
-    }
-}
-
-fn link(_self: CellLinkStrong, other: CellLinkStrong, bidir: bool) {    
-    let newlink: Weak<RefCell<Cell>> = Rc::downgrade(&other);
-    _self.borrow_mut().links.push(newlink);
-    if bidir {
-        link(Rc::clone(&other), Rc::clone(&_self), false);
-    }
-}
-
-
-fn unlink(_self: CellLinkStrong, other: CellLinkStrong, bidir: bool) {
-    let index = _self.borrow().index_of_other(Rc::clone(&other));
-
-    if let Some(i) = index {
-        _self.borrow_mut().links.remove(i);
-    }
-
-    if bidir {
-        unlink(Rc::clone(&other), Rc::clone(&_self), false);
-    }
-}
-
-
-#[derive(Debug)]
-struct Cell {
-    row: u32,
-    column: u32,
-    links: Vec<CellLinkWeak>,
-    north: Option<CellLinkWeak>,
-    south: Option<CellLinkWeak>,
-    east: Option<CellLinkWeak>,
-    west: Option<CellLinkWeak>
-}
-
-impl Cell {
-    fn new(row: u32, column: u32) -> Cell {
-        Cell {
-            row, column, 
-            north: None, 
-            south: None, 
-            east: None, 
-            west: None, 
-            links: Vec::new(), 
-        }
-    }
-
-    fn display_links(&self) {
-        for link in &self.links {
-            println!("{:?}", link.upgrade());
-        }
-    }
-
-    // TODO: check this implementation
-    fn neighbors(&self) -> Vec<CellLinkWeak> {
-        let mut vec: Vec<CellLinkWeak> = vec![];
-        if self.north.is_some() {
-            // let c = self.north.as_ref().unwrap().upgrade().unwrap();
-            let c = self.north.as_ref().unwrap().clone();
-            vec.push(c);
-        }
-        if self.south.is_some() {
-            let c = self.south.as_ref().unwrap().clone();
-            vec.push(c);
-        }
-        if self.east.is_some() {
-            let c = self.east.as_ref().unwrap().clone();
-            vec.push(c);
-        }
-        if self.west.is_some() {
-            let c = self.west.as_ref().unwrap().clone();
-            vec.push(c);
-        }
-        vec
-    }
-
-    fn links(&self) -> &Vec<CellLinkWeak> {
-        &self.links
-    }
-
-    fn is_linked(&self, other: CellLinkStrong) -> bool {
-        self.index_of_other(Rc::clone(&other)).is_some()        
-    }
-
-    fn index_of_other(&self, other: CellLinkStrong) -> Option<usize> {
-        let other_row: u32 = other.borrow().row;
-        let other_col: u32 = other.borrow().column;
-        self.links.iter().position(|ref s| {
-            let strong : CellLinkStrong = s.upgrade().unwrap();
-            let c = strong.borrow();
-            c.row == other_row && c.column == other_col
-        })
-    }
-}
 
 #[cfg(test)]
 mod tests {
