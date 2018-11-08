@@ -89,23 +89,23 @@ mod tests {
     use super::*;
     #[test]
     fn cell_works() {
-        let mut grid = Grid::new(2,2);
-        grid.new_cell(0,0);
-        grid.new_cell(0,1);
-        grid.new_cell(1,0);
-        grid.new_cell(1,1);
+        // let mut grid = Grid::new(2,2);
+        // // grid.new_cell(0,0);
+        // // grid.new_cell(0,1);
+        // // grid.new_cell(1,0);
+        // // grid.new_cell(1,1);
 
-        let mut c00 = grid.get_cell(0,0).unwrap();
-        let mut c01 = grid.get_cell(0,1).unwrap();
+        // let mut c00 = grid.get_cell(0,0).unwrap();
+        // let mut c01 = grid.get_cell(0,1).unwrap();
 
-        link(Rc::clone(&c00), Rc::clone(&c01), true);
-        // println!("c00: {:?}", c00.borrow().display_links());
-        // println!("c01: {:?}", c01.borrow().display_links());
-        // println!("c00-c01 islinked {}", c00.borrow().is_linked(Rc::clone(&c01)));
-        // println!("c01-c00 islinked {}", c01.borrow().is_linked(Rc::clone(&c00)));
+        // link(Rc::clone(&c00), Rc::clone(&c01), true);
+        // // println!("c00: {:?}", c00.borrow().display_links());
+        // // println!("c01: {:?}", c01.borrow().display_links());
+        // // println!("c00-c01 islinked {}", c00.borrow().is_linked(Rc::clone(&c01)));
+        // // println!("c01-c00 islinked {}", c01.borrow().is_linked(Rc::clone(&c00)));
 
-        // println!("UNLINKING");
-        unlink(Rc::clone(&c00), Rc::clone(&c01), true);
+        // // println!("UNLINKING");
+        // unlink(Rc::clone(&c00), Rc::clone(&c01), true);
         // println!("c00: {:?}", c00.borrow().display_links());
         // println!("c01: {:?}", c01.borrow().display_links());
         // println!("c00-c01 islinked {}", c00.borrow().is_linked(Rc::clone(&c01)));
@@ -119,7 +119,7 @@ mod tests {
         let mut grid = Grid::new(2,2);
         grid.prepare_grid();
         grid.configure_cells();
-        // println!("{:#?}", grid);
+        println!("{:#?}", grid);
 
         println!("{:#?}", grid.random_cell());
     }

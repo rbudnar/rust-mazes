@@ -5,81 +5,91 @@ use cell::*;
 
 #[derive(Debug)]
 pub struct Grid {
-    pub cells: Vec<CellLinkStrong>,
-    pub rows: u32, 
-    pub columns: u32
+    pub cells: Vec<Vec<CellLinkStrong>>,
+    pub rows: usize, 
+    pub columns: usize
 }
 
 impl Grid {
-    pub fn new(rows: u32, columns: u32)-> Grid {
+    pub fn new(rows: usize, columns: usize)-> Grid {
         Grid {
             cells: Vec::new(),
             rows, columns            
         }
     }
 
-    pub fn size(&self) -> u32 {
+    pub fn size(&self) -> usize {
         self.rows * self.columns
     }
 
     pub fn random_cell(&self) -> Option<CellLinkStrong> {
         let mut rng = thread_rng();
-        if rng.gen() {
-            let row: u32 = rng.gen_range(0, self.rows);
-            let col: u32 = rng.gen_range(0, self.columns);
+        // if rng.gen() {
+            let row: usize = rng.gen_range(0, self.rows);
+            let col: usize = rng.gen_range(0, self.columns);
             println!("{} {}", row, col);
             return self.get_cell(row, col);
-        }
-        None
+        // }
+        // None
     }
 
-    pub fn new_cell(&mut self, row: u32, column: u32) {
-        let cell = Rc::new(RefCell::new(Cell::new(row, column)));
-        self.cells.push(cell);
+    pub fn each_row(&self) {
+
     }
+
+    // pub fn new_cell(&mut self, row: usize, column: usize) {
+    //     let cell = Rc::new(RefCell::new(Cell::new(row, column)));
+    //     self.cells.push(cell);
+    // }
 
     pub fn configure_cells(&mut self) {
-        for (_, cell) in &mut self.cells.iter().enumerate() {            
-            // can't subtract from a u32 of 0 apparently
-            let cell_row = cell.borrow().row;
-            if cell_row > 0 {
-                let north = self.get_cell(cell_row - 1, cell.borrow().column);
-                if north.is_some() {
-                    cell.borrow_mut().north = Some(Rc::downgrade(&Rc::clone(&north.unwrap())));
+        for (_, row) in &mut self.cells.iter().enumerate() {
+            for (_, cell) in &mut row.iter().enumerate() {            
+                // can't subtract from a usize of 0 apparently
+                let cell_row = cell.borrow().row;
+                if cell_row > 0 {
+                    let north = self.get_cell(cell_row - 1, cell.borrow().column);
+                    if north.is_some() {
+                        cell.borrow_mut().north = Some(Rc::downgrade(&Rc::clone(&north.unwrap())));
+                    }
                 }
-            }
 
-            let south = self.get_cell(cell.borrow().row + 1, cell.borrow().column);
-            if south.is_some() {
-                cell.borrow_mut().south = Some(Rc::downgrade(&Rc::clone(&south.unwrap())));
-            }
+                let south = self.get_cell(cell.borrow().row + 1, cell.borrow().column);
+                if south.is_some() {
+                    cell.borrow_mut().south = Some(Rc::downgrade(&Rc::clone(&south.unwrap())));
+                }
 
-            let east = self.get_cell(cell.borrow().row, cell.borrow().column + 1);
-            if east.is_some() {
-                cell.borrow_mut().east = Some(Rc::downgrade(&Rc::clone(&east.unwrap())));
-            }
+                let east = self.get_cell(cell.borrow().row, cell.borrow().column + 1);
+                if east.is_some() {
+                    cell.borrow_mut().east = Some(Rc::downgrade(&Rc::clone(&east.unwrap())));
+                }
 
-            let cell_column = cell.borrow().column;
-            if cell_column > 0 {
-                let west = self.get_cell(cell.borrow().row, cell_column - 1);
-                if west.is_some() {
-                    cell.borrow_mut().west = Some(Rc::downgrade(&Rc::clone(&west.unwrap())));
+                let cell_column = cell.borrow().column;
+                if cell_column > 0 {
+                    let west = self.get_cell(cell.borrow().row, cell_column - 1);
+                    if west.is_some() {
+                        cell.borrow_mut().west = Some(Rc::downgrade(&Rc::clone(&west.unwrap())));
+                    }
                 }
             }
         }
     }
 
-    pub fn get_cell(&self, row: u32, column: u32) -> Option<CellLinkStrong> {
-        let mut iter = self.cells.iter();
-        iter.find(|ref x| x.borrow().row == row && x.borrow().column == column)
-            .map(|ref x| Rc::clone(&x))
+    pub fn get_cell(&self, row: usize, column: usize) -> Option<CellLinkStrong> {
+        if row >= self.rows || column >= self.columns {
+            return None;
+        }
+
+        return Some(Rc::clone(&self.cells[row][column]));
     }
 
     pub fn prepare_grid(&mut self) {
         for i in 0..self.rows {
+            let mut row: Vec<CellLinkStrong> = Vec::new();
             for j in 0..self.columns {
-                self.cells.push(Rc::new(RefCell::new(Cell::new(i, j))));
+                row.push(Rc::new(RefCell::new(Cell::new(i as usize, j as usize))));
             }
+            self.cells.push(row);
         }   
     }
 }

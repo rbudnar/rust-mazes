@@ -6,8 +6,8 @@ pub type CellLinkStrong = Rc<RefCell<Cell>>;
 
 #[derive(Debug)]
 pub struct Cell {
-    pub row: u32,
-    pub column: u32,
+    pub row: usize,
+    pub column: usize,
     pub links: Vec<CellLinkWeak>,
     pub north: Option<CellLinkWeak>,
     pub south: Option<CellLinkWeak>,
@@ -16,7 +16,7 @@ pub struct Cell {
 }
 
 impl Cell {
-    pub fn new(row: u32, column: u32) -> Cell {
+    pub fn new(row: usize, column: usize) -> Cell {
         Cell {
             row, column, 
             north: None, 
@@ -65,8 +65,8 @@ impl Cell {
     }
 
     pub fn index_of_other(&self, other: CellLinkStrong) -> Option<usize> {
-        let other_row: u32 = other.borrow().row;
-        let other_col: u32 = other.borrow().column;
+        let other_row: usize = other.borrow().row;
+        let other_col: usize = other.borrow().column;
         self.links.iter().position(|ref s| {
             let strong : CellLinkStrong = s.upgrade().unwrap();
             let c = strong.borrow();
