@@ -2,10 +2,10 @@ use rand::prelude::*;
 use std::rc::{Rc, Weak};
 use std::cell::RefCell;
 use cell::*;
-
 #[derive(Debug)]
 pub struct Grid {
     pub cells: Vec<Vec<CellLinkStrong>>,
+    // pub cells: CellList,
     pub rows: usize, 
     pub columns: usize
 }
@@ -24,23 +24,23 @@ impl Grid {
 
     pub fn random_cell(&self) -> Option<CellLinkStrong> {
         let mut rng = thread_rng();
-        // if rng.gen() {
-            let row: usize = rng.gen_range(0, self.rows);
-            let col: usize = rng.gen_range(0, self.columns);
-            println!("{} {}", row, col);
-            return self.get_cell(row, col);
-        // }
-        // None
+        let row: usize = rng.gen_range(0, self.rows);
+        let col: usize = rng.gen_range(0, self.columns);
+        println!("{} {}", row, col);
+        return self.get_cell(row, col);
     }
 
+    // Not sure if this is really needed?
     pub fn each_row(&self) {
-
+        
     }
 
-    // pub fn new_cell(&mut self, row: usize, column: usize) {
-    //     let cell = Rc::new(RefCell::new(Cell::new(row, column)));
-    //     self.cells.push(cell);
-    // }
+    pub fn each_cell(&self) -> Vec<CellLinkStrong> { 
+        self.cells.iter()
+            .flatten()                
+            .map(|x| Rc::clone(x))
+            .collect()        
+    }
 
     pub fn configure_cells(&mut self) {
         for (_, row) in &mut self.cells.iter().enumerate() {

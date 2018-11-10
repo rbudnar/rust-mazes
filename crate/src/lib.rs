@@ -16,8 +16,10 @@ use std::convert::From;
 use std::rc::{Rc, Weak};
 mod cell;
 mod grid;
+mod binary_tree;
 use cell::*;
 use grid::*;
+use binary_tree::*;
 
 cfg_if! {
     // When the `console_error_panic_hook` feature is enabled, we can call the
@@ -119,8 +121,14 @@ mod tests {
         let mut grid = Grid::new(2,2);
         grid.prepare_grid();
         grid.configure_cells();
-        println!("{:#?}", grid);
 
         println!("{:#?}", grid.random_cell());
+        let cells = grid.each_cell();
+
+        for (i, cell) in cells.iter().enumerate() {
+            println!("{}: {:#?}", i, cell);
+        }
+        println!("{:#?}", grid);
+
     }
 }
