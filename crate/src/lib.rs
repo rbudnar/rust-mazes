@@ -3,17 +3,24 @@
 #[macro_use]
 extern crate cfg_if;
 extern crate rand;
+extern crate wbg_rand;
 extern crate wasm_bindgen;
 extern crate web_sys;
 extern crate js_sys;
-use wasm_bindgen::prelude::*;
+extern crate serde;
+extern crate serde_json;
+#[macro_use]
+extern crate serde_derive;
+
 // use web_sys::Window;
 // use web_sys::Document;
 // use web_sys::Element;
 // use web_sys::HtmlElement;
+use wasm_bindgen::prelude::*;
 use web_sys::Node;
 use std::convert::From;
 use std::rc::{Rc, Weak};
+use std::cell::RefCell;
 mod cell;
 mod grid;
 mod binary_tree;
@@ -85,6 +92,16 @@ pub fn run() {
     // document.import_node(val);
 }
 
+#[wasm_bindgen]
+pub fn binary_tree() -> String {
+    let mut grid = Grid::new(4,4);
+    grid.prepare_grid();
+    grid.configure_cells();
+
+    BinaryTree::on(&grid);
+    // return String::from("hello there");
+    return serde_json::to_string(&grid).unwrap();
+}
 
 #[cfg(test)]
 mod tests {
@@ -116,7 +133,7 @@ mod tests {
         // println!("neighbors: {:?}", c00.borrow().neighbors());
     }
 
-    #[test]
+    // #[test]
     fn grid_works() {
         let mut grid = Grid::new(2,2);
         grid.prepare_grid();
@@ -129,6 +146,16 @@ mod tests {
             println!("{}: {:#?}", i, cell);
         }
         println!("{:#?}", grid);
+    }
 
+    #[test]
+    fn binary_tree() {
+        let mut grid = Grid::new(4,4);
+        grid.prepare_grid();
+        grid.configure_cells();
+
+        BinaryTree::on(&grid);
+        println!("{:#?}", serde_json::to_string(&grid).unwrap());
+        // println!("{:#?}", grid);
     }
 }

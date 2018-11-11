@@ -1,5 +1,6 @@
 use std::rc::{Rc, Weak};
 use std::cell::RefCell;
+use serde::ser::{Serialize, Serializer, SerializeStruct};
 
 pub type CellLinkWeak = Weak<RefCell<Cell>>; // Think of a better name
 pub type CellLinkStrong = Rc<RefCell<Cell>>;
@@ -13,6 +14,33 @@ pub struct Cell {
     pub south: Option<CellLinkWeak>,
     pub east: Option<CellLinkWeak>,
     pub west: Option<CellLinkWeak>
+}
+
+// Not sure if this needed now. Have to manually serialize at the moment due to CellLinkWeak and CellLinkStrong having `Rc`
+impl Serialize for Cell {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        // 7 is the number of fields in the struct.
+        let mut state = serializer.serialize_struct("Cell", 7)?;
+        state.serialize_field("row", &self.row)?;
+        state.serialize_field("column", &self.column)?;
+        // state.serialize_field("links", &self.links)?;
+
+        state.serialize_field("north", &get_coords(&self.north))?;
+        state.serialize_field("south", &get_coords(&self.south))?;
+        state.serialize_field("east", &get_coords(&self.east))?;
+        state.serialize_field("west", &get_coords(&self.west))?;
+        state.end()
+    }
+}
+
+fn get_coords(cell: &Option<CellLinkWeak>) -> String {
+    let c: CellLinkStrong = cell.clone().unwrap().upgrade().unwrap().clone();
+    let row = c.borrow().row;
+    let col = c.borrow().column;
+    String::from(format!("row: {}, column: {}", row, col))
 }
 
 impl Cell {
