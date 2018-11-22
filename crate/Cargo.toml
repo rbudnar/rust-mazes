@@ -33,15 +33,15 @@ console_error_panic_hook = { version = "0.1.5", optional = true }
 # allocator, however.
 wee_alloc = { version = "0.4.2", optional = true }
 
-[features]
-default-features = ["console_error_panic_hook", "wee_alloc"]
-
 [dependencies.web-sys]
 version = "0.3"
 features = [
-    "Window",
-    "Document",
-    "Element",
-    "HtmlElement",
-    "Node"
+  "Document",
+  "Element",
+  "HtmlElement",
+  "Node",
+  "Window",
 ]
+
+[features]
+default-features = ["console_error_panic_hook", "wee_alloc"]

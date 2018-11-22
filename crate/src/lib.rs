@@ -34,6 +34,9 @@ cfg_if! {
     if #[cfg(feature = "console_error_panic_hook")] {
         extern crate console_error_panic_hook;
         use console_error_panic_hook::set_once as set_panic_hook;
+    } else {
+        #[inline]
+        fn set_panic_hook() {}
     }
 }
 
@@ -82,15 +85,35 @@ pub fn greet() {
 }
 
 // Called by our JS entry point to run the example
+// #[wasm_bindgen]
+// pub fn run() {
+//     let document = web_sys::window().unwrap().document().unwrap();
+//     let val = document.create_element("p").unwrap();
+//     val.set_inner_html("Hello from Rust, WebAssembly, and Webpack 123!");
+//     let body = Node::from(document.body().unwrap());
+//     body.append_child(&Node::from(val)).unwrap();
+//     // document.import_node(val);
+// }
+
+// Called by our JS entry point to run the example.
 #[wasm_bindgen]
-pub fn run() {
-    let document = web_sys::window().unwrap().document().unwrap();
-    let val = document.create_element("p").unwrap();
-    val.set_inner_html("Hello from Rust, WebAssembly, and Webpack 123!");
-    let body = Node::from(document.body().unwrap());
-    body.append_child(&Node::from(val)).unwrap();
-    // document.import_node(val);
+pub fn run() -> Result<(), JsValue> {
+    set_panic_hook();
+
+    let window = web_sys::window().expect("should have a Window");
+    let document = window.document().expect("should have a Document");
+
+    let p: web_sys::Node = document.create_element("p")?.into();
+    p.set_text_content(Some("Hello from Rust, WebAssembly, and Webpack!"));
+
+    let body = document.body().expect("should have a body");
+    let body: &web_sys::Node = body.as_ref();
+    body.append_child(&p)?;
+
+    Ok(())
 }
+
+
 
 #[wasm_bindgen]
 pub fn binary_tree() -> String {
