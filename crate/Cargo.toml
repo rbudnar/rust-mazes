@@ -41,6 +41,11 @@ features = [
   "HtmlElement",
   "Node",
   "Window",
+  "DomTokenList",
+  "CssStyleSheet",
+  "HtmlHeadElement",
+  "StyleSheet",
+  "StyleSheetList"
 ]
 
 [features]

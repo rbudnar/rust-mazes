@@ -3,6 +3,7 @@ use cell::*;
 use std::rc::{Rc};
 use wbg_rand::{Rng, wasm_rng};
 // use rand::prelude::*;
+// use rand::Rng;
 
 pub struct BinaryTree;
 
@@ -26,7 +27,6 @@ impl BinaryTree {
 
             // let mut rng = rand::thread_rng();
             let length =  neighbors.len();
-            // println!("len: {}", length);
             if length > 0 {
                 // let index = rng.gen_range(0, length);
                 // TODO: Fix cannot call on non-wasm_bindgen targets

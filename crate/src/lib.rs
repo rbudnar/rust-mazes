@@ -12,19 +12,12 @@ extern crate serde_json;
 #[macro_use]
 extern crate serde_derive;
 
-// use web_sys::Window;
-// use web_sys::Document;
-// use web_sys::Element;
-// use web_sys::HtmlElement;
 use wasm_bindgen::prelude::*;
-use web_sys::Node;
-use std::convert::From;
-use std::rc::{Rc, Weak};
-use std::cell::RefCell;
 mod cell;
 mod grid;
 mod binary_tree;
-use cell::*;
+mod grid_web;
+mod rng;
 use grid::*;
 use binary_tree::*;
 
@@ -78,23 +71,6 @@ cfg_if! {
 // }
 
 
-#[wasm_bindgen]
-pub fn greet() {
-    let window = web_sys::window().unwrap();
-    window.alert_with_message(&format!("Woot 123!"));
-}
-
-// Called by our JS entry point to run the example
-// #[wasm_bindgen]
-// pub fn run() {
-//     let document = web_sys::window().unwrap().document().unwrap();
-//     let val = document.create_element("p").unwrap();
-//     val.set_inner_html("Hello from Rust, WebAssembly, and Webpack 123!");
-//     let body = Node::from(document.body().unwrap());
-//     body.append_child(&Node::from(val)).unwrap();
-//     // document.import_node(val);
-// }
-
 // Called by our JS entry point to run the example.
 #[wasm_bindgen]
 pub fn run() -> Result<(), JsValue> {
@@ -113,8 +89,6 @@ pub fn run() -> Result<(), JsValue> {
     Ok(())
 }
 
-
-
 #[wasm_bindgen]
 pub fn binary_tree() -> String {
     let mut grid = Grid::new(4,4);
@@ -122,8 +96,18 @@ pub fn binary_tree() -> String {
     grid.configure_cells();
 
     BinaryTree::on(&grid);
-    // return String::from("hello there");
+    println!("go");
     return serde_json::to_string(&grid).unwrap();
+}
+
+#[wasm_bindgen]
+pub fn to_web(rows: usize, columns: usize) {
+    let mut grid = Grid::new(rows, columns);
+    grid.prepare_grid();
+    grid.configure_cells();
+
+    BinaryTree::on(&grid);
+    grid_web::grid_to_web(&grid, rows, columns);
 }
 
 #[cfg(test)]
@@ -178,7 +162,7 @@ mod tests {
         grid.configure_cells();
 
         BinaryTree::on(&grid);
-        println!("{:#?}", serde_json::to_string(&grid).unwrap());
-        // println!("{:#?}", grid);
+        // println!("{:#?}", serde_json::to_string(&grid).unwrap());
+        println!("{}", grid.to_string());
     }
 }

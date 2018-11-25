@@ -4,6 +4,7 @@ use std::rc::{Rc, Weak};
 use std::cell::RefCell;
 use cell::*;
 use serde::ser::{Serialize, Serializer, SerializeStruct};
+use wasm_bindgen::prelude::*;
 
 #[derive(Debug)]
 // #[derive(Debug, Serialize)]
@@ -20,8 +21,8 @@ impl Serialize for Grid {
     {
         // 3 is the number of fields in the struct.
         let mut state = serializer.serialize_struct("Grid", 3)?;
-        state.serialize_field("row", &self.rows)?;
-        state.serialize_field("column", &self.columns)?;
+        state.serialize_field("rows", &self.rows)?;
+        state.serialize_field("columns", &self.columns)?;
         state.serialize_field("cells", &serialize_cells(&self.cells))?;
         state.end()
     }
@@ -62,6 +63,51 @@ impl Grid {
             cells: Vec::new(),
             rows, columns            
         }
+    }
+
+    pub fn to_string(&self) -> String {
+        let mut output = String::new();
+        output += "\r";
+        for _ in 0..self.columns {
+            output += "+---"
+        }
+        output += "+\r\n";
+        
+        for row in self.cells.iter() {
+            let mut top = String::from("|");
+            let mut bottom = String::from("+");
+            for cell in row.iter() {
+                let mut body = String::from("   ");
+                let e = cell.borrow();
+                let east = e.east.as_ref();
+                let east_border = if east.is_some() && cell.borrow().is_linked(Rc::clone(&east.unwrap().upgrade().unwrap())) {
+                    " "
+                }
+                else {
+                    "|"
+                };
+
+                top += &body;
+                top += east_border;
+
+                let south = e.south.as_ref();
+                let south_border = if south.is_some() && cell.borrow().is_linked(Rc::clone(&south.unwrap().upgrade().unwrap())) {
+                    "   "
+                }
+                else {
+                    "---"
+                };
+                let corner = String::from("+");
+                bottom += south_border;
+                bottom += &corner;
+            }
+
+            output += &format!("{}\r\n", &top);
+            output += &format!("{}\r\n", &bottom);
+
+        }
+        
+        output
     }
 
     pub fn size(&self) -> usize {
