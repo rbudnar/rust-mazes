@@ -6,7 +6,9 @@
   "license": "Apache-2.0/MIT",
   "scripts": {
     "start": "webpack-dev-server -d",
-    "build": "webpack"
+    "build": "webpack --mode production",
+    "deploy": "gh-pages -d dist",
+    "publish": "npm run build && npm run deploy"
   },
   "bin": {
     "create-rust-webpack": ".bin/create-rust-webpack.js"
@@ -14,6 +16,7 @@
   "devDependencies": {
     "@wasm-tool/wasm-pack-plugin": "0.1.4",
     "css-loader": "^1.0.1",
+    "gh-pages": "^2.0.1",
     "html-webpack-plugin": "^3.2.0",
     "node-sass": "^4.10.0",
     "sass-loader": "^7.1.0",
