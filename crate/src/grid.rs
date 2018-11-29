@@ -1,13 +1,11 @@
 
 use rand::prelude::*;
-use std::rc::{Rc, Weak};
+use std::rc::{Rc};
 use std::cell::RefCell;
 use cell::*;
 use serde::ser::{Serialize, Serializer, SerializeStruct};
-use wasm_bindgen::prelude::*;
 
 #[derive(Debug)]
-// #[derive(Debug, Serialize)]
 pub struct Grid {
     pub cells: Vec<Vec<CellLinkStrong>>,
     pub rows: usize, 

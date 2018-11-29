@@ -2,15 +2,26 @@ import  "../styles/main.scss";
 var maze_generator;
 import("../crate/pkg").then(module => {
     maze_generator = module;
-    module.to_web(8,8);
+    module.basic_binary_tree(8,8);
 });
 
-var sizeSelector = document.querySelector("#size-selector");
+const cleanup = () => {
+    document.querySelector(".grid-container").remove();
+};
+
+const sizeSelector = document.querySelector("#size-selector");
 
 sizeSelector.addEventListener("change", () => {
+    cleanup();
     const newsize = parseInt(sizeSelector.value);
-    document.querySelector(".grid-container").remove();
-    maze_generator.to_web(newsize, newsize);
+    maze_generator.basic_binary_tree(newsize, newsize);
 });
 
+const algorithmSelector = document.querySelector("#algorithm-selector");
+
+algorithmSelector.addEventListener("change", () => {
+    cleanup();
+    const newsize = parseInt(sizeSelector.value);
+    maze_generator.sidewinder(newsize, newsize);
+});
 

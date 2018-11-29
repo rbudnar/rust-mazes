@@ -1,16 +1,9 @@
 use grid::*;
-use binary_tree::*;
 use web_sys::*;
 use std::rc::{Rc};
 use wasm_bindgen::prelude::*;
 
-pub fn grid_to_web(grid: &Grid, rows: usize, columns: usize) {
-    let mut grid = Grid::new(rows, columns);
-    grid.prepare_grid();
-    grid.configure_cells();
-
-    BinaryTree::on(&grid);
-
+pub fn grid_to_web(grid: &Grid) {
     let document = web_sys::window().unwrap().document().unwrap();
     let grid_container = document.create_element("div").unwrap();
     add_class(&grid_container, "grid-container");

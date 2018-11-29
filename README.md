@@ -1,29 +1,12 @@
-# 🦀🕸 `rust-webpack-template`
+## Mazes in Rust
 
-> **Kickstart your Rust, WebAssembly, and Webpack project!**
+This repository is an implementation of the code from the book `Mazes for Programmers` (https://pragprog.com/book/jbmaze/mazes-for-programmers) in Rust with a web front end. I'm building the maze algorithms as I go through the book. Note that I'm still learning Rust, so my code is likely not "idiomatic" from a Rust perspective.
 
-This template is designed for creating monorepo-style Web applications with
-Rust-generated WebAssembly and Webpack without publishing your wasm to NPM.
+See https://rbudnar.github.io/rust-mazes/ for a demo.
 
-* Want to create and publish NPM packages with Rust and WebAssembly? [Check out
-  `wasm-pack-template`.](https://github.com/rustwasm/wasm-pack-template)
-
-## 🔋 Batteries Included
-
-This template comes pre-configured with all the boilerplate for compiling Rust
-to WebAssembly and hooking into a Webpack build pipeline.
-
+This repo was forked from: https://github.com/rustwasm/rust-webpack-template
+* Install wasm-pack (you might have to switch to the nightly rust build)
 * `npm run start` -- Serve the project locally for development at
   `http://localhost:8080`.
 
 * `npm run build` -- Bundle the project (in production mode).
-
-## 🚴 Using This Template
-
-First, [install `wasm-pack`!](https://rustwasm.github.io/wasm-pack/installer/)
-
-Then, use `npm init` to clone this template:
-
-```sh
-npm init rust-webpack my-app
-```

@@ -15,11 +15,12 @@ extern crate serde_derive;
 use wasm_bindgen::prelude::*;
 mod cell;
 mod grid;
-mod binary_tree;
+mod algorithms;
 mod grid_web;
 mod rng;
 use grid::*;
-use binary_tree::*;
+// use binary_tree::*;
+use algorithms::{binary_tree::*, sidewinder::*};
 
 cfg_if! {
     // When the `console_error_panic_hook` feature is enabled, we can call the
@@ -71,24 +72,6 @@ cfg_if! {
 // }
 
 
-// Called by our JS entry point to run the example.
-#[wasm_bindgen]
-pub fn run() -> Result<(), JsValue> {
-    set_panic_hook();
-
-    let window = web_sys::window().expect("should have a Window");
-    let document = window.document().expect("should have a Document");
-
-    let p: web_sys::Node = document.create_element("p")?.into();
-    p.set_text_content(Some("Hello from Rust, WebAssembly, and Webpack!"));
-
-    let body = document.body().expect("should have a body");
-    let body: &web_sys::Node = body.as_ref();
-    body.append_child(&p)?;
-
-    Ok(())
-}
-
 #[wasm_bindgen]
 pub fn binary_tree() -> String {
     let mut grid = Grid::new(4,4);
@@ -96,18 +79,30 @@ pub fn binary_tree() -> String {
     grid.configure_cells();
 
     BinaryTree::on(&grid);
-    println!("go");
     return serde_json::to_string(&grid).unwrap();
 }
 
 #[wasm_bindgen]
-pub fn to_web(rows: usize, columns: usize) {
+pub fn basic_binary_tree(rows: usize, columns: usize) {
+    let grid = build_grid(rows, columns);
+
+    BinaryTree::on(&grid);
+    grid_web::grid_to_web(&grid);
+}
+
+#[wasm_bindgen]
+pub fn sidewinder(rows: usize, columns: usize) {
+    let grid = build_grid(rows, columns);
+
+    Sidewinder::on(&grid);
+    grid_web::grid_to_web(&grid);
+}
+
+fn build_grid(rows: usize, columns: usize) -> Grid {
     let mut grid = Grid::new(rows, columns);
     grid.prepare_grid();
     grid.configure_cells();
-
-    BinaryTree::on(&grid);
-    grid_web::grid_to_web(&grid, rows, columns);
+    grid
 }
 
 #[cfg(test)]
@@ -141,19 +136,19 @@ mod tests {
     }
 
     // #[test]
-    fn grid_works() {
-        let mut grid = Grid::new(2,2);
-        grid.prepare_grid();
-        grid.configure_cells();
+    // fn grid_works() {
+    //     let mut grid = Grid::new(2,2);
+    //     grid.prepare_grid();
+    //     grid.configure_cells();
 
-        println!("{:#?}", grid.random_cell());
-        let cells = grid.each_cell();
+    //     println!("{:#?}", grid.random_cell());
+    //     let cells = grid.each_cell();
 
-        for (i, cell) in cells.iter().enumerate() {
-            println!("{}: {:#?}", i, cell);
-        }
-        println!("{:#?}", grid);
-    }
+    //     for (i, cell) in cells.iter().enumerate() {
+    //         println!("{}: {:#?}", i, cell);
+    //     }
+    //     println!("{:#?}", grid);
+    // }
 
     #[test]
     fn binary_tree() {
@@ -162,7 +157,16 @@ mod tests {
         grid.configure_cells();
 
         BinaryTree::on(&grid);
-        // println!("{:#?}", serde_json::to_string(&grid).unwrap());
+        println!("{}", grid.to_string());
+    }
+
+    #[test]
+    fn sidewinder() {
+        let mut grid = Grid::new(4,4);
+        grid.prepare_grid();
+        grid.configure_cells();
+
+        Sidewinder::on(&grid);
         println!("{}", grid.to_string());
     }
 }

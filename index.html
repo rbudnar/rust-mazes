@@ -2,16 +2,25 @@
 <html>
   <head>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
-    <title>Mazes</title>
+    <title>Rust Mazes</title>
   </head>
   <body>
+    <div class="select-algorithm">
+      Algorithm: 
+      <select id="algorithm-selector">
+        <option value="1" selected="selected">Binary Tree</option>
+        <option value="2">Sidewinder</option>
+      </select>
+    </div>
+
     <div class="select-size">
+      Grid size: 
       <select id="size-selector">
         <option value="4">4</option>
         <option value="5">5</option>
         <option value="6">6</option>
         <option value="7">7</option>
-        <option value="8">8</option>
+        <option value="8" selected="selected">8</option>
         <option value="9">9</option>
         <option value="10">10</option>
         <option value="11">11</option>
