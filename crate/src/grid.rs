@@ -63,7 +63,7 @@ impl Grid {
         }
     }
 
-    pub fn to_string(&self) -> String {
+    pub fn to_string(&self, contents: &CellContents) -> String {
         let mut output = String::new();
         output += "\r";
         for _ in 0..self.columns {
@@ -75,7 +75,7 @@ impl Grid {
             let mut top = String::from("|");
             let mut bottom = String::from("+");
             for cell in row.iter() {
-                let mut body = String::from("   ");
+                let mut body = format!(" {} ", contents.contents_of(&cell));
                 let e = cell.borrow();
                 let east = e.east.as_ref();
                 let east_border = if east.is_some() && cell.borrow().is_linked(Rc::clone(&east.unwrap().upgrade().unwrap())) {
@@ -118,11 +118,6 @@ impl Grid {
         let col: usize = rng.gen_range(0, self.columns);
         println!("{} {}", row, col);
         return self.get_cell(row, col);
-    }
-
-    // Not sure if this is really needed?
-    pub fn each_row(&self) {
-        
     }
 
     pub fn each_cell(&self) -> Vec<CellLinkStrong> { 
@@ -201,5 +196,16 @@ pub fn unlink(_self: CellLinkStrong, other: CellLinkStrong, bidir: bool) {
 
     if bidir {
         unlink(Rc::clone(&other), Rc::clone(&_self), false);
+    }
+}
+
+pub trait CellContents {
+    fn contents_of(&self, cell: &CellLinkStrong) -> String;
+}
+
+pub struct StandardGrid;
+impl CellContents for StandardGrid {
+    fn contents_of(&self, cell: &CellLinkStrong) -> String {
+        String::from(" ")
     }
 }

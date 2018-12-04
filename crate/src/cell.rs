@@ -61,11 +61,9 @@ impl Cell {
         }
     }
 
-    // TODO: check this implementation
     pub fn neighbors(&self) -> Vec<CellLinkWeak> {
         let mut vec: Vec<CellLinkWeak> = vec![];
         if self.north.is_some() {
-            // let c = self.north.as_ref().unwrap().upgrade().unwrap();
             let c = self.north.as_ref().unwrap().clone();
             vec.push(c);
         }
@@ -100,5 +98,5 @@ impl Cell {
             let c = strong.borrow();
             c.row == other_row && c.column == other_col
         })
-    }
+    }    
 }

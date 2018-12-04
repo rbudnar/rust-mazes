@@ -17,9 +17,8 @@ mod cell;
 mod grid;
 mod algorithms;
 mod grid_web;
-mod rng;
+mod distances;
 use grid::*;
-// use binary_tree::*;
 use algorithms::{binary_tree::*, sidewinder::*};
 
 cfg_if! {
@@ -108,6 +107,8 @@ fn build_grid(rows: usize, columns: usize) -> Grid {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use distances::*;
+
     #[test]
     fn cell_works() {
         // let mut grid = Grid::new(2,2);
@@ -152,21 +153,33 @@ mod tests {
 
     #[test]
     fn binary_tree() {
-        let mut grid = Grid::new(4,4);
+        let mut grid = Grid::new(5,5);
         grid.prepare_grid();
         grid.configure_cells();
 
         BinaryTree::on(&grid);
-        println!("{}", grid.to_string());
+
+        // This prints the grid with Dijkstra's distances inside, rendered as characters a,b,c, etc. 
+        // Will probably need to adjust for really large grids if I really want to display them with distances.
+        let root = grid.cells.first().unwrap().first().unwrap();
+        let distanceGrid = DistanceGrid::new(root);
+
+        println!("{}", grid.to_string(&distanceGrid));
     }
 
     #[test]
     fn sidewinder() {
-        let mut grid = Grid::new(4,4);
+        let mut grid = Grid::new(5,5);
         grid.prepare_grid();
         grid.configure_cells();
 
         Sidewinder::on(&grid);
-        println!("{}", grid.to_string());
+        // let root = grid.cells.first().unwrap().first().unwrap();
+        // let distanceGrid = DistanceGrid::new(root);
+        // println!("{}", grid.to_string(&distanceGrid));
+
+        // Prints normal grid without distances.
+        let stdGrid = StandardGrid;
+        println!("{}", grid.to_string(&stdGrid));
     }
 }

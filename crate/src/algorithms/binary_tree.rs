@@ -1,9 +1,9 @@
 use grid::*;
 use cell::*;
 use std::rc::{Rc};
-use wbg_rand::{Rng, wasm_rng};
+// use wbg_rand::{Rng, wasm_rng};
 // use rand::prelude::*;
-// use rand::Rng;
+use rand::Rng;
 
 pub struct BinaryTree;
 
@@ -25,12 +25,12 @@ impl BinaryTree {
                 }
             }
 
-            // let mut rng = rand::thread_rng();
             let length =  neighbors.len();
             if length > 0 {
-                // let index = rng.gen_range(0, length);
+                let mut rng = rand::thread_rng();
+                let index = rng.gen_range(0, length);
                 // TODO: Fix cannot call on non-wasm_bindgen targets
-                let index = wasm_rng().gen_range(0, length);
+                // let index = wasm_rng().gen_range(0, length);
                 // let index = length -1;
                 let neighbor: CellLinkStrong = Rc::clone(&neighbors[index]);
                 link(Rc::clone(cell), neighbor, true);
