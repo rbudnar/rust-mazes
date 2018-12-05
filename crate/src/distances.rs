@@ -2,22 +2,34 @@ use std::collections::HashMap;
 use cell::*;
 use grid::*;
 use std::rc::{Rc};
+use std::cell::RefCell;
 use std::char;
 
+#[derive(Debug)]
 pub struct Distances {
     cells: HashMap<(usize, usize), u32>,
     root: (usize, usize)
 }
 
 impl Distances {
-    pub fn new(cell: &CellLinkStrong) -> Distances {
+    pub fn new(cell: &CellLinkStrong, build_distances: bool) -> Distances {
         let mut d = Distances {
             cells: HashMap::new(),
             root: (cell.borrow().row, cell.borrow().column)
         };
         d.insert(cell.borrow().row, cell.borrow().column, 0);
-        d.build_distances(cell);
+        if build_distances {
+            d.build_distances(cell);
+        }
+
         d
+    }
+
+    fn new_from_root(&self) -> Distances {
+        Distances {
+            cells: HashMap::new(),
+            root: (self.root.0, self.root.1)
+        }
     }
 
     pub fn insert(&mut self, row: usize, column: usize, distance: u32) {
@@ -58,41 +70,86 @@ impl Distances {
             frontier = new_frontier;        
         }
     }
+
+    pub fn path_to(&self, goal: &CellLinkStrong) -> Distances {
+        let mut current: CellLinkStrong = Rc::clone(goal);
+        let mut neighbor: CellLinkStrong;   
+        let mut breadcrumbs = self.new_from_root();       
+        self.insert_dist(&mut breadcrumbs, goal);
+
+        while !(current.borrow().row == self.root.0 && current.borrow().column == self.root.1) {
+            let current_distance = *self.get_distance(current.borrow().row, current.borrow().column).unwrap();
+            let mut next_current: CellLinkStrong = Rc::new(RefCell::new(Cell::new(0, 0))); 
+            for n in current.borrow().links.iter() {
+                neighbor = n.upgrade().unwrap();
+                let n_ref = neighbor.borrow();
+
+                let neighbor_distance = *self.get_distance(n_ref.row, n_ref.column).unwrap();
+                if neighbor_distance < current_distance {
+                    breadcrumbs.insert(n_ref.row, n_ref.column, neighbor_distance);
+                    next_current = Rc::clone(&neighbor);
+                    break;
+                }
+            }
+
+            current = next_current;
+        }
+        
+        breadcrumbs
+    }
+
+    fn insert_dist(&self, distances: &mut Distances, cell: &CellLinkStrong) {
+        let current_distance = *self.get_distance(cell.borrow().row, cell.borrow().column).unwrap();
+        distances.insert(cell.borrow().row, cell.borrow().column, current_distance);
+    }
 }
 
+#[derive(Debug)]
 pub struct DistanceGrid {
-    distances: Distances
+    distances: Distances,
+    path_grid: Distances,
+    show_path_only: bool
 }
 
 impl DistanceGrid {
     pub fn new(root: &CellLinkStrong) -> DistanceGrid {
         DistanceGrid {
-            distances: Distances::new(root)
+            distances: Distances::new(root, true),
+            path_grid: Distances::new(root, false),
+            show_path_only: false
         }
     }
 
-    fn contents_of(&self, cell: &CellLinkStrong) -> String {
-        let c = cell.borrow();
-        let distance = self.distances.get_distance(c.row, c.column);
-        let d = distance.unwrap().clone();
-        if distance.is_some() && d > 0 {
-            let content = String::from(format!("{}", d));
-            return content;
-        }
+    pub fn build_path_to(&mut self, cell: &CellLinkStrong) {
+        self.path_grid = self.distances.path_to(cell);
+    }
 
-        " ".to_owned()
+    pub fn set_show_path_only(&mut self, show_path_only: bool) {
+        self.show_path_only = show_path_only;
     }
 }
 
 impl CellContents for DistanceGrid {
     fn contents_of(&self, cell: &CellLinkStrong) -> String {
         let c = cell.borrow();
-        let distance = self.distances.get_distance(c.row, c.column);
-        let d = distance.unwrap().clone();
-        if distance.is_some() && d >= 0 {
-            let c = char::from_u32(d + 97);
-            let content = String::from(format!("{}", c.unwrap()));
-            return content;
+
+        let distance = if self.show_path_only {
+            self.path_grid.get_distance(c.row, c.column)
+        }
+        else {
+            self.distances.get_distance(c.row, c.column)
+        };
+
+        if distance.is_some() {
+            let d = distance.unwrap().clone();
+            let c = if d > 9 {
+                char::from_u32(d - 10 + 97).unwrap()
+            }
+            else {
+                char::from_digit(d, 10).unwrap()
+            };
+
+            return String::from(format!("{}", c));
         }
 
         " ".to_owned()

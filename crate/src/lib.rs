@@ -161,10 +161,15 @@ mod tests {
 
         // This prints the grid with Dijkstra's distances inside, rendered as characters a,b,c, etc. 
         // Will probably need to adjust for really large grids if I really want to display them with distances.
+        // grabs first cell of first row
         let root = grid.cells.first().unwrap().first().unwrap();
-        let distanceGrid = DistanceGrid::new(root);
+        let last = grid.cells.last().unwrap().first().unwrap();
+        let mut distance_grid = DistanceGrid::new(root);
+        distance_grid.build_path_to(last);
 
-        println!("{}", grid.to_string(&distanceGrid));
+        println!("{}", grid.to_string(&distance_grid));
+        distance_grid.set_show_path_only(true);
+        println!("{}", grid.to_string(&distance_grid));
     }
 
     #[test]
@@ -179,7 +184,7 @@ mod tests {
         // println!("{}", grid.to_string(&distanceGrid));
 
         // Prints normal grid without distances.
-        let stdGrid = StandardGrid;
-        println!("{}", grid.to_string(&stdGrid));
+        let std_grid = StandardGrid;
+        println!("{}", grid.to_string(&std_grid));
     }
 }
