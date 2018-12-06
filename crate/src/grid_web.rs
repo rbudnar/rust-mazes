@@ -3,12 +3,14 @@ use web_sys::*;
 use std::rc::{Rc};
 use wasm_bindgen::prelude::*;
 
+// Needed to be able to remove the old style sheet when creating new mazes
+static mut STYLESHEET: Option<web_sys::Element> = None;
+
 pub fn grid_to_web(grid: &Grid) {
     let document = web_sys::window().unwrap().document().unwrap();
     let grid_container = document.create_element("div").unwrap();
     add_class(&grid_container, "grid-container");
 
-    let stylesheet = create_style_sheet();
     let rule = format!("
         .grid-container {{\n
         display: grid;\n
@@ -20,10 +22,18 @@ pub fn grid_to_web(grid: &Grid) {
         }}
        ", grid.columns);
 
-    add_css_rule(&stylesheet, &rule);
+    unsafe {
+        if STYLESHEET.is_some() {
+            let s = STYLESHEET.clone().unwrap();
+            remove_stylesheet(&s);
+        }
+        STYLESHEET = Some(create_style_sheet());
+        let stylesheet = STYLESHEET.clone().unwrap();
+        add_css_rule(&stylesheet, &rule);
 
-    document.head().unwrap().append_child(&Node::from(stylesheet))
-        .expect("sheet should have been added");
+        document.head().unwrap().append_child(&Node::from(stylesheet))
+            .expect("sheet should have been added");
+    }
 
     for (i, row) in grid.cells.iter().enumerate() {
         for (j, cell) in row.iter().enumerate() {
@@ -83,4 +93,8 @@ pub fn add_class(element: &web_sys::Element, css_class: &str) {
     let arr = js_sys::Array::new();
     arr.push(&JsValue::from_str(css_class));
     element.class_list().add(&arr).expect("should do stuff dammit");
+}
+
+pub fn remove_stylesheet(element: &web_sys::Element) {
+    element.remove();
 }

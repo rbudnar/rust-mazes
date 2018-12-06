@@ -25,3 +25,9 @@ algorithmSelector.addEventListener("change", () => {
     maze_generator.sidewinder(newsize, newsize);
 });
 
+const redisplayGrid =  document.querySelector("#redisplay");
+
+redisplayGrid.addEventListener("click", () => {
+    cleanup();
+    maze_generator.redisplay_grid();
+});

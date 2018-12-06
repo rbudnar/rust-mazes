@@ -2,46 +2,12 @@ use rand::prelude::*;
 use std::rc::{Rc};
 use std::cell::RefCell;
 use cell::*;
-use serde::ser::{Serialize, Serializer, SerializeStruct};
 
 #[derive(Debug)]
 pub struct Grid {
     pub cells: Vec<Vec<CellLinkStrong>>,
     pub rows: usize, 
     pub columns: usize
-}
-
-impl Serialize for Grid {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        // 3 is the number of fields in the struct.
-        let mut state = serializer.serialize_struct("Grid", 3)?;
-        state.serialize_field("rows", &self.rows)?;
-        state.serialize_field("columns", &self.columns)?;
-        state.serialize_field("cells", &serialize_cells(&self.cells))?;
-        state.end()
-    }
-}
-
-fn serialize_cells(cells: &Vec<Vec<CellLinkStrong>>) -> Vec<Vec<String>> {
-    cells.iter()                       
-        .map(|row| row.iter().map(|cell| serialize_cell(cell)).collect())        
-        .collect()
-}
-
-fn serialize_cell(cell: &CellLinkStrong) -> String {
-    let row = cell.borrow().row;
-    let col = cell.borrow().column;
-    let north = get_coords(&cell.borrow().north);
-    let south = get_coords(&cell.borrow().south);
-    let east = get_coords(&cell.borrow().east);
-    let west = get_coords(&cell.borrow().west);
-    // TODO: serialize links
-    // let links = ... 
-    String::from(
-        format!("{{ row: {}, column: {}, north: {}, south: {}, east: {}, west: {} }}", row, col, north, south, east, west))
 }
 
 fn get_coords(cell: &Option<CellLinkWeak>) -> String {

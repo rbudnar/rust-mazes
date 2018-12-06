@@ -1,4 +1,5 @@
 // #![feature(use_extern_macros)]
+#![feature(const_vec_new)]
 #![allow(dead_code)]
 #[macro_use]
 extern crate cfg_if;
@@ -7,10 +8,6 @@ extern crate wbg_rand;
 extern crate wasm_bindgen;
 extern crate web_sys;
 extern crate js_sys;
-extern crate serde;
-extern crate serde_json;
-#[macro_use]
-extern crate serde_derive;
 
 use wasm_bindgen::prelude::*;
 mod cell;
@@ -71,35 +68,39 @@ cfg_if! {
 //     fn append_child(this: &Element, other: Element);
 //     fn alert(s: &str);
 // }
-
-
-#[wasm_bindgen]
-pub fn binary_tree() -> String {
-    let mut grid = Grid::new(4,4);
-    grid.prepare_grid();
-    grid.configure_cells();
-
-    let wasm_generator = wasm_rng::WasmRng;
-    BinaryTree::on(&grid, &wasm_generator);
-    return serde_json::to_string(&grid).unwrap();
-}
+static mut GRID: Grid = Grid {
+            cells: Vec::new(),
+            rows: 1, columns: 1
+        };
 
 #[wasm_bindgen]
 pub fn basic_binary_tree(rows: usize, columns: usize) {
-    let grid = build_grid(rows, columns);
+    unsafe {
+        GRID = build_grid(rows, columns);
 
-    let wasm_generator = wasm_rng::WasmRng;
-    BinaryTree::on(&grid, &wasm_generator);
-    grid_web::grid_to_web(&grid);
+        let wasm_generator = wasm_rng::WasmRng;
+        BinaryTree::on(&GRID, &wasm_generator);
+        grid_web::grid_to_web(&GRID);
+    }
 }
 
 #[wasm_bindgen]
 pub fn sidewinder(rows: usize, columns: usize) {
-    let grid = build_grid(rows, columns);
+    unsafe {
+        GRID = build_grid(rows, columns);
 
-    let wasm_generator = wasm_rng::WasmRng;
-    Sidewinder::on(&grid, &wasm_generator);
-    grid_web::grid_to_web(&grid);
+        let wasm_generator = wasm_rng::WasmRng;
+        Sidewinder::on(&GRID, &wasm_generator);
+        grid_web::grid_to_web(&GRID);
+    }
+}
+
+
+#[wasm_bindgen]
+pub fn redisplay_grid() {
+    unsafe {
+        grid_web::grid_to_web(&GRID);
+    }
 }
 
 fn build_grid(rows: usize, columns: usize) -> Grid {
