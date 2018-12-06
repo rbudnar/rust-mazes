@@ -1,4 +1,3 @@
-
 use rand::prelude::*;
 use std::rc::{Rc};
 use std::cell::RefCell;
@@ -205,7 +204,7 @@ pub trait CellContents {
 
 pub struct StandardGrid;
 impl CellContents for StandardGrid {
-    fn contents_of(&self, cell: &CellLinkStrong) -> String {
+    fn contents_of(&self, _cell: &CellLinkStrong) -> String {
         String::from(" ")
     }
 }

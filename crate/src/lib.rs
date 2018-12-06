@@ -18,8 +18,10 @@ mod grid;
 mod algorithms;
 mod grid_web;
 mod distances;
+mod rng;
 use grid::*;
 use algorithms::{binary_tree::*, sidewinder::*};
+use rng::{wasm_rng};
 
 cfg_if! {
     // When the `console_error_panic_hook` feature is enabled, we can call the
@@ -77,7 +79,8 @@ pub fn binary_tree() -> String {
     grid.prepare_grid();
     grid.configure_cells();
 
-    BinaryTree::on(&grid);
+    let wasm_generator = wasm_rng::WasmRng;
+    BinaryTree::on(&grid, &wasm_generator);
     return serde_json::to_string(&grid).unwrap();
 }
 
@@ -85,7 +88,8 @@ pub fn binary_tree() -> String {
 pub fn basic_binary_tree(rows: usize, columns: usize) {
     let grid = build_grid(rows, columns);
 
-    BinaryTree::on(&grid);
+    let wasm_generator = wasm_rng::WasmRng;
+    BinaryTree::on(&grid, &wasm_generator);
     grid_web::grid_to_web(&grid);
 }
 
@@ -93,7 +97,8 @@ pub fn basic_binary_tree(rows: usize, columns: usize) {
 pub fn sidewinder(rows: usize, columns: usize) {
     let grid = build_grid(rows, columns);
 
-    Sidewinder::on(&grid);
+    let wasm_generator = wasm_rng::WasmRng;
+    Sidewinder::on(&grid, &wasm_generator);
     grid_web::grid_to_web(&grid);
 }
 
@@ -108,6 +113,7 @@ fn build_grid(rows: usize, columns: usize) -> Grid {
 mod tests {
     use super::*;
     use distances::*;
+    use rng::{thread_rng};
 
     #[test]
     fn cell_works() {
@@ -157,7 +163,8 @@ mod tests {
         grid.prepare_grid();
         grid.configure_cells();
 
-        BinaryTree::on(&grid);
+        let thread_rng = thread_rng::ThreadRng;
+        BinaryTree::on(&grid, &thread_rng);
 
         // This prints the grid with Dijkstra's distances inside, rendered as characters a,b,c, etc. 
         // Will probably need to adjust for really large grids if I really want to display them with distances.
@@ -165,10 +172,17 @@ mod tests {
         let root = grid.cells.first().unwrap().first().unwrap();
         let last = grid.cells.last().unwrap().first().unwrap();
         let mut distance_grid = DistanceGrid::new(root);
+        
+        // builds a path to the first cell of the last row
         distance_grid.build_path_to(last);
-
         println!("{}", grid.to_string(&distance_grid));
         distance_grid.set_show_path_only(true);
+        
+        // shows the shortest path from root (NW) to SW corner as constructed above
+        println!("{}", grid.to_string(&distance_grid));
+
+        // rebuilds path grid to determine and show the longest path
+        distance_grid.build_longest_path(&grid);
         println!("{}", grid.to_string(&distance_grid));
     }
 
@@ -177,8 +191,9 @@ mod tests {
         let mut grid = Grid::new(5,5);
         grid.prepare_grid();
         grid.configure_cells();
-
-        Sidewinder::on(&grid);
+        
+        let thread_rng = thread_rng::ThreadRng;
+        Sidewinder::on(&grid, &thread_rng);
         // let root = grid.cells.first().unwrap().first().unwrap();
         // let distanceGrid = DistanceGrid::new(root);
         // println!("{}", grid.to_string(&distanceGrid));

@@ -7,6 +7,7 @@ use std::char;
 
 #[derive(Debug)]
 pub struct Distances {
+    // (row, column)
     cells: HashMap<(usize, usize), u32>,
     root: (usize, usize)
 }
@@ -73,15 +74,15 @@ impl Distances {
 
     pub fn path_to(&self, goal: &CellLinkStrong) -> Distances {
         let mut current: CellLinkStrong = Rc::clone(goal);
-        let mut neighbor: CellLinkStrong;   
         let mut breadcrumbs = self.new_from_root();       
-        self.insert_dist(&mut breadcrumbs, goal);
+        self.insert_dist(&mut breadcrumbs, goal);   
 
         while !(current.borrow().row == self.root.0 && current.borrow().column == self.root.1) {
             let current_distance = *self.get_distance(current.borrow().row, current.borrow().column).unwrap();
             let mut next_current: CellLinkStrong = Rc::new(RefCell::new(Cell::new(0, 0))); 
+
             for n in current.borrow().links.iter() {
-                neighbor = n.upgrade().unwrap();
+                let neighbor = n.upgrade().unwrap();
                 let n_ref = neighbor.borrow();
 
                 let neighbor_distance = *self.get_distance(n_ref.row, n_ref.column).unwrap();
@@ -102,13 +103,27 @@ impl Distances {
         let current_distance = *self.get_distance(cell.borrow().row, cell.borrow().column).unwrap();
         distances.insert(cell.borrow().row, cell.borrow().column, current_distance);
     }
+
+    fn max(&self) -> ((usize, usize) , u32) {
+        let mut max_distance = 0;
+        let mut max_cell = self.root;
+
+        for (cell, distance) in self.cells.iter() {
+            if *distance > max_distance {
+                max_cell = *cell;
+                max_distance = *distance;
+            }
+        }
+
+        (max_cell, max_distance)
+    }    
 }
 
 #[derive(Debug)]
 pub struct DistanceGrid {
     distances: Distances,
     path_grid: Distances,
-    show_path_only: bool
+    show_path_only: bool,
 }
 
 impl DistanceGrid {
@@ -116,7 +131,7 @@ impl DistanceGrid {
         DistanceGrid {
             distances: Distances::new(root, true),
             path_grid: Distances::new(root, false),
-            show_path_only: false
+            show_path_only: false,
         }
     }
 
@@ -126,6 +141,18 @@ impl DistanceGrid {
 
     pub fn set_show_path_only(&mut self, show_path_only: bool) {
         self.show_path_only = show_path_only;
+    }
+
+    pub fn build_longest_path(&mut self, grid: &Grid) {
+        let (max_cell, _) = self.distances.max();
+
+        let new_root = grid.get_cell(max_cell.0, max_cell.1).unwrap();
+        let new_distances = Distances::new(&new_root, true);
+
+        let (new_max_cell, _) = new_distances.max();
+        
+        let goal = grid.get_cell(new_max_cell.0, new_max_cell.1).unwrap();
+        self.path_grid = new_distances.path_to(&goal);
     }
 }
 
