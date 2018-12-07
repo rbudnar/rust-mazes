@@ -80,8 +80,7 @@ pub fn grid_to_web(grid: &Grid) {
 
 pub fn create_style_sheet() -> web_sys::Element {
     let document = web_sys::window().unwrap().document().unwrap();
-    let style = document.create_element("style").unwrap();
-    style
+    document.create_element("style").unwrap()
 }
 
 pub fn add_css_rule(sheet: &web_sys::Element, rule: &str) {

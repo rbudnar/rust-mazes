@@ -15,13 +15,6 @@ pub struct Cell {
     pub west: Option<CellLinkWeak>
 }
 
-fn get_coords(cell: &Option<CellLinkWeak>) -> String {
-    let c: CellLinkStrong = cell.clone().unwrap().upgrade().unwrap().clone();
-    let row = c.borrow().row;
-    let col = c.borrow().column;
-    String::from(format!("row: {}, column: {}", row, col))
-}
-
 impl Cell {
     pub fn new(row: usize, column: usize) -> Cell {
         Cell {

@@ -12,8 +12,8 @@ impl Sidewinder {
         
             for (_, cell) in row.iter().enumerate() {
                 run.push(Rc::clone(&cell));
-                let at_eastern_boundary = !cell.borrow().east.is_some();
-                let at_northern_boundary = !cell.borrow().north.is_some();
+                let at_eastern_boundary = cell.borrow().east.is_none();
+                let at_northern_boundary = cell.borrow().north.is_none();
                 let should_close_out = at_eastern_boundary || (!at_northern_boundary && rng_generator.gen_range(0, 2) == 0);
 
                 if should_close_out {

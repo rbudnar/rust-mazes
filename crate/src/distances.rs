@@ -56,7 +56,7 @@ impl Distances {
             let mut new_frontier: Vec<CellLinkStrong> = vec![];
 
             for fcell in frontier.iter() {
-                let distance = distances.get_distance(fcell.borrow().row, fcell.borrow().column).unwrap().clone();
+                let distance = *distances.get_distance(fcell.borrow().row, fcell.borrow().column).unwrap();
                 for linked in fcell.borrow().links.iter() {
                     let cls = linked.upgrade().unwrap();
                     let c = cls.borrow();
@@ -168,15 +168,14 @@ impl CellContents for DistanceGrid {
         };
 
         if distance.is_some() {
-            let d = distance.unwrap().clone();
+            let d = *distance.unwrap();
             let c = if d > 9 {
                 char::from_u32(d - 10 + 97).unwrap()
             }
             else {
                 char::from_digit(d, 10).unwrap()
             };
-
-            return String::from(format!("{}", c));
+            return format!("{}", c);
         }
 
         " ".to_owned()

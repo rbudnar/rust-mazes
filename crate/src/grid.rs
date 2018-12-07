@@ -10,16 +10,6 @@ pub struct Grid {
     pub columns: usize
 }
 
-fn get_coords(cell: &Option<CellLinkWeak>) -> String {
-    if !cell.is_some() || !cell.clone().unwrap().upgrade().is_some() {
-        return String::from("null");
-    }
-    let c: CellLinkStrong = cell.clone().unwrap().upgrade().unwrap().clone();
-    let row = c.borrow().row;
-    let col = c.borrow().column;
-    String::from(format!("{{ row: {}, column: {} }}", row, col))
-}
-
 impl Grid {
     pub fn new(rows: usize, columns: usize)-> Grid {
         Grid {
@@ -82,7 +72,7 @@ impl Grid {
         let row: usize = rng.gen_range(0, self.rows);
         let col: usize = rng.gen_range(0, self.columns);
         println!("{} {}", row, col);
-        return self.get_cell(row, col);
+        self.get_cell(row, col)
     }
 
     pub fn each_cell(&self) -> Vec<CellLinkStrong> { 
@@ -130,7 +120,7 @@ impl Grid {
             return None;
         }
 
-        return Some(Rc::clone(&self.cells[row][column]));
+        Some(Rc::clone(&self.cells[row][column]))
     }
 
     pub fn prepare_grid(&mut self) {

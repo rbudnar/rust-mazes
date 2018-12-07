@@ -9,18 +9,13 @@ impl BinaryTree {
     pub fn on(grid: &Grid, rng_generator: &RngWrapper) {
         for (_, cell) in grid.each_cell().iter().enumerate() {
             let mut neighbors: Vec<CellLinkStrong> = vec![];
-            if cell.borrow().north.is_some() {
-                let north = cell.borrow().north.clone().unwrap().upgrade();
-                if north.is_some() {
-                    neighbors.push(Rc::clone(&north.unwrap()));
-                }
-            }
             
-            if cell.borrow().east.is_some() {
-                let east = cell.borrow().east.clone().unwrap().upgrade();
-                if east.is_some() {
-                    neighbors.push(Rc::clone(&east.unwrap()));
-                }
+            if let Some(north) = cell.borrow().north.clone() {
+                neighbors.push(Rc::clone(&north.upgrade().unwrap()));
+            };
+
+            if let Some(east) = cell.borrow().east.clone() {
+                neighbors.push(Rc::clone(&east.upgrade().unwrap()));
             }
 
             let length =  neighbors.len();
