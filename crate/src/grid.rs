@@ -18,7 +18,7 @@ impl Grid {
         }
     }
 
-    pub fn to_string(&self, contents: &CellContents) -> String {
+    pub fn to_string(&self, contents: &CellFormatter) -> String {
         let mut output = String::new();
         output += "\r";
         for _ in 0..self.columns {
@@ -154,13 +154,19 @@ pub fn unlink(_self: CellLinkStrong, other: CellLinkStrong, bidir: bool) {
     }
 }
 
-pub trait CellContents {
+pub trait CellFormatter {
     fn contents_of(&self, cell: &CellLinkStrong) -> String;
+    fn background_color(&self, cell: &CellLinkStrong) -> String;
+
 }
 
 pub struct StandardGrid;
-impl CellContents for StandardGrid {
+impl CellFormatter for StandardGrid {
     fn contents_of(&self, _cell: &CellLinkStrong) -> String {
         String::from(" ")
     }
+
+    fn background_color(&self, _cell: &CellLinkStrong) -> String {
+        String::from("")
+    }    
 }

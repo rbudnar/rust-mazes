@@ -4,6 +4,7 @@ use grid::*;
 use std::rc::{Rc};
 use std::cell::RefCell;
 use std::char;
+use math::round;
 
 #[derive(Debug)]
 pub struct Distances {
@@ -60,7 +61,7 @@ impl Distances {
                 for linked in fcell.borrow().links.iter() {
                     let cls = linked.upgrade().unwrap();
                     let c = cls.borrow();
-
+                    
                     if !distances.is_visited(c.row, c.column) {
                         distances.insert(c.row, c.column, distance + 1);
                         new_frontier.push(Rc::clone(&cls));
@@ -107,7 +108,7 @@ impl Distances {
     fn max(&self) -> ((usize, usize) , u32) {
         let mut max_distance = 0;
         let mut max_cell = self.root;
-
+        
         for (cell, distance) in self.cells.iter() {
             if *distance > max_distance {
                 max_cell = *cell;
@@ -128,8 +129,14 @@ pub struct DistanceGrid {
 
 impl DistanceGrid {
     pub fn new(root: &CellLinkStrong) -> DistanceGrid {
+        let distances = Distances::new(root, true);
+
+        if distances.max().1 == 0 {
+            panic!("Max distance from root cell should not be zero. Make sure an algorithm was applied to the grid before initializing the distance grid.");
+        }
+
         DistanceGrid {
-            distances: Distances::new(root, true),
+            distances,
             path_grid: Distances::new(root, false),
             show_path_only: false,
         }
@@ -156,7 +163,7 @@ impl DistanceGrid {
     }
 }
 
-impl CellContents for DistanceGrid {
+impl CellFormatter for DistanceGrid {
     fn contents_of(&self, cell: &CellLinkStrong) -> String {
         let c = cell.borrow();
 
@@ -180,4 +187,26 @@ impl CellContents for DistanceGrid {
 
         " ".to_owned()
     }
+
+    fn background_color(&self, cell: &CellLinkStrong) -> String {
+        if let Some(distance) = self.distances.get_distance(cell.borrow().row, cell.borrow().column) {
+            let (_, max_distance) = self.distances.max();
+            
+            let intensity = f64::from(max_distance - distance) / f64::from(max_distance);
+            let dark = round::floor(255.0 * intensity, 0);
+            let bright = 128.0 + round::floor(127.0 * intensity, 0);
+
+            // green shades
+            // format!("rgb({},{},{})", dark, bright, dark)
+
+            // red shades
+            // format!("rgb({},{},{})", bright, dark, dark)
+
+            // blue shades
+            format!("rgb({},{},{})", dark, dark, bright)
+
+        } else {
+            String::from("")
+        }
+    }    
 }

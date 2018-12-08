@@ -1,12 +1,14 @@
 use grid::*;
+use cell::*;
 use web_sys::*;
 use std::rc::{Rc};
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
 
 // Needed to be able to remove the old style sheet when creating new mazes
 static mut STYLESHEET: Option<web_sys::Element> = None;
 
-pub fn grid_to_web(grid: &Grid) {
+pub fn grid_to_web(grid: &Grid, formatter: &CellFormatter) {
     let document = web_sys::window().unwrap().document().unwrap();
     let grid_container = document.create_element("div").unwrap();
     add_class(&grid_container, "grid-container");
@@ -39,6 +41,7 @@ pub fn grid_to_web(grid: &Grid) {
         for (j, cell) in row.iter().enumerate() {
             let html_cell = document.create_element("div").unwrap();
             add_class(&html_cell, "cell");
+
             // Top of maze
             if i == 0 {
                 add_class(&html_cell, "bt");
@@ -69,6 +72,8 @@ pub fn grid_to_web(grid: &Grid) {
                 add_class(&html_cell, "bb");            
             }
 
+            let c = html_cell.dyn_ref::<HtmlElement>().unwrap().clone();
+            add_bg_color(&c, cell, formatter);
             grid_container.append_child(&Node::from(html_cell)).unwrap();
         }
     }
@@ -92,6 +97,11 @@ pub fn add_class(element: &web_sys::Element, css_class: &str) {
     let arr = js_sys::Array::new();
     arr.push(&JsValue::from_str(css_class));
     element.class_list().add(&arr).expect("should do stuff dammit");
+}
+
+fn add_bg_color(element: &web_sys::HtmlElement, cell: &CellLinkStrong, formatter: &CellFormatter) {
+    let color = formatter.background_color(cell);
+    element.style().set_property("background-color", &color).unwrap();
 }
 
 pub fn remove_stylesheet(element: &web_sys::Element) {

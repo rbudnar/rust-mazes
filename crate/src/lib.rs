@@ -8,6 +8,7 @@ extern crate wbg_rand;
 extern crate wasm_bindgen;
 extern crate web_sys;
 extern crate js_sys;
+extern crate math;
 
 use wasm_bindgen::prelude::*;
 mod cell;
@@ -17,6 +18,7 @@ mod grid_web;
 mod distances;
 mod rng;
 use grid::*;
+use distances::*;
 use algorithms::{binary_tree::*, sidewinder::*};
 use rng::{wasm_rng};
 
@@ -69,18 +71,20 @@ cfg_if! {
 //     fn alert(s: &str);
 // }
 static mut GRID: Grid = Grid {
-            cells: Vec::new(),
-            rows: 1, columns: 1
-        };
+    cells: Vec::new(),
+    rows: 1, columns: 1
+};
 
 #[wasm_bindgen]
 pub fn basic_binary_tree(rows: usize, columns: usize) {
     unsafe {
         GRID = build_grid(rows, columns);
-
         let wasm_generator = wasm_rng::WasmRng;
         BinaryTree::on(&GRID, &wasm_generator);
-        grid_web::grid_to_web(&GRID);
+
+        let mut distance_grid = prepare_distance_grid(&GRID);
+        distance_grid.build_longest_path(&GRID);        
+        grid_web::grid_to_web(&GRID, &distance_grid);
     }
 }
 
@@ -88,10 +92,11 @@ pub fn basic_binary_tree(rows: usize, columns: usize) {
 pub fn sidewinder(rows: usize, columns: usize) {
     unsafe {
         GRID = build_grid(rows, columns);
-
         let wasm_generator = wasm_rng::WasmRng;
         Sidewinder::on(&GRID, &wasm_generator);
-        grid_web::grid_to_web(&GRID);
+
+        let distance_grid = prepare_distance_grid(&GRID);
+        grid_web::grid_to_web(&GRID, &distance_grid);
     }
 }
 
@@ -99,15 +104,22 @@ pub fn sidewinder(rows: usize, columns: usize) {
 #[wasm_bindgen]
 pub fn redisplay_grid() {
     unsafe {
-        grid_web::grid_to_web(&GRID);
+        let distance_grid = prepare_distance_grid(&GRID);
+        grid_web::grid_to_web(&GRID, &distance_grid);
     }
 }
 
 fn build_grid(rows: usize, columns: usize) -> Grid {
     let mut grid = Grid::new(rows, columns);
     grid.prepare_grid();
+    
     grid.configure_cells();
     grid
+}
+
+fn prepare_distance_grid(grid: &Grid) -> DistanceGrid {
+    let root = grid.cells.first().unwrap().first().unwrap();
+    DistanceGrid::new(root)
 }
 
 #[cfg(test)]
@@ -143,21 +155,6 @@ mod tests {
         // println!("neighbors: {:?}", c00.borrow().neighbors());
     }
 
-    // #[test]
-    // fn grid_works() {
-    //     let mut grid = Grid::new(2,2);
-    //     grid.prepare_grid();
-    //     grid.configure_cells();
-
-    //     println!("{:#?}", grid.random_cell());
-    //     let cells = grid.each_cell();
-
-    //     for (i, cell) in cells.iter().enumerate() {
-    //         println!("{}: {:#?}", i, cell);
-    //     }
-    //     println!("{:#?}", grid);
-    // }
-
     #[test]
     fn binary_tree() {
         let mut grid = Grid::new(5,5);
@@ -173,6 +170,7 @@ mod tests {
         let root = grid.cells.first().unwrap().first().unwrap();
         let last = grid.cells.last().unwrap().first().unwrap();
         let mut distance_grid = DistanceGrid::new(root);
+        
         
         // builds a path to the first cell of the last row
         distance_grid.build_path_to(last);
@@ -202,5 +200,30 @@ mod tests {
         // Prints normal grid without distances.
         let std_grid = StandardGrid;
         println!("{}", grid.to_string(&std_grid));
+    }
+
+    #[test]
+    fn colors() {
+        let mut grid = Grid::new(5,5);
+        grid.prepare_grid();
+        grid.configure_cells();
+
+        let thread_rng = thread_rng::ThreadRng;
+        BinaryTree::on(&grid, &thread_rng);
+
+        // This prints the grid with Dijkstra's distances inside, rendered as characters a,b,c, etc. 
+        // Will probably need to adjust for really large grids if I really want to display them with distances.
+        // grabs first cell of first row
+        let root = grid.cells.first().unwrap().first().unwrap();
+        let distance_grid = DistanceGrid::new(root);
+        let color = distance_grid.background_color(&root);
+        assert_eq!(color, "rgb(255,255,255)");
+
+        for row in grid.cells.iter() {
+            for cell in row.iter() {
+                println!("{}", distance_grid.background_color(&cell))    
+            }
+        }
+
     }
 }
