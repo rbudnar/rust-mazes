@@ -1,11 +1,11 @@
 [package]
-authors = ["The RustWasm Developers"]
+authors = ["Ron Budnar"]
 categories = ["wasm"]
-description = "My super awesome Rust, WebAssembly, and Webpack project!"
+description = "Mazes in rust - from the PragProg book 'Mazes for Programmers'"
 license = "Apache-2.0/MIT"
 name = "rust-mazes"
 readme = "./README.md"
-repository = "https://github.com/rustwasm/rust-webpack-template"
+repository = "https://github.com/rbudnar/rust-mazes"
 version = "0.1.0"
 
 [lib]

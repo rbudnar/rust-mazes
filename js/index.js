@@ -5,14 +5,9 @@ import("../crate/pkg").then(module => {
     module.basic_binary_tree(8,8);
 });
 
-const cleanup = () => {
-    document.querySelector(".grid-container").remove();
-};
-
 const sizeSelector = document.querySelector("#size-selector");
 
 sizeSelector.addEventListener("change", () => {
-    cleanup();
     const newsize = parseInt(sizeSelector.value);
     maze_generator.basic_binary_tree(newsize, newsize);
 });
@@ -20,14 +15,12 @@ sizeSelector.addEventListener("change", () => {
 const algorithmSelector = document.querySelector("#algorithm-selector");
 
 algorithmSelector.addEventListener("change", () => {
-    cleanup();
     const newsize = parseInt(sizeSelector.value);
     maze_generator.sidewinder(newsize, newsize);
 });
 
-const redisplayGrid =  document.querySelector("#redisplay");
+const colorize =  document.querySelector("#colorize");
 
-redisplayGrid.addEventListener("click", () => {
-    cleanup();
-    maze_generator.redisplay_grid();
+colorize.addEventListener("click", () => {
+    maze_generator.on_colorize_change(colorize.checked);
 });

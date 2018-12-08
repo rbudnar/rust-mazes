@@ -75,6 +75,8 @@ static mut GRID: Grid = Grid {
     rows: 1, columns: 1
 };
 
+static mut COLORIZE: bool = true;
+
 #[wasm_bindgen]
 pub fn basic_binary_tree(rows: usize, columns: usize) {
     unsafe {
@@ -84,7 +86,7 @@ pub fn basic_binary_tree(rows: usize, columns: usize) {
 
         let mut distance_grid = prepare_distance_grid(&GRID);
         distance_grid.build_longest_path(&GRID);        
-        grid_web::grid_to_web(&GRID, &distance_grid);
+        grid_web::grid_to_web(&GRID, &distance_grid, COLORIZE);
     }
 }
 
@@ -96,7 +98,7 @@ pub fn sidewinder(rows: usize, columns: usize) {
         Sidewinder::on(&GRID, &wasm_generator);
 
         let distance_grid = prepare_distance_grid(&GRID);
-        grid_web::grid_to_web(&GRID, &distance_grid);
+        grid_web::grid_to_web(&GRID, &distance_grid, COLORIZE);
     }
 }
 
@@ -105,7 +107,16 @@ pub fn sidewinder(rows: usize, columns: usize) {
 pub fn redisplay_grid() {
     unsafe {
         let distance_grid = prepare_distance_grid(&GRID);
-        grid_web::grid_to_web(&GRID, &distance_grid);
+        grid_web::grid_to_web(&GRID, &distance_grid, COLORIZE);
+    }
+}
+
+#[wasm_bindgen]
+pub fn on_colorize_change(colorize: bool) {
+    unsafe {
+        COLORIZE = colorize;
+        let distance_grid = prepare_distance_grid(&GRID);
+        grid_web::grid_to_web(&GRID, &distance_grid, COLORIZE);
     }
 }
 

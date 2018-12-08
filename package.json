@@ -2,7 +2,7 @@
   "author": "Ron Budnar",
   "name": "rust-mazes",
   "version": "0.1.4",
-  "repository": "https://github.com/rbudnar/rust-webpack-template",
+  "repository": "https://github.com/rbudnar/rust-mazes",
   "license": "Apache-2.0/MIT",
   "scripts": {
     "start": "webpack-dev-server -d",

@@ -8,7 +8,9 @@ use wasm_bindgen::JsCast;
 // Needed to be able to remove the old style sheet when creating new mazes
 static mut STYLESHEET: Option<web_sys::Element> = None;
 
-pub fn grid_to_web(grid: &Grid, formatter: &CellFormatter) {
+pub fn grid_to_web(grid: &Grid, formatter: &CellFormatter, colorize: bool) {
+    cleanup_old_maze();
+
     let document = web_sys::window().unwrap().document().unwrap();
     let grid_container = document.create_element("div").unwrap();
     add_class(&grid_container, "grid-container");
@@ -17,7 +19,7 @@ pub fn grid_to_web(grid: &Grid, formatter: &CellFormatter) {
         .grid-container {{\n
         display: grid;\n
         grid-template-columns: repeat({}, 1fr);\n
-        height: 80vw; \n
+        height: 80vh; \n
         width: 80vw;\n
         background-color: #efefef;\n
         border: 1px solid black;\n
@@ -73,7 +75,9 @@ pub fn grid_to_web(grid: &Grid, formatter: &CellFormatter) {
             }
 
             let c = html_cell.dyn_ref::<HtmlElement>().unwrap().clone();
-            add_bg_color(&c, cell, formatter);
+            if colorize {
+                add_bg_color(&c, cell, formatter);
+            }
             grid_container.append_child(&Node::from(html_cell)).unwrap();
         }
     }
@@ -83,17 +87,17 @@ pub fn grid_to_web(grid: &Grid, formatter: &CellFormatter) {
 
 }
 
-pub fn create_style_sheet() -> web_sys::Element {
+fn create_style_sheet() -> web_sys::Element {
     let document = web_sys::window().unwrap().document().unwrap();
     document.create_element("style").unwrap()
 }
 
-pub fn add_css_rule(sheet: &web_sys::Element, rule: &str) {
+fn add_css_rule(sheet: &web_sys::Element, rule: &str) {
     let styles = sheet.inner_html() + rule;
     sheet.set_inner_html(&styles);
 }
 
-pub fn add_class(element: &web_sys::Element, css_class: &str) {
+fn add_class(element: &web_sys::Element, css_class: &str) {
     let arr = js_sys::Array::new();
     arr.push(&JsValue::from_str(css_class));
     element.class_list().add(&arr).expect("should do stuff dammit");
@@ -104,6 +108,14 @@ fn add_bg_color(element: &web_sys::HtmlElement, cell: &CellLinkStrong, formatter
     element.style().set_property("background-color", &color).unwrap();
 }
 
-pub fn remove_stylesheet(element: &web_sys::Element) {
+fn remove_stylesheet(element: &web_sys::Element) {
     element.remove();
+}
+
+fn cleanup_old_maze() {
+    let document = web_sys::window().unwrap().document().unwrap();
+    let old_grid = document.query_selector(".grid-container").unwrap();
+    if let Some(g) = old_grid {
+        g.remove();
+    }
 }

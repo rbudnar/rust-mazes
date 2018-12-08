@@ -1,28 +1,9 @@
-body {
-    height: 100vh;
-}
+body { height: 100vh; }
 
-.grid-container {
-}
+.bt { border-top: 1px solid black; }
 
-// .cell {
-//     height: 100px;
-//     width: 100px;
-//     box-sizing: border-box;
-// }
+.bl { border-left: 1px solid black; }
 
-.bt {
-    border-top: 1px solid black;
-}
+.br { border-right: 1px solid black; }
 
-.bl {
-    border-left: 1px solid black;
-}
-
-.br {
-    border-right: 1px solid black;
-}
-
-.bb {
-    border-bottom: 1px solid black;
-}
+.bb { border-bottom: 1px solid black; }
