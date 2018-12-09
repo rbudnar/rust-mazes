@@ -1,4 +1,4 @@
-use rand::prelude::*;
+use rng::RngWrapper;
 use std::rc::{Rc};
 use std::cell::RefCell;
 use cell::*;
@@ -67,8 +67,7 @@ impl Grid {
         self.rows * self.columns
     }
 
-    pub fn random_cell(&self) -> Option<CellLinkStrong> {
-        let mut rng = thread_rng();
+    pub fn random_cell(&self, rng: &RngWrapper) -> Option<CellLinkStrong> {
         let row: usize = rng.gen_range(0, self.rows);
         let col: usize = rng.gen_range(0, self.columns);
         println!("{} {}", row, col);

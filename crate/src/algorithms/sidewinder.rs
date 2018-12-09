@@ -2,11 +2,12 @@ use rng::RngWrapper;
 use grid::*;
 use cell::*;
 use std::rc::{Rc};
+use algorithms::GridAlgorithm;
 
 pub struct Sidewinder;
 
-impl Sidewinder {
-    pub fn on(grid: &Grid, rng_generator: &RngWrapper) {
+impl GridAlgorithm for Sidewinder {
+    fn on(&self, grid: &Grid, rng_generator: &RngWrapper) {
         for (_, row) in grid.cells.iter().enumerate() {
             let mut run: Vec<CellLinkStrong> = vec![];
         

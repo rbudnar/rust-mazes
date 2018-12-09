@@ -6,21 +6,38 @@ import("../crate/pkg").then(module => {
 });
 
 const sizeSelector = document.querySelector("#size-selector");
-
-sizeSelector.addEventListener("change", () => {
-    const newsize = parseInt(sizeSelector.value);
-    maze_generator.basic_binary_tree(newsize, newsize);
-});
-
 const algorithmSelector = document.querySelector("#algorithm-selector");
 
+const renderMaze = () => {
+    let alg = parseInt(algorithmSelector.value);
+    let size = parseInt(sizeSelector.value);
+    switch (alg) {
+        case 1: 
+            maze_generator.basic_binary_tree(size, size);
+            break;
+        case 2: 
+            maze_generator.sidewinder(size, size);
+            break;
+        case 3: 
+            maze_generator.aldous_broder(size, size);
+            break;
+        default:
+            console.warn("not a valid value");
+            maze_generator.basic_binary_tree(size, size);
+            break;
+    }
+};
+
+sizeSelector.addEventListener("change", () => {
+    renderMaze();
+});
+
+
 algorithmSelector.addEventListener("change", () => {
-    const newsize = parseInt(sizeSelector.value);
-    maze_generator.sidewinder(newsize, newsize);
+    renderMaze();
 });
 
 const colorize =  document.querySelector("#colorize");
-
 colorize.addEventListener("click", () => {
     maze_generator.on_colorize_change(colorize.checked);
 });

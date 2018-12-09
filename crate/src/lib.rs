@@ -19,7 +19,7 @@ mod distances;
 mod rng;
 use grid::*;
 use distances::*;
-use algorithms::{binary_tree::*, sidewinder::*};
+use algorithms::{GridAlgorithm, binary_tree::*, sidewinder::*, aldous_broder::*};
 use rng::{wasm_rng};
 
 cfg_if! {
@@ -79,29 +79,21 @@ static mut COLORIZE: bool = true;
 
 #[wasm_bindgen]
 pub fn basic_binary_tree(rows: usize, columns: usize) {
-    unsafe {
-        GRID = build_grid(rows, columns);
-        let wasm_generator = wasm_rng::WasmRng;
-        BinaryTree::on(&GRID, &wasm_generator);
-
-        let mut distance_grid = prepare_distance_grid(&GRID);
-        distance_grid.build_longest_path(&GRID);        
-        grid_web::grid_to_web(&GRID, &distance_grid, COLORIZE);
-    }
+    let alg = BinaryTree;
+    build_and_display_grid(alg, rows, columns);    
 }
 
 #[wasm_bindgen]
 pub fn sidewinder(rows: usize, columns: usize) {
-    unsafe {
-        GRID = build_grid(rows, columns);
-        let wasm_generator = wasm_rng::WasmRng;
-        Sidewinder::on(&GRID, &wasm_generator);
-
-        let distance_grid = prepare_distance_grid(&GRID);
-        grid_web::grid_to_web(&GRID, &distance_grid, COLORIZE);
-    }
+    let alg = Sidewinder;
+    build_and_display_grid(alg, rows, columns);
 }
 
+#[wasm_bindgen]
+pub fn aldous_broder(rows: usize, columns: usize) {
+    let alg = AldousBroder;
+    build_and_display_grid(alg, rows, columns);
+}
 
 #[wasm_bindgen]
 pub fn redisplay_grid() {
@@ -115,6 +107,17 @@ pub fn redisplay_grid() {
 pub fn on_colorize_change(colorize: bool) {
     unsafe {
         COLORIZE = colorize;
+        let distance_grid = prepare_distance_grid(&GRID);
+        grid_web::grid_to_web(&GRID, &distance_grid, COLORIZE);
+    }
+}
+
+fn build_and_display_grid(alg: impl GridAlgorithm, rows: usize, columns: usize) {
+    unsafe {        
+        GRID = build_grid(rows, columns);
+        let wasm_generator = wasm_rng::WasmRng;
+        alg.on(&GRID, &wasm_generator);
+
         let distance_grid = prepare_distance_grid(&GRID);
         grid_web::grid_to_web(&GRID, &distance_grid, COLORIZE);
     }
@@ -136,25 +139,24 @@ fn prepare_distance_grid(grid: &Grid) -> DistanceGrid {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use distances::*;
     use rng::{thread_rng};
 
-    #[test]
-    fn cell_works() {
+    // #[test]
+    // fn cell_works() {
         // let mut grid = Grid::new(2,2);
-        // // grid.new_cell(0,0);
-        // // grid.new_cell(0,1);
-        // // grid.new_cell(1,0);
-        // // grid.new_cell(1,1);
+        // grid.new_cell(0,0);
+        // grid.new_cell(0,1);
+        // grid.new_cell(1,0);
+        // grid.new_cell(1,1);
 
         // let mut c00 = grid.get_cell(0,0).unwrap();
         // let mut c01 = grid.get_cell(0,1).unwrap();
 
         // link(Rc::clone(&c00), Rc::clone(&c01), true);
-        // // println!("c00: {:?}", c00.borrow().display_links());
-        // // println!("c01: {:?}", c01.borrow().display_links());
-        // // println!("c00-c01 islinked {}", c00.borrow().is_linked(Rc::clone(&c01)));
-        // // println!("c01-c00 islinked {}", c01.borrow().is_linked(Rc::clone(&c00)));
+        // println!("c00: {:?}", c00.borrow().display_links());
+        // println!("c01: {:?}", c01.borrow().display_links());
+        // println!("c00-c01 islinked {}", c00.borrow().is_linked(Rc::clone(&c01)));
+        // println!("c01-c00 islinked {}", c01.borrow().is_linked(Rc::clone(&c00)));
 
         // // println!("UNLINKING");
         // unlink(Rc::clone(&c00), Rc::clone(&c01), true);
@@ -164,7 +166,7 @@ mod tests {
         // println!("c01-c00 islinked {}", c01.borrow().is_linked(Rc::clone(&c00)));
 
         // println!("neighbors: {:?}", c00.borrow().neighbors());
-    }
+    // }
 
     #[test]
     fn binary_tree() {
@@ -173,7 +175,7 @@ mod tests {
         grid.configure_cells();
 
         let thread_rng = thread_rng::ThreadRng;
-        BinaryTree::on(&grid, &thread_rng);
+        BinaryTree.on(&grid, &thread_rng);
 
         // This prints the grid with Dijkstra's distances inside, rendered as characters a,b,c, etc. 
         // Will probably need to adjust for really large grids if I really want to display them with distances.
@@ -203,7 +205,7 @@ mod tests {
         grid.configure_cells();
         
         let thread_rng = thread_rng::ThreadRng;
-        Sidewinder::on(&grid, &thread_rng);
+        Sidewinder.on(&grid, &thread_rng);
         // let root = grid.cells.first().unwrap().first().unwrap();
         // let distanceGrid = DistanceGrid::new(root);
         // println!("{}", grid.to_string(&distanceGrid));
@@ -214,13 +216,27 @@ mod tests {
     }
 
     #[test]
+    fn aldous_broder() {
+        let mut grid = Grid::new(5,5);
+        grid.prepare_grid();
+        grid.configure_cells();
+        
+        let thread_rng = thread_rng::ThreadRng;
+        AldousBroder.on(&grid, &thread_rng);
+
+        let std_grid = StandardGrid;
+        println!("{}", grid.to_string(&std_grid));
+    }
+
+
+    #[test]
     fn colors() {
         let mut grid = Grid::new(5,5);
         grid.prepare_grid();
         grid.configure_cells();
 
         let thread_rng = thread_rng::ThreadRng;
-        BinaryTree::on(&grid, &thread_rng);
+        BinaryTree.on(&grid, &thread_rng);
 
         // This prints the grid with Dijkstra's distances inside, rendered as characters a,b,c, etc. 
         // Will probably need to adjust for really large grids if I really want to display them with distances.
@@ -235,6 +251,5 @@ mod tests {
                 println!("{}", distance_grid.background_color(&cell))    
             }
         }
-
     }
 }

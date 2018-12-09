@@ -16,13 +16,13 @@ pub fn grid_to_web(grid: &Grid, formatter: &CellFormatter, colorize: bool) {
     add_class(&grid_container, "grid-container");
 
     let rule = format!("
-        .grid-container {{\n
-        display: grid;\n
-        grid-template-columns: repeat({}, 1fr);\n
-        height: 80vh; \n
-        width: 80vw;\n
-        background-color: #efefef;\n
-        border: 1px solid black;\n
+        .grid-container {{
+            display: grid;
+            grid-template-columns: repeat({}, 1fr);
+            height: 1000px;
+            width: 1000px;
+            background-color: #efefef;
+            border: 1px solid black;
         }}
        ", grid.columns);
 
