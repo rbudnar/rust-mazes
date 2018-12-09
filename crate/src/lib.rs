@@ -1,5 +1,6 @@
 // #![feature(use_extern_macros)]
 #![feature(const_vec_new)]
+#![feature(vec_remove_item)]
 #![allow(dead_code)]
 #[macro_use]
 extern crate cfg_if;
@@ -19,7 +20,7 @@ mod distances;
 mod rng;
 use grid::*;
 use distances::*;
-use algorithms::{GridAlgorithm, binary_tree::*, sidewinder::*, aldous_broder::*};
+use algorithms::{MazeAlgorithm, binary_tree::*, sidewinder::*, aldous_broder::*, wilson::*};
 use rng::{wasm_rng};
 
 cfg_if! {
@@ -77,6 +78,9 @@ static mut GRID: Grid = Grid {
 
 static mut COLORIZE: bool = true;
 
+
+/****** ALGORITHMS ******/
+
 #[wasm_bindgen]
 pub fn basic_binary_tree(rows: usize, columns: usize) {
     let alg = BinaryTree;
@@ -96,6 +100,14 @@ pub fn aldous_broder(rows: usize, columns: usize) {
 }
 
 #[wasm_bindgen]
+pub fn wilson(rows: usize, columns: usize) {
+    let alg = Wilson;
+    build_and_display_grid(alg, rows, columns);
+}
+
+/****** OTHER FEATURES ******/
+
+#[wasm_bindgen]
 pub fn redisplay_grid() {
     unsafe {
         let distance_grid = prepare_distance_grid(&GRID);
@@ -112,7 +124,9 @@ pub fn on_colorize_change(colorize: bool) {
     }
 }
 
-fn build_and_display_grid(alg: impl GridAlgorithm, rows: usize, columns: usize) {
+/****** HELPERS ******/
+
+fn build_and_display_grid(alg: impl MazeAlgorithm, rows: usize, columns: usize) {
     unsafe {        
         GRID = build_grid(rows, columns);
         let wasm_generator = wasm_rng::WasmRng;
@@ -132,8 +146,8 @@ fn build_grid(rows: usize, columns: usize) -> Grid {
 }
 
 fn prepare_distance_grid(grid: &Grid) -> DistanceGrid {
-    let root = grid.cells.first().unwrap().first().unwrap();
-    DistanceGrid::new(root)
+    let root = grid.cells[grid.rows / 2][grid.columns / 2].clone();
+    DistanceGrid::new(&root)
 }
 
 #[cfg(test)]
@@ -228,6 +242,18 @@ mod tests {
         println!("{}", grid.to_string(&std_grid));
     }
 
+    #[test]
+    fn wilson() {
+        let mut grid = Grid::new(5,5);
+        grid.prepare_grid();
+        grid.configure_cells();
+        
+        let thread_rng = thread_rng::ThreadRng;
+        Wilson.on(&grid, &thread_rng);
+
+        let std_grid = StandardGrid;
+        println!("{}", grid.to_string(&std_grid));
+    }
 
     #[test]
     fn colors() {

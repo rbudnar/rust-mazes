@@ -1,10 +1,10 @@
-use algorithms::GridAlgorithm;
+use algorithms::MazeAlgorithm;
 use rng::RngWrapper;
 use grid::*;
 
 pub struct AldousBroder;
 
-impl GridAlgorithm for AldousBroder {
+impl MazeAlgorithm for AldousBroder {
     fn on(&self, grid: &Grid, rng_generator: &RngWrapper) {
         /// #1 start by pick a random cell in the grid
         /// #2 from that cell, randomly choose a neighbor. 

@@ -2,11 +2,11 @@ use rng::RngWrapper;
 use grid::*;
 use cell::*;
 use std::rc::{Rc};
-use algorithms::GridAlgorithm;
+use algorithms::MazeAlgorithm;
 
 pub struct Sidewinder;
 
-impl GridAlgorithm for Sidewinder {
+impl MazeAlgorithm for Sidewinder {
     fn on(&self, grid: &Grid, rng_generator: &RngWrapper) {
         for (_, row) in grid.cells.iter().enumerate() {
             let mut run: Vec<CellLinkStrong> = vec![];

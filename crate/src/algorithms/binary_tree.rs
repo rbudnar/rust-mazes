@@ -2,11 +2,11 @@ use rng::RngWrapper;
 use grid::*;
 use cell::*;
 use std::rc::{Rc};
-use algorithms::GridAlgorithm;
+use algorithms::MazeAlgorithm;
 
 pub struct BinaryTree;
 
-impl GridAlgorithm for BinaryTree {
+impl MazeAlgorithm for BinaryTree {
     fn on(&self, grid: &Grid, rng_generator: &RngWrapper) {
         for (_, cell) in grid.each_cell().iter().enumerate() {
             let mut neighbors: Vec<CellLinkStrong> = vec![];

@@ -15,6 +15,12 @@ pub struct Cell {
     pub west: Option<CellLinkWeak>
 }
 
+impl PartialEq for Cell {
+    fn eq(&self, other: &Cell) -> bool {
+            self.row == other.row && self.column == other.column
+        }
+}
+
 impl Cell {
     pub fn new(row: usize, column: usize) -> Cell {
         Cell {
