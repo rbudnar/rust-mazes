@@ -25,6 +25,9 @@ const renderMaze = () => {
         case 4: 
             maze_generator.wilson(size, size);
             break;
+        case 5: 
+            maze_generator.hunt_and_kill(size, size);
+            break;
         default:
             console.warn("not a valid value");
             maze_generator.basic_binary_tree(size, size);

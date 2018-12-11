@@ -70,7 +70,6 @@ impl Grid {
     pub fn random_cell(&self, rng: &RngWrapper) -> Option<CellLinkStrong> {
         let row: usize = rng.gen_range(0, self.rows);
         let col: usize = rng.gen_range(0, self.columns);
-        println!("{} {}", row, col);
         self.get_cell(row, col)
     }
 

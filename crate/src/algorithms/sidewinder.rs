@@ -2,7 +2,7 @@ use rng::RngWrapper;
 use grid::*;
 use cell::*;
 use std::rc::{Rc};
-use algorithms::MazeAlgorithm;
+use algorithms::{MazeAlgorithm, rand_element};
 
 pub struct Sidewinder;
 
@@ -18,8 +18,8 @@ impl MazeAlgorithm for Sidewinder {
                 let should_close_out = at_eastern_boundary || (!at_northern_boundary && rng_generator.gen_range(0, 2) == 0);
 
                 if should_close_out {
-                    let index = rng_generator.gen_range(0, run.len());
-                    let member = run[index].clone();
+                    let member = rand_element(&run, rng_generator).clone();
+
                     if member.borrow().north.is_some() {
                         let north = cell.borrow().north.clone().unwrap().upgrade().unwrap();
                         link(Rc::clone(&cell), Rc::clone(&north), true);

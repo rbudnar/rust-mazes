@@ -1,6 +1,7 @@
 // #![feature(use_extern_macros)]
 #![feature(const_vec_new)]
 #![feature(vec_remove_item)]
+#![feature(test)]
 #![allow(dead_code)]
 #[macro_use]
 extern crate cfg_if;
@@ -10,6 +11,7 @@ extern crate wasm_bindgen;
 extern crate web_sys;
 extern crate js_sys;
 extern crate math;
+extern crate test;
 
 use wasm_bindgen::prelude::*;
 mod cell;
@@ -20,7 +22,7 @@ mod distances;
 mod rng;
 use grid::*;
 use distances::*;
-use algorithms::{MazeAlgorithm, binary_tree::*, sidewinder::*, aldous_broder::*, wilson::*};
+use algorithms::{MazeAlgorithm, binary_tree::*, sidewinder::*, aldous_broder::*, wilson::*, hunt_and_kill::*};
 use rng::{wasm_rng};
 
 cfg_if! {
@@ -105,6 +107,12 @@ pub fn wilson(rows: usize, columns: usize) {
     build_and_display_grid(alg, rows, columns);
 }
 
+#[wasm_bindgen]
+pub fn hunt_and_kill(rows: usize, columns: usize) {
+    let alg = HuntAndKill;
+    build_and_display_grid(alg, rows, columns);
+}
+
 /****** OTHER FEATURES ******/
 
 #[wasm_bindgen]
@@ -153,6 +161,7 @@ fn prepare_distance_grid(grid: &Grid) -> DistanceGrid {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test::Bencher;
     use rng::{thread_rng};
 
     // #[test]
@@ -250,6 +259,20 @@ mod tests {
         
         let thread_rng = thread_rng::ThreadRng;
         Wilson.on(&grid, &thread_rng);
+
+        let std_grid = StandardGrid;
+        println!("{}", grid.to_string(&std_grid));
+    }
+
+    // #[test]
+    #[bench]
+    fn hunt_and_kill(b: &mut Bencher) {
+        let mut grid = Grid::new(5,5);
+        grid.prepare_grid();
+        grid.configure_cells();
+        
+        let thread_rng = thread_rng::ThreadRng;
+        b.iter(|| HuntAndKill.on(&grid, &thread_rng));
 
         let std_grid = StandardGrid;
         println!("{}", grid.to_string(&std_grid));

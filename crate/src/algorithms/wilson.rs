@@ -1,7 +1,7 @@
 use grid::link;
 use cell::CellLinkStrong;
 use rng::RngWrapper;
-use algorithms::MazeAlgorithm;
+use algorithms::{MazeAlgorithm, rand_element};
 use grid::Grid;
 pub struct Wilson;
 
@@ -18,22 +18,22 @@ impl MazeAlgorithm for Wilson {
 
         while !unvisited.is_empty() {
             let mut path: Vec<CellLinkStrong> = vec![];
-            let index = rng_generator.gen_range(0, unvisited.len());
-            let mut cell = unvisited[index].clone();
+
+            let mut cell = rand_element(&unvisited, rng_generator).clone();
             path.push(cell.clone());
 
             while unvisited.contains(&cell) {
                 let neighbors = cell.borrow().neighbors();
-                let rand_neighbor_index = rng_generator.gen_range(0, neighbors.len());
-                cell = neighbors[rand_neighbor_index].upgrade().unwrap().clone();
+                cell = rand_element(&neighbors, rng_generator).upgrade().unwrap().clone();
                 
-                if let Some(position) = path.iter().position(|&ref c| c.borrow().row == cell.borrow().row && c.borrow().column == cell.borrow().column) {
+                if let Some(position) = path.iter().position(|c| c.borrow().row == cell.borrow().row && c.borrow().column == cell.borrow().column) {
                     path = path[0..=position].to_vec();
                 } 
                 else {
                     path.push(cell.clone());
                 }
             }
+
             let end = path.len() - 1;
             for i in 0..end {
                 link(path[i].clone(), path[i + 1].clone(), true);

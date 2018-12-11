@@ -4,13 +4,14 @@ use grid::*;
 
 pub struct AldousBroder;
 
+/// Aldous Broder Algorithm
+/// #1 start by pick a random cell in the grid
+/// #2 from that cell, randomly choose a neighbor. 
+/// #3a if that neighbor has not been visited, link and set the neighbor as the current cell
+/// #3b if that neighbor HAS been visited, set the neighbor as the current cell, but do not link.
+/// Repeat until every cell has been visited.
 impl MazeAlgorithm for AldousBroder {
     fn on(&self, grid: &Grid, rng_generator: &RngWrapper) {
-        /// #1 start by pick a random cell in the grid
-        /// #2 from that cell, randomly choose a neighbor. 
-        /// #3a if that neighbor has not been visited, link and set the neighbor as the current cell
-        /// #3b if that neighbor HAS been visited, set the neighbor as the current cell, but do not link.
-        /// Repeat until every cell has been visited.
 
         let mut cell = grid.random_cell(rng_generator).unwrap();
         

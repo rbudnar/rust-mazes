@@ -2,7 +2,7 @@ use rng::RngWrapper;
 use grid::*;
 use cell::*;
 use std::rc::{Rc};
-use algorithms::MazeAlgorithm;
+use algorithms::{MazeAlgorithm, rand_element};
 
 pub struct BinaryTree;
 
@@ -17,12 +17,12 @@ impl MazeAlgorithm for BinaryTree {
 
             if let Some(east) = cell.borrow().east.clone() {
                 neighbors.push(Rc::clone(&east.upgrade().unwrap()));
-            }
+            };
 
             let length =  neighbors.len();
             if length > 0 {
-                let index = rng_generator.gen_range(0, length);
-                let neighbor: CellLinkStrong = Rc::clone(&neighbors[index]);
+                let neighbor: CellLinkStrong = rand_element(&neighbors, rng_generator).clone();
+
                 link(Rc::clone(cell), neighbor, true);
             }
         }
