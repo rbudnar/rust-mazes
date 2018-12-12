@@ -3,6 +3,8 @@ use cell::CellLinkStrong;
 use rng::RngWrapper;
 use algorithms::{MazeAlgorithm, rand_element};
 use grid::Grid;
+
+#[derive(Debug)]
 pub struct Wilson;
 
 impl MazeAlgorithm for Wilson {

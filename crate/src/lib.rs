@@ -22,7 +22,7 @@ mod distances;
 mod rng;
 use grid::*;
 use distances::*;
-use algorithms::{MazeAlgorithm, binary_tree::*, sidewinder::*, aldous_broder::*, wilson::*, hunt_and_kill::*};
+use algorithms::{MazeAlgorithm, binary_tree::*, sidewinder::*, aldous_broder::*, wilson::*, hunt_and_kill::*, recursive_backtracker::*};
 use rng::{wasm_rng};
 
 cfg_if! {
@@ -85,32 +85,32 @@ static mut COLORIZE: bool = true;
 
 #[wasm_bindgen]
 pub fn basic_binary_tree(rows: usize, columns: usize) {
-    let alg = BinaryTree;
-    build_and_display_grid(alg, rows, columns);    
+    build_and_display_grid(BinaryTree, rows, columns);    
 }
 
 #[wasm_bindgen]
 pub fn sidewinder(rows: usize, columns: usize) {
-    let alg = Sidewinder;
-    build_and_display_grid(alg, rows, columns);
+    build_and_display_grid(Sidewinder, rows, columns);
 }
 
 #[wasm_bindgen]
 pub fn aldous_broder(rows: usize, columns: usize) {
-    let alg = AldousBroder;
-    build_and_display_grid(alg, rows, columns);
+    build_and_display_grid(AldousBroder, rows, columns);
 }
 
 #[wasm_bindgen]
 pub fn wilson(rows: usize, columns: usize) {
-    let alg = Wilson;
-    build_and_display_grid(alg, rows, columns);
+    build_and_display_grid(Wilson, rows, columns);
 }
 
 #[wasm_bindgen]
 pub fn hunt_and_kill(rows: usize, columns: usize) {
-    let alg = HuntAndKill;
-    build_and_display_grid(alg, rows, columns);
+    build_and_display_grid(HuntAndKill, rows, columns);
+}
+
+#[wasm_bindgen]
+pub fn recursive_backtracker(rows: usize, columns: usize) {
+    build_and_display_grid(RecursiveBacktracker, rows, columns);
 }
 
 /****** OTHER FEATURES ******/
@@ -136,21 +136,13 @@ pub fn on_colorize_change(colorize: bool) {
 
 fn build_and_display_grid(alg: impl MazeAlgorithm, rows: usize, columns: usize) {
     unsafe {        
-        GRID = build_grid(rows, columns);
+        GRID = Grid::new(rows, columns);
         let wasm_generator = wasm_rng::WasmRng;
         alg.on(&GRID, &wasm_generator);
 
         let distance_grid = prepare_distance_grid(&GRID);
         grid_web::grid_to_web(&GRID, &distance_grid, COLORIZE);
     }
-}
-
-fn build_grid(rows: usize, columns: usize) -> Grid {
-    let mut grid = Grid::new(rows, columns);
-    grid.prepare_grid();
-    
-    grid.configure_cells();
-    grid
 }
 
 fn prepare_distance_grid(grid: &Grid) -> DistanceGrid {
@@ -163,39 +155,23 @@ mod tests {
     use super::*;
     use test::Bencher;
     use rng::{thread_rng};
+    use std::collections::HashMap;
 
-    // #[test]
-    // fn cell_works() {
-        // let mut grid = Grid::new(2,2);
-        // grid.new_cell(0,0);
-        // grid.new_cell(0,1);
-        // grid.new_cell(1,0);
-        // grid.new_cell(1,1);
+    fn test_std_grid(alg: impl MazeAlgorithm) -> Grid {
+        let grid = Grid::new(5,5);
+        
+        let thread_rng = thread_rng::ThreadRng;
+        alg.on(&grid, &thread_rng);
 
-        // let mut c00 = grid.get_cell(0,0).unwrap();
-        // let mut c01 = grid.get_cell(0,1).unwrap();
-
-        // link(Rc::clone(&c00), Rc::clone(&c01), true);
-        // println!("c00: {:?}", c00.borrow().display_links());
-        // println!("c01: {:?}", c01.borrow().display_links());
-        // println!("c00-c01 islinked {}", c00.borrow().is_linked(Rc::clone(&c01)));
-        // println!("c01-c00 islinked {}", c01.borrow().is_linked(Rc::clone(&c00)));
-
-        // // println!("UNLINKING");
-        // unlink(Rc::clone(&c00), Rc::clone(&c01), true);
-        // println!("c00: {:?}", c00.borrow().display_links());
-        // println!("c01: {:?}", c01.borrow().display_links());
-        // println!("c00-c01 islinked {}", c00.borrow().is_linked(Rc::clone(&c01)));
-        // println!("c01-c00 islinked {}", c01.borrow().is_linked(Rc::clone(&c00)));
-
-        // println!("neighbors: {:?}", c00.borrow().neighbors());
-    // }
+        // Prints normal grid without distances.
+        let std_grid = StandardGrid;
+        println!("{}", grid.to_string(&std_grid));
+        grid
+    }
 
     #[test]
     fn binary_tree() {
-        let mut grid = Grid::new(5,5);
-        grid.prepare_grid();
-        grid.configure_cells();
+        let grid = Grid::new(5,5);
 
         let thread_rng = thread_rng::ThreadRng;
         BinaryTree.on(&grid, &thread_rng);
@@ -223,53 +199,27 @@ mod tests {
 
     #[test]
     fn sidewinder() {
-        let mut grid = Grid::new(5,5);
-        grid.prepare_grid();
-        grid.configure_cells();
-        
-        let thread_rng = thread_rng::ThreadRng;
-        Sidewinder.on(&grid, &thread_rng);
-        // let root = grid.cells.first().unwrap().first().unwrap();
-        // let distanceGrid = DistanceGrid::new(root);
-        // println!("{}", grid.to_string(&distanceGrid));
-
-        // Prints normal grid without distances.
-        let std_grid = StandardGrid;
-        println!("{}", grid.to_string(&std_grid));
+        test_std_grid(Sidewinder);
     }
 
     #[test]
     fn aldous_broder() {
-        let mut grid = Grid::new(5,5);
-        grid.prepare_grid();
-        grid.configure_cells();
-        
-        let thread_rng = thread_rng::ThreadRng;
-        AldousBroder.on(&grid, &thread_rng);
-
-        let std_grid = StandardGrid;
-        println!("{}", grid.to_string(&std_grid));
+        test_std_grid(AldousBroder);
     }
 
     #[test]
     fn wilson() {
-        let mut grid = Grid::new(5,5);
-        grid.prepare_grid();
-        grid.configure_cells();
-        
-        let thread_rng = thread_rng::ThreadRng;
-        Wilson.on(&grid, &thread_rng);
-
-        let std_grid = StandardGrid;
-        println!("{}", grid.to_string(&std_grid));
+        test_std_grid(Wilson);
     }
 
-    // #[test]
+    #[test]
+    fn recursive_backtracker() {
+        test_std_grid(RecursiveBacktracker);
+    }
+
     #[bench]
     fn hunt_and_kill(b: &mut Bencher) {
-        let mut grid = Grid::new(5,5);
-        grid.prepare_grid();
-        grid.configure_cells();
+        let grid = Grid::new(5,5);
         
         let thread_rng = thread_rng::ThreadRng;
         b.iter(|| HuntAndKill.on(&grid, &thread_rng));
@@ -278,11 +228,45 @@ mod tests {
         println!("{}", grid.to_string(&std_grid));
     }
 
+
+    #[test]
+    fn dead_ends() {
+        let algorithms: Vec<Box<MazeAlgorithm>> =
+            vec![Box::new(BinaryTree), Box::new(Sidewinder), Box::new(AldousBroder), Box::new(Wilson), Box::new(HuntAndKill)];
+
+        let tries = 100;
+        let size = 20;
+
+        let thread_rng = thread_rng::ThreadRng;
+        let mut averages: HashMap<String, f64> = HashMap::new();
+
+        for alg in algorithms.iter() {
+            let mut dead_end_counts: Vec<usize> = vec![];
+            println!("Running {:?}", alg);
+            
+            for _ in 0..tries {
+                let mut grid = Grid::new(size,size);
+                alg.on(&grid, &thread_rng);
+                dead_end_counts.push(grid.dead_ends().len())
+            }
+
+            let total_deadends = dead_end_counts.iter().fold(0, |acc, x| acc + x);
+            averages.insert(format!("{:?}", alg), total_deadends as f64 / dead_end_counts.len() as f64);
+        }
+
+        let total_cells = size * size;
+        println!("Average dead-ends per {}x{} maze ({} cells):", size, size, total_cells);
+
+        for (alg, avg) in averages.iter() {
+            let formatted = format!("{:.*}", 1, (*avg/total_cells as f64) * 100.0);
+            println!("{} : {} / {} ({:02}%)", alg, avg, total_cells, formatted);
+        }        
+    }
+
+
     #[test]
     fn colors() {
-        let mut grid = Grid::new(5,5);
-        grid.prepare_grid();
-        grid.configure_cells();
+        let grid = Grid::new(5,5);
 
         let thread_rng = thread_rng::ThreadRng;
         BinaryTree.on(&grid, &thread_rng);

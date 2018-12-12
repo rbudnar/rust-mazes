@@ -2,6 +2,7 @@ use algorithms::MazeAlgorithm;
 use rng::RngWrapper;
 use grid::*;
 
+#[derive(Debug)]
 pub struct AldousBroder;
 
 /// Aldous Broder Algorithm

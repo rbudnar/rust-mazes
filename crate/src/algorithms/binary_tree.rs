@@ -4,6 +4,7 @@ use cell::*;
 use std::rc::{Rc};
 use algorithms::{MazeAlgorithm, rand_element};
 
+#[derive(Debug)]
 pub struct BinaryTree;
 
 impl MazeAlgorithm for BinaryTree {

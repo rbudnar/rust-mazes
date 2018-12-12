@@ -12,10 +12,14 @@ pub struct Grid {
 
 impl Grid {
     pub fn new(rows: usize, columns: usize)-> Grid {
-        Grid {
+        let mut grid = Grid {
             cells: Vec::new(),
             rows, columns            
-        }
+        };
+
+        grid.prepare_grid();
+        grid.configure_cells();
+        grid
     }
 
     pub fn to_string(&self, contents: &CellFormatter) -> String {
@@ -80,7 +84,7 @@ impl Grid {
             .collect()        
     }
 
-    pub fn configure_cells(&mut self) {
+    fn configure_cells(&mut self) {
         for (_, row) in &mut self.cells.iter().enumerate() {
             for (_, cell) in &mut row.iter().enumerate() {            
                 // can't subtract from a usize of 0 apparently
@@ -121,7 +125,7 @@ impl Grid {
         Some(Rc::clone(&self.cells[row][column]))
     }
 
-    pub fn prepare_grid(&mut self) {
+    fn prepare_grid(&mut self) {
         for i in 0..self.rows {
             let mut row: Vec<CellLinkStrong> = Vec::new();
             for j in 0..self.columns {
@@ -129,6 +133,13 @@ impl Grid {
             }
             self.cells.push(row);
         }   
+    }
+
+    pub fn dead_ends(&self) -> Vec<CellLinkStrong> {
+        self.each_cell().iter()
+            .filter(|c| c.borrow().links.len() == 1)
+            .map(|c| Rc::clone(c))
+            .collect()
     }
 }
 

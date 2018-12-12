@@ -5,6 +5,7 @@ use std::rc::{Rc};
 use rng::RngWrapper;
 use grid::Grid;
 
+#[derive(Debug)]
 pub struct HuntAndKill;
 
 /// Hunt and Kill Algorithm
