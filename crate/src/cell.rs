@@ -17,8 +17,8 @@ pub struct Cell {
 
 impl PartialEq for Cell {
     fn eq(&self, other: &Cell) -> bool {
-            self.row == other.row && self.column == other.column
-        }
+        self.row == other.row && self.column == other.column
+    }
 }
 
 impl Cell {
@@ -41,21 +41,21 @@ impl Cell {
 
     pub fn neighbors(&self) -> Vec<CellLinkWeak> {
         let mut vec: Vec<CellLinkWeak> = vec![];
-        if self.north.is_some() {
-            let c = self.north.as_ref().unwrap().clone();
-            vec.push(c);
+
+        if let Some(ref north) = self.north {
+            vec.push(north.clone());
         }
-        if self.south.is_some() {
-            let c = self.south.as_ref().unwrap().clone();
-            vec.push(c);
+
+        if let Some(ref south) = self.south {
+            vec.push(south.clone());
         }
-        if self.east.is_some() {
-            let c = self.east.as_ref().unwrap().clone();
-            vec.push(c);
+
+        if let Some(ref east) = self.east {
+            vec.push(east.clone());
         }
-        if self.west.is_some() {
-            let c = self.west.as_ref().unwrap().clone();
-            vec.push(c);
+
+        if let Some(ref west) = self.west {
+            vec.push(west.clone());
         }
         vec
     }

@@ -11,13 +11,13 @@ pub struct Grid {
 }
 
 impl Grid {
-    pub fn new(rows: usize, columns: usize)-> Grid {
+    pub fn new(rows: usize, columns: usize, builder: &GridBuilder)-> Grid {
         let mut grid = Grid {
             cells: Vec::new(),
             rows, columns            
         };
 
-        grid.prepare_grid();
+        builder.prepare_grid(&mut grid);
         grid.configure_cells();
         grid
     }
@@ -125,16 +125,6 @@ impl Grid {
         Some(Rc::clone(&self.cells[row][column]))
     }
 
-    fn prepare_grid(&mut self) {
-        for i in 0..self.rows {
-            let mut row: Vec<CellLinkStrong> = Vec::new();
-            for j in 0..self.columns {
-                row.push(Rc::new(RefCell::new(Cell::new(i as usize, j as usize))));
-            }
-            self.cells.push(row);
-        }   
-    }
-
     pub fn dead_ends(&self) -> Vec<CellLinkStrong> {
         self.each_cell().iter()
             .filter(|c| c.borrow().links.len() == 1)
@@ -179,3 +169,21 @@ impl CellFormatter for StandardGrid {
         String::from("")
     }    
 }
+
+pub trait GridBuilder {
+    fn prepare_grid(&self, grid: &mut Grid);
+}
+
+pub struct StandardGridBuilder;
+impl GridBuilder for StandardGridBuilder {
+    fn prepare_grid(&self, grid: &mut Grid) {
+        for i in 0..grid.rows {
+            let mut row: Vec<CellLinkStrong> = Vec::new();
+            for j in 0..grid.columns {
+                row.push(Rc::new(RefCell::new(Cell::new(i as usize, j as usize))));
+            }
+            grid.cells.push(row);
+        }   
+    }
+}
+

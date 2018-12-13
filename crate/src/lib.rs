@@ -1,5 +1,6 @@
 // #![feature(use_extern_macros)]
 #![feature(const_vec_new)]
+#![feature(range_contains)]
 #![feature(vec_remove_item)]
 #![feature(test)]
 #![allow(dead_code)]
@@ -20,10 +21,14 @@ mod algorithms;
 mod grid_web;
 mod distances;
 mod rng;
+mod mask;
+mod masked_grid;
 use grid::*;
 use distances::*;
 use algorithms::{MazeAlgorithm, binary_tree::*, sidewinder::*, aldous_broder::*, wilson::*, hunt_and_kill::*, recursive_backtracker::*};
 use rng::{wasm_rng};
+use mask::*;
+
 
 cfg_if! {
     // When the `console_error_panic_hook` feature is enabled, we can call the
@@ -136,7 +141,7 @@ pub fn on_colorize_change(colorize: bool) {
 
 fn build_and_display_grid(alg: impl MazeAlgorithm, rows: usize, columns: usize) {
     unsafe {        
-        GRID = Grid::new(rows, columns);
+        GRID = Grid::new(rows, columns, &StandardGridBuilder);
         let wasm_generator = wasm_rng::WasmRng;
         alg.on(&GRID, &wasm_generator);
 
@@ -158,7 +163,7 @@ mod tests {
     use std::collections::HashMap;
 
     fn test_std_grid(alg: impl MazeAlgorithm) -> Grid {
-        let grid = Grid::new(5,5);
+        let grid = Grid::new(5,5, &StandardGridBuilder);
         
         let thread_rng = thread_rng::ThreadRng;
         alg.on(&grid, &thread_rng);
@@ -171,7 +176,7 @@ mod tests {
 
     #[test]
     fn binary_tree() {
-        let grid = Grid::new(5,5);
+        let grid = Grid::new(5,5, &StandardGridBuilder);
 
         let thread_rng = thread_rng::ThreadRng;
         BinaryTree.on(&grid, &thread_rng);
@@ -216,10 +221,35 @@ mod tests {
     fn recursive_backtracker() {
         test_std_grid(RecursiveBacktracker);
     }
+    
+    #[test]
+    fn kill_cells() {
+        let grid = Grid::new(5,5, &StandardGridBuilder);
+        let first = grid.cells[0][0].borrow();
+        
+        let first_e = first.east.clone().unwrap().upgrade().unwrap();
+        first_e.borrow_mut().west = None;
+        let first_s = first.south.clone().unwrap().upgrade().unwrap();
+        first_s.borrow_mut().north = None;
+
+        let last = &grid.cells[4][4].borrow();
+        let last_w = last.west.clone().unwrap().upgrade().unwrap();
+        last_w.borrow_mut().east = None;
+        let last_n = last.north.clone().unwrap().upgrade().unwrap();
+        last_n.borrow_mut().south = None;
+
+
+        let thread_rng = thread_rng::ThreadRng;
+        RecursiveBacktracker.on(&grid, &thread_rng);
+
+        // Prints normal grid without distances.
+        let std_grid = StandardGrid;
+        println!("{}", grid.to_string(&std_grid));
+    }
 
     #[bench]
     fn hunt_and_kill(b: &mut Bencher) {
-        let grid = Grid::new(5,5);
+        let grid = Grid::new(5,5, &StandardGridBuilder);
         
         let thread_rng = thread_rng::ThreadRng;
         b.iter(|| HuntAndKill.on(&grid, &thread_rng));
@@ -230,6 +260,7 @@ mod tests {
 
 
     #[test]
+    #[ignore]
     fn dead_ends() {
         let algorithms: Vec<Box<MazeAlgorithm>> =
             vec![Box::new(BinaryTree), Box::new(Sidewinder), Box::new(AldousBroder), Box::new(Wilson), Box::new(HuntAndKill)];
@@ -245,7 +276,7 @@ mod tests {
             println!("Running {:?}", alg);
             
             for _ in 0..tries {
-                let mut grid = Grid::new(size,size);
+                let mut grid = Grid::new(size,size, &StandardGridBuilder);
                 alg.on(&grid, &thread_rng);
                 dead_end_counts.push(grid.dead_ends().len())
             }
@@ -266,7 +297,7 @@ mod tests {
 
     #[test]
     fn colors() {
-        let grid = Grid::new(5,5);
+        let grid = Grid::new(5,5, &StandardGridBuilder);
 
         let thread_rng = thread_rng::ThreadRng;
         BinaryTree.on(&grid, &thread_rng);
@@ -284,5 +315,20 @@ mod tests {
                 println!("{}", distance_grid.background_color(&cell))    
             }
         }
+    }
+
+    #[test]
+    fn mask() {
+        let mut mask = Mask::new(5, 5);
+
+        mask.set(0,2, false);
+        mask.set(1,2, false);
+        mask.set(2,2, false);
+        mask.set(3,2, false);
+        mask.set(4,2, false);
+        println!("{}", mask.get(1,2));
+        println!("{:#?}", mask);
+        println!("{}", mask.count());
+        println!("{:?}", mask.rand_location(&thread_rng::ThreadRng));
     }
 }

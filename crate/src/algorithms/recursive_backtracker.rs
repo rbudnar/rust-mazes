@@ -30,7 +30,7 @@ impl MazeAlgorithm for RecursiveBacktracker {
                                      .filter(|n| n.borrow().links().is_empty())
                                      .collect();
             
-            if unvisited.len() > 0 {
+            if !unvisited.is_empty() {
                 let rand_neighbor = rand_element(&unvisited, rng_generator);
                 link(current.clone(), rand_neighbor.clone(), true);
                 stack.push(rand_neighbor.clone());
