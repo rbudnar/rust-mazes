@@ -8,7 +8,7 @@ pub type CellLinkStrong = Rc<RefCell<Cell>>;
 pub struct Cell {
     pub row: usize,
     pub column: usize,
-    pub links: Vec<CellLinkWeak>,
+    pub links: Vec<Option<CellLinkWeak>>,
     pub north: Option<CellLinkWeak>,
     pub south: Option<CellLinkWeak>,
     pub east: Option<CellLinkWeak>,
@@ -33,12 +33,6 @@ impl Cell {
         }
     }
 
-    pub fn display_links(&self) {
-        for link in &self.links {
-            println!("{:?}", link.upgrade());
-        }
-    }
-
     pub fn neighbors(&self) -> Vec<CellLinkWeak> {
         let mut vec: Vec<CellLinkWeak> = vec![];
 
@@ -60,7 +54,7 @@ impl Cell {
         vec
     }
 
-    pub fn links(&self) -> &Vec<CellLinkWeak> {
+    pub fn links(&self) -> &Vec<Option<CellLinkWeak>> {
         &self.links
     }
 
@@ -72,9 +66,14 @@ impl Cell {
         let other_row: usize = other.borrow().row;
         let other_col: usize = other.borrow().column;
         self.links.iter().position(|ref s| {
-            let strong : CellLinkStrong = s.upgrade().unwrap();
-            let c = strong.borrow();
-            c.row == other_row && c.column == other_col
+            if let Some(st) = s {
+                let strong : CellLinkStrong = st.upgrade().unwrap();
+                let c = strong.borrow();
+                c.row == other_row && c.column == other_col
+            }
+            else {
+                false
+            }
         })
     }    
 }

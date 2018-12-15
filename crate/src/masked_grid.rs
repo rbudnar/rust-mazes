@@ -43,13 +43,12 @@ impl MaskedGridBuilder {
 impl GridBuilder for MaskedGridBuilder {
     fn prepare_grid(&self, grid: &mut Grid) {
         for i in 0..grid.rows {
-            let mut row: Vec<CellLinkStrong> = Vec::new();
+            let mut row: Vec<Option<CellLinkStrong>> = Vec::new();
             for j in 0..grid.columns {
                 if self.mask.get(i, j) {
-                    // println!("r/c {}, {}", i,j);
-                    // row.push(Some(Rc::new(RefCell::new(Cell::new(i as usize, j as usize)))));
+                    row.push(Some(Rc::new(RefCell::new(Cell::new(i as usize, j as usize)))));
                 } else {
-                    // row.push(None);
+                    row.push(None);
                 }
             }
             grid.cells.push(row);

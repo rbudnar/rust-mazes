@@ -18,7 +18,7 @@ impl MazeAlgorithm for RecursiveBacktracker {
     fn on(&self, grid: &Grid, rng_generator: &RngWrapper) {
         let cells = grid.each_cell();
         let mut stack: Vec<CellLinkStrong> = vec![];
-        let start: CellLinkStrong = rand_element(&cells, rng_generator).clone();
+        let start: CellLinkStrong = rand_element(&cells, rng_generator).clone().unwrap();
         stack.push(start.clone());
 
         while !stack.is_empty() {

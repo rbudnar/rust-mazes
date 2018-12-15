@@ -29,7 +29,6 @@ use algorithms::{MazeAlgorithm, binary_tree::*, sidewinder::*, aldous_broder::*,
 use rng::{wasm_rng};
 use mask::*;
 
-
 cfg_if! {
     // When the `console_error_panic_hook` feature is enabled, we can call the
     // `set_panic_hook` function to get better error messages if we ever panic.
@@ -151,7 +150,7 @@ fn build_and_display_grid(alg: impl MazeAlgorithm, rows: usize, columns: usize) 
 }
 
 fn prepare_distance_grid(grid: &Grid) -> DistanceGrid {
-    let root = grid.cells[grid.rows / 2][grid.columns / 2].clone();
+    let root = grid.cells[grid.rows / 2][grid.columns / 2].clone().unwrap();
     DistanceGrid::new(&root)
 }
 
@@ -186,11 +185,11 @@ mod tests {
         // grabs first cell of first row
         let root = grid.cells.first().unwrap().first().unwrap();
         let last = grid.cells.last().unwrap().first().unwrap();
-        let mut distance_grid = DistanceGrid::new(root);
+        let mut distance_grid = DistanceGrid::new(&root.as_ref().unwrap());
         
         
         // builds a path to the first cell of the last row
-        distance_grid.build_path_to(last);
+        distance_grid.build_path_to(&last.as_ref().unwrap());
         println!("{}", grid.to_string(&distance_grid));
         distance_grid.set_show_path_only(true);
         
@@ -217,6 +216,12 @@ mod tests {
         test_std_grid(Wilson);
     }
 
+    
+    #[test]
+    fn hunt_and_kill() {
+        test_std_grid(HuntAndKill);
+    }
+
     #[test]
     fn recursive_backtracker() {
         test_std_grid(RecursiveBacktracker);
@@ -225,14 +230,16 @@ mod tests {
     #[test]
     fn kill_cells() {
         let grid = Grid::new(5,5, &StandardGridBuilder);
-        let first = grid.cells[0][0].borrow();
+        let f = grid.cells[0][0].as_ref().unwrap();
+        let first = f.borrow();
         
         let first_e = first.east.clone().unwrap().upgrade().unwrap();
         first_e.borrow_mut().west = None;
         let first_s = first.south.clone().unwrap().upgrade().unwrap();
         first_s.borrow_mut().north = None;
 
-        let last = &grid.cells[4][4].borrow();
+        let l = &grid.cells[4][4].as_ref().unwrap();
+        let last = l.borrow();
         let last_w = last.west.clone().unwrap().upgrade().unwrap();
         last_w.borrow_mut().east = None;
         let last_n = last.north.clone().unwrap().upgrade().unwrap();
@@ -248,7 +255,7 @@ mod tests {
     }
 
     #[bench]
-    fn hunt_and_kill(b: &mut Bencher) {
+    fn hunt_and_kill_bench(b: &mut Bencher) {
         let grid = Grid::new(5,5, &StandardGridBuilder);
         
         let thread_rng = thread_rng::ThreadRng;
@@ -306,13 +313,15 @@ mod tests {
         // Will probably need to adjust for really large grids if I really want to display them with distances.
         // grabs first cell of first row
         let root = grid.cells.first().unwrap().first().unwrap();
-        let distance_grid = DistanceGrid::new(root);
-        let color = distance_grid.background_color(&root);
+        let distance_grid = DistanceGrid::new(root.as_ref().unwrap());
+        let color = distance_grid.background_color(&root.as_ref().unwrap());
         assert_eq!(color, "rgb(255,255,255)");
 
         for row in grid.cells.iter() {
             for cell in row.iter() {
-                println!("{}", distance_grid.background_color(&cell))    
+                if let Some(cell) = cell {
+                    println!("{}", distance_grid.background_color(&cell));
+                }
             }
         }
     }
@@ -330,5 +339,11 @@ mod tests {
         println!("{:#?}", mask);
         println!("{}", mask.count());
         println!("{:?}", mask.rand_location(&thread_rng::ThreadRng));
+    }
+
+    #[test]
+    fn basic_grid() {
+        let grid = Grid::new(5,5, &StandardGridBuilder);
+        println!("{}", grid.to_string(&StandardGrid));    
     }
 }

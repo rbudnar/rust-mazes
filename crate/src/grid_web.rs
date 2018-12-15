@@ -41,44 +41,46 @@ pub fn grid_to_web(grid: &Grid, formatter: &CellFormatter, colorize: bool) {
 
     for (i, row) in grid.cells.iter().enumerate() {
         for (j, cell) in row.iter().enumerate() {
-            let html_cell = document.create_element("div").unwrap();
-            add_class(&html_cell, "cell");
+            if let Some(cell) = cell {
+                let html_cell = document.create_element("div").unwrap();
+                add_class(&html_cell, "cell");
 
-            // Top of maze
-            if i == 0 {
-                add_class(&html_cell, "bt");
-            }
+                // Top of maze
+                if i == 0 {
+                    add_class(&html_cell, "bt");
+                }
 
-            // bottom of maze
-            if i == grid.rows - 1 {
-                add_class(&html_cell, "bb");
-            }
-            // left side 
-            if j == 0 {
-                add_class(&html_cell, "bl");
-            }
+                // bottom of maze
+                if i == grid.rows - 1 {
+                    add_class(&html_cell, "bb");
+                }
+                // left side 
+                if j == 0 {
+                    add_class(&html_cell, "bl");
+                }
 
-            // right side
-            if j == grid.columns -1 {
-                add_class(&html_cell, "br");
-            }
+                // right side
+                if j == grid.columns -1 {
+                    add_class(&html_cell, "br");
+                }
 
-            let e = cell.borrow();
-            let east = e.east.as_ref();
-            if !(east.is_some() && cell.borrow().is_linked(Rc::clone(&east.unwrap().upgrade().unwrap()))) {
-                add_class(&html_cell, "br");            
-            }
+                let e = cell.borrow();
+                let east = e.east.as_ref();
+                if !(east.is_some() && cell.borrow().is_linked(Rc::clone(&east.unwrap().upgrade().unwrap()))) {
+                    add_class(&html_cell, "br");            
+                }
 
-            let south = e.south.as_ref();
-            if !(south.is_some() && cell.borrow().is_linked(Rc::clone(&south.unwrap().upgrade().unwrap()))) {
-                add_class(&html_cell, "bb");            
-            }
+                let south = e.south.as_ref();
+                if !(south.is_some() && cell.borrow().is_linked(Rc::clone(&south.unwrap().upgrade().unwrap()))) {
+                    add_class(&html_cell, "bb");            
+                }
 
-            let c = html_cell.dyn_ref::<HtmlElement>().unwrap().clone();
-            if colorize {
-                add_bg_color(&c, cell, formatter);
+                let c = html_cell.dyn_ref::<HtmlElement>().unwrap().clone();
+                if colorize {
+                    add_bg_color(&c, cell, formatter);
+                }
+                grid_container.append_child(&Node::from(html_cell)).unwrap();
             }
-            grid_container.append_child(&Node::from(html_cell)).unwrap();
         }
     }
 

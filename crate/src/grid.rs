@@ -5,7 +5,7 @@ use cell::*;
 
 #[derive(Debug)]
 pub struct Grid {
-    pub cells: Vec<Vec<CellLinkStrong>>,
+    pub cells: Vec<Vec<Option<CellLinkStrong>>>,
     pub rows: usize, 
     pub columns: usize
 }
@@ -34,29 +34,31 @@ impl Grid {
             let mut top = String::from("|");
             let mut bottom = String::from("+");
             for cell in row.iter() {
-                let mut body = format!(" {} ", contents.contents_of(&cell));
-                let e = cell.borrow();
-                let east = e.east.as_ref();
-                let east_border = if east.is_some() && cell.borrow().is_linked(Rc::clone(&east.unwrap().upgrade().unwrap())) {
-                    " "
-                }
-                else {
-                    "|"
-                };
+                if let Some(cell) = cell {
+                    let mut body = format!(" {} ", contents.contents_of(&cell));
+                    let e = cell.borrow();
+                    let east = e.east.as_ref();
+                    let east_border = if east.is_some() && cell.borrow().is_linked(Rc::clone(&east.unwrap().upgrade().unwrap())) {
+                        " "
+                    }
+                    else {
+                        "|"
+                    };
 
-                top += &body;
-                top += east_border;
+                    top += &body;
+                    top += east_border;
 
-                let south = e.south.as_ref();
-                let south_border = if south.is_some() && cell.borrow().is_linked(Rc::clone(&south.unwrap().upgrade().unwrap())) {
-                    "   "
+                    let south = e.south.as_ref();
+                    let south_border = if south.is_some() && cell.borrow().is_linked(Rc::clone(&south.unwrap().upgrade().unwrap())) {
+                        "   "
+                    }
+                    else {
+                        "---"
+                    };
+                    let corner = String::from("+");
+                    bottom += south_border;
+                    bottom += &corner;
                 }
-                else {
-                    "---"
-                };
-                let corner = String::from("+");
-                bottom += south_border;
-                bottom += &corner;
             }
 
             output += &format!("{}\r\n", &top);
@@ -77,40 +79,49 @@ impl Grid {
         self.get_cell(row, col)
     }
 
-    pub fn each_cell(&self) -> Vec<CellLinkStrong> { 
+    pub fn each_cell(&self) -> Vec<Option<CellLinkStrong>> { 
         self.cells.iter()
             .flatten()                
-            .map(|x| Rc::clone(x))
+            .map(|x| {
+                if let Some(x) = x {
+                    Some(Rc::clone(x))
+                }
+                else {
+                    None
+                }
+            })
             .collect()        
     }
 
     fn configure_cells(&mut self) {
-        for (_, row) in &mut self.cells.iter().enumerate() {
-            for (_, cell) in &mut row.iter().enumerate() {            
-                // can't subtract from a usize of 0 apparently
-                let cell_row = cell.borrow().row;
-                if cell_row > 0 {
-                    let north = self.get_cell(cell_row - 1, cell.borrow().column);
-                    if north.is_some() {
-                        cell.borrow_mut().north = Some(Rc::downgrade(&Rc::clone(&north.unwrap())));
+        for row in &mut self.cells.iter() {
+            for cell in &mut row.iter() {
+                if let Some(cell) = cell {
+                    // can't subtract from a usize of 0 apparently
+                    let cell_row = cell.borrow().row;
+                    if cell_row > 0 {
+                        let north = self.get_cell(cell_row - 1, cell.borrow().column);
+                        if north.is_some() {
+                            cell.borrow_mut().north = Some(Rc::downgrade(&Rc::clone(&north.unwrap())));
+                        }
                     }
-                }
 
-                let south = self.get_cell(cell.borrow().row + 1, cell.borrow().column);
-                if south.is_some() {
-                    cell.borrow_mut().south = Some(Rc::downgrade(&Rc::clone(&south.unwrap())));
-                }
+                    let south = self.get_cell(cell.borrow().row + 1, cell.borrow().column);
+                    if south.is_some() {
+                        cell.borrow_mut().south = Some(Rc::downgrade(&Rc::clone(&south.unwrap())));
+                    }
 
-                let east = self.get_cell(cell.borrow().row, cell.borrow().column + 1);
-                if east.is_some() {
-                    cell.borrow_mut().east = Some(Rc::downgrade(&Rc::clone(&east.unwrap())));
-                }
+                    let east = self.get_cell(cell.borrow().row, cell.borrow().column + 1);
+                    if east.is_some() {
+                        cell.borrow_mut().east = Some(Rc::downgrade(&Rc::clone(&east.unwrap())));
+                    }
 
-                let cell_column = cell.borrow().column;
-                if cell_column > 0 {
-                    let west = self.get_cell(cell.borrow().row, cell_column - 1);
-                    if west.is_some() {
-                        cell.borrow_mut().west = Some(Rc::downgrade(&Rc::clone(&west.unwrap())));
+                    let cell_column = cell.borrow().column;
+                    if cell_column > 0 {
+                        let west = self.get_cell(cell.borrow().row, cell_column - 1);
+                        if west.is_some() {
+                            cell.borrow_mut().west = Some(Rc::downgrade(&Rc::clone(&west.unwrap())));
+                        }
                     }
                 }
             }
@@ -121,21 +132,35 @@ impl Grid {
         if row >= self.rows || column >= self.columns {
             return None;
         }
-
-        Some(Rc::clone(&self.cells[row][column]))
+        
+        self.cells[row][column].clone()
+        //Some(Rc::clone(&self.cells[row][column]))
     }
 
-    pub fn dead_ends(&self) -> Vec<CellLinkStrong> {
+    pub fn dead_ends(&self) -> Vec<Option<CellLinkStrong>> {
         self.each_cell().iter()
-            .filter(|c| c.borrow().links.len() == 1)
-            .map(|c| Rc::clone(c))
+            .filter(|c| {
+                if let Some(c) = c {
+                    c.borrow().links.len() == 1
+                } else {
+                    false
+                }
+            })
+            .map(|x| {
+                if let Some(x) = x {
+                    Some(Rc::clone(x))
+                }
+                else {
+                    None
+                }
+            })
             .collect()
     }
 }
 
 pub fn link(_self: CellLinkStrong, other: CellLinkStrong, bidir: bool) {    
     let newlink: CellLinkWeak = Rc::downgrade(&other);
-    _self.borrow_mut().links.push(newlink);
+    _self.borrow_mut().links.push(Some(newlink));
     if bidir {
         link(Rc::clone(&other), Rc::clone(&_self), false);
     }
@@ -178,9 +203,9 @@ pub struct StandardGridBuilder;
 impl GridBuilder for StandardGridBuilder {
     fn prepare_grid(&self, grid: &mut Grid) {
         for i in 0..grid.rows {
-            let mut row: Vec<CellLinkStrong> = Vec::new();
+            let mut row: Vec<Option<CellLinkStrong>> = Vec::new();
             for j in 0..grid.columns {
-                row.push(Rc::new(RefCell::new(Cell::new(i as usize, j as usize))));
+                row.push(Some(Rc::new(RefCell::new(Cell::new(i as usize, j as usize)))));
             }
             grid.cells.push(row);
         }   

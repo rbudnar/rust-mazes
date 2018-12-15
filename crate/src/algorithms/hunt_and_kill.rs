@@ -37,22 +37,24 @@ impl MazeAlgorithm for HuntAndKill {
                 current = None;
 
                 for cell in grid.each_cell().iter() {
-                    let visited_neighbors: Vec<CellLinkStrong> = cell.borrow().neighbors()
-                                .iter()
-                                .filter(|&c| {
-                                    let cref = c.upgrade().unwrap();
-                                    let nb = cref.borrow();
-                                    !nb.links().is_empty() 
-                                })
-                                .map(|x| Rc::clone(&x.upgrade().unwrap()))
-                                .collect();
+                    if let Some(cell) = cell {
+                        let visited_neighbors: Vec<CellLinkStrong> = cell.borrow().neighbors()
+                                    .iter()
+                                    .filter(|&c| {
+                                        let cref = c.upgrade().unwrap();
+                                        let nb = cref.borrow();
+                                        !nb.links().is_empty() 
+                                    })
+                                    .map(|x| Rc::clone(&x.upgrade().unwrap()))
+                                    .collect();
 
-                    if cell.borrow().links().is_empty() && !visited_neighbors.is_empty() {
-                        current = Some(cell.clone());
+                        if cell.borrow().links().is_empty() && !visited_neighbors.is_empty() {
+                            current = Some(cell.clone());
 
-                        let neighbor = rand_element(&visited_neighbors, rng_generator);
-                        link(cell.clone(), neighbor.clone(), true);
-                        break;
+                            let neighbor = rand_element(&visited_neighbors, rng_generator);
+                            link(cell.clone(), neighbor.clone(), true);
+                            break;
+                        }
                     }
                 }
             }

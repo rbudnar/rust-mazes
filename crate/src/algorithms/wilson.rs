@@ -12,7 +12,9 @@ impl MazeAlgorithm for Wilson {
         let mut unvisited: Vec<CellLinkStrong> = vec![];
 
         for cell in grid.each_cell().iter() {
-            unvisited.push(cell.clone());
+            if let Some(cell) = cell {
+                unvisited.push(cell.clone());
+            }
         }
 
         let first = rng_generator.gen_range(0, unvisited.len());

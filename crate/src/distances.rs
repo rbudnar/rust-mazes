@@ -59,12 +59,14 @@ impl Distances {
             for fcell in frontier.iter() {
                 let distance = *distances.get_distance(fcell.borrow().row, fcell.borrow().column).unwrap();
                 for linked in fcell.borrow().links.iter() {
-                    let cls = linked.upgrade().unwrap();
-                    let c = cls.borrow();
-                    
-                    if !distances.is_visited(c.row, c.column) {
-                        distances.insert(c.row, c.column, distance + 1);
-                        new_frontier.push(Rc::clone(&cls));
+                    if let Some(l) = linked {
+                        let cls = l.upgrade().unwrap();
+                        let c = cls.borrow();
+                        
+                        if !distances.is_visited(c.row, c.column) {
+                            distances.insert(c.row, c.column, distance + 1);
+                            new_frontier.push(Rc::clone(&cls));
+                        }
                     }
                 }
             }
@@ -83,14 +85,16 @@ impl Distances {
             let mut next_current: CellLinkStrong = Rc::new(RefCell::new(Cell::new(0, 0))); 
 
             for n in current.borrow().links.iter() {
-                let neighbor = n.upgrade().unwrap();
-                let n_ref = neighbor.borrow();
+                if let Some(n) = n {
+                    let neighbor = n.upgrade().unwrap();
+                    let n_ref = neighbor.borrow();
 
-                let neighbor_distance = *self.get_distance(n_ref.row, n_ref.column).unwrap();
-                if neighbor_distance < current_distance {
-                    breadcrumbs.insert(n_ref.row, n_ref.column, neighbor_distance);
-                    next_current = Rc::clone(&neighbor);
-                    break;
+                    let neighbor_distance = *self.get_distance(n_ref.row, n_ref.column).unwrap();
+                    if neighbor_distance < current_distance {
+                        breadcrumbs.insert(n_ref.row, n_ref.column, neighbor_distance);
+                        next_current = Rc::clone(&neighbor);
+                        break;
+                    }
                 }
             }
 
