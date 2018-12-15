@@ -16,7 +16,7 @@ impl Mask {
     }
 
     pub fn get(&self, row: usize, column: usize) -> bool {
-         if (0..self.rows-1).contains(&row) && (0..self.columns-1).contains(&column) {
+         if (0..self.rows).contains(&row) && (0..self.columns).contains(&column) {
             self.bits[row][column]
         }   
         else{
