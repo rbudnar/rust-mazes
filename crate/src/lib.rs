@@ -28,6 +28,7 @@ use distances::*;
 use algorithms::{MazeAlgorithm, binary_tree::*, sidewinder::*, aldous_broder::*, wilson::*, hunt_and_kill::*, recursive_backtracker::*};
 use rng::{wasm_rng};
 use mask::*;
+use masked_grid::*;
 
 cfg_if! {
     // When the `console_error_panic_hook` feature is enabled, we can call the
@@ -160,6 +161,7 @@ mod tests {
     use test::Bencher;
     use rng::{thread_rng};
     use std::collections::HashMap;
+    use std::{fs, env};
 
     fn test_std_grid(alg: impl MazeAlgorithm) -> Grid {
         let grid = Grid::new(5,5, &StandardGridBuilder);
@@ -168,8 +170,7 @@ mod tests {
         alg.on(&grid, &thread_rng);
 
         // Prints normal grid without distances.
-        let std_grid = StandardGrid;
-        println!("{}", grid.to_string(&std_grid));
+        println!("{}", grid.to_string(&BaseGridFormatter));
         grid
     }
 
@@ -250,8 +251,7 @@ mod tests {
         RecursiveBacktracker.on(&grid, &thread_rng);
 
         // Prints normal grid without distances.
-        let std_grid = StandardGrid;
-        println!("{}", grid.to_string(&std_grid));
+        println!("{}", grid.to_string(&BaseGridFormatter));
     }
 
     #[bench]
@@ -261,8 +261,7 @@ mod tests {
         let thread_rng = thread_rng::ThreadRng;
         b.iter(|| HuntAndKill.on(&grid, &thread_rng));
 
-        let std_grid = StandardGrid;
-        println!("{}", grid.to_string(&std_grid));
+        println!("{}", grid.to_string(&BaseGridFormatter));
     }
 
 
@@ -342,8 +341,54 @@ mod tests {
     }
 
     #[test]
+    fn masked_grid() {
+        let mut mask = Mask::new(5, 5);
+
+        mask.set(0,2, false);
+        mask.set(1,2, false);
+        mask.set(2,2, false);
+        
+        mask.set(0,0, false);
+        mask.set(2,0, false);
+        mask.set(3,0, false);
+
+        mask.set(1,4, false);
+        mask.set(2,4, false);
+        mask.set(4,4, false);
+        let masked_grid = MaskedGrid::new(mask);
+        RecursiveBacktracker.on(&masked_grid.grid, &thread_rng::ThreadRng);
+        println!("{}", masked_grid.grid.to_string(&BaseGridFormatter));
+    }
+
+    #[test]
     fn basic_grid() {
         let grid = Grid::new(5,5, &StandardGridBuilder);
-        println!("{}", grid.to_string(&StandardGrid));    
+        println!("{}", grid.to_string(&BaseGridFormatter));    
+    }
+
+    #[test]
+    fn mask_from_file() {
+        let filename = "mask.txt";
+        let contents = fs::read_to_string(filename).expect("Error with file");
+        let rows = contents.lines().count();
+        let cols = contents.lines().map(|line| line.len()).max().unwrap();
+        println!("{}, {}", rows, cols);
+        let mut mask = Mask::new(rows, cols);
+        let X = 'X';
+        for (i, line) in contents.lines().enumerate() {
+            println!("{}: {}", i, line);
+            for (j, c) in line.chars().enumerate() {
+                if c == X {
+                    mask.set(i, j, false);
+                }
+            }
+        }
+
+        let masked_grid = MaskedGrid::new(mask);
+        AldousBroder.on(&masked_grid.grid, &thread_rng::ThreadRng);
+        println!("{}", masked_grid.grid.to_string(&BaseGridFormatter));
+        // println!("{}", contents);
+
+
     }
 }

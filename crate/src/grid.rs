@@ -17,8 +17,6 @@ impl Grid {
             rows, columns            
         };
 
-        builder.prepare_grid(&mut grid);
-        grid.configure_cells();
         grid
     }
 
@@ -58,6 +56,9 @@ impl Grid {
                     let corner = String::from("+");
                     bottom += south_border;
                     bottom += &corner;
+                } else {
+                    top += "   |"; 
+                    bottom += "---+";
                 }
             }
 
@@ -93,7 +94,7 @@ impl Grid {
             .collect()        
     }
 
-    fn configure_cells(&mut self) {
+    pub fn configure_cells(&mut self) {
         for row in &mut self.cells.iter() {
             for cell in &mut row.iter() {
                 if let Some(cell) = cell {
@@ -134,7 +135,6 @@ impl Grid {
         }
         
         self.cells[row][column].clone()
-        //Some(Rc::clone(&self.cells[row][column]))
     }
 
     pub fn dead_ends(&self) -> Vec<Option<CellLinkStrong>> {
@@ -184,8 +184,8 @@ pub trait CellFormatter {
 
 }
 
-pub struct StandardGrid;
-impl CellFormatter for StandardGrid {
+pub struct BaseGridFormatter;
+impl CellFormatter for BaseGridFormatter {
     fn contents_of(&self, _cell: &CellLinkStrong) -> String {
         String::from(" ")
     }
@@ -195,11 +195,17 @@ impl CellFormatter for StandardGrid {
     }    
 }
 
+pub struct StdGrid {
+    pub grid: Grid
+}
+
+
 pub trait GridBuilder {
     fn prepare_grid(&self, grid: &mut Grid);
 }
 
 pub struct StandardGridBuilder;
+
 impl GridBuilder for StandardGridBuilder {
     fn prepare_grid(&self, grid: &mut Grid) {
         for i in 0..grid.rows {
