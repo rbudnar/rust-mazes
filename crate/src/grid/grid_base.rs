@@ -1,23 +1,20 @@
+use grid::{cell::CellLinkStrong, CellFormatter};
 use rng::RngWrapper;
 use std::rc::{Rc};
-use std::cell::RefCell;
-use cell::*;
 
 #[derive(Debug)]
-pub struct Grid {
+pub struct GridBase {
     pub cells: Vec<Vec<Option<CellLinkStrong>>>,
     pub rows: usize, 
     pub columns: usize
 }
 
-impl Grid {
-    pub fn new(rows: usize, columns: usize, builder: &GridBuilder)-> Grid {
-        let mut grid = Grid {
+impl GridBase {
+    pub fn new(rows: usize, columns: usize)-> GridBase {
+        GridBase {
             cells: Vec::new(),
             rows, columns            
-        };
-
-        grid
+        }
     }
 
     pub fn to_string(&self, contents: &CellFormatter) -> String {
@@ -68,10 +65,6 @@ impl Grid {
         }
         
         output
-    }
-
-    pub fn size(&self) -> usize {
-        self.rows * self.columns
     }
 
     pub fn random_cell(&self, rng: &RngWrapper) -> Option<CellLinkStrong> {
@@ -157,64 +150,3 @@ impl Grid {
             .collect()
     }
 }
-
-pub fn link(_self: CellLinkStrong, other: CellLinkStrong, bidir: bool) {    
-    let newlink: CellLinkWeak = Rc::downgrade(&other);
-    _self.borrow_mut().links.push(Some(newlink));
-    if bidir {
-        link(Rc::clone(&other), Rc::clone(&_self), false);
-    }
-}
-
-pub fn unlink(_self: CellLinkStrong, other: CellLinkStrong, bidir: bool) {
-    let index = _self.borrow().index_of_other(Rc::clone(&other));
-
-    if let Some(i) = index {
-        _self.borrow_mut().links.remove(i);
-    }
-
-    if bidir {
-        unlink(Rc::clone(&other), Rc::clone(&_self), false);
-    }
-}
-
-pub trait CellFormatter {
-    fn contents_of(&self, cell: &CellLinkStrong) -> String;
-    fn background_color(&self, cell: &CellLinkStrong) -> String;
-
-}
-
-pub struct BaseGridFormatter;
-impl CellFormatter for BaseGridFormatter {
-    fn contents_of(&self, _cell: &CellLinkStrong) -> String {
-        String::from(" ")
-    }
-
-    fn background_color(&self, _cell: &CellLinkStrong) -> String {
-        String::from("")
-    }    
-}
-
-pub struct StdGrid {
-    pub grid: Grid
-}
-
-
-pub trait GridBuilder {
-    fn prepare_grid(&self, grid: &mut Grid);
-}
-
-pub struct StandardGridBuilder;
-
-impl GridBuilder for StandardGridBuilder {
-    fn prepare_grid(&self, grid: &mut Grid) {
-        for i in 0..grid.rows {
-            let mut row: Vec<Option<CellLinkStrong>> = Vec::new();
-            for j in 0..grid.columns {
-                row.push(Some(Rc::new(RefCell::new(Cell::new(i as usize, j as usize)))));
-            }
-            grid.cells.push(row);
-        }   
-    }
-}
-

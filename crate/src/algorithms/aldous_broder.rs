@@ -1,6 +1,6 @@
 use algorithms::MazeAlgorithm;
 use rng::RngWrapper;
-use grid::*;
+use grid::{Grid, cell::Cell};
 
 #[derive(Debug)]
 pub struct AldousBroder;
@@ -15,18 +15,17 @@ impl MazeAlgorithm for AldousBroder {
     fn on(&self, grid: &Grid, rng_generator: &RngWrapper) {
 
         let mut cell = grid.random_cell(rng_generator).unwrap();
-        
+       
         // this only works becuase the maze is "perfect"
-        let mut unvisited_cells = grid.rows * grid.columns - 1;
+        let mut unvisited_cells = grid.size() - 1;
         while unvisited_cells > 0 {
-            
             let neighbors = cell.borrow().neighbors();
             let index = rng_generator.gen_range(0, neighbors.len());
 
             let next_neighbor = &neighbors[index].upgrade().unwrap();
 
             if next_neighbor.borrow().links.is_empty() {
-                link(cell.clone(), next_neighbor.clone(), true);
+                Cell::link(cell.clone(), next_neighbor.clone(), true);
                 unvisited_cells -= 1;
             }
 

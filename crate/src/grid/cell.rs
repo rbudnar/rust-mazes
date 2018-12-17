@@ -75,5 +75,25 @@ impl Cell {
                 false
             }
         })
+    }
+
+    pub fn link(_self: CellLinkStrong, other: CellLinkStrong, bidir: bool) {    
+        let newlink: CellLinkWeak = Rc::downgrade(&other);
+        _self.borrow_mut().links.push(Some(newlink));
+        if bidir {
+            Cell::link(Rc::clone(&other), Rc::clone(&_self), false);
+        }
+    }
+
+    pub fn unlink(_self: CellLinkStrong, other: CellLinkStrong, bidir: bool) {
+        let index = _self.borrow().index_of_other(Rc::clone(&other));
+
+        if let Some(i) = index {
+            _self.borrow_mut().links.remove(i);
+        }
+
+        if bidir {
+            Cell::unlink(Rc::clone(&other), Rc::clone(&_self), false);
+        }
     }    
 }

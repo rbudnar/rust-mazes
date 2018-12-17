@@ -1,6 +1,5 @@
 use rng::RngWrapper;
-use grid::*;
-use cell::*;
+use grid::{Grid, cell::*};
 use std::rc::{Rc};
 use algorithms::{MazeAlgorithm, rand_element};
 
@@ -25,7 +24,7 @@ impl MazeAlgorithm for BinaryTree {
                 if length > 0 {
                     let neighbor: CellLinkStrong = rand_element(&neighbors, rng_generator).clone();
 
-                    link(Rc::clone(cell), neighbor, true);
+                    Cell::link(Rc::clone(cell), neighbor, true);
                 }
             }
         }

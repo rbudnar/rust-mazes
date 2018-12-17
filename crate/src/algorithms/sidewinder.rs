@@ -1,6 +1,6 @@
+use grid::{Grid, cell::Cell};
 use rng::RngWrapper;
-use grid::*;
-use cell::*;
+use grid::{cell::CellLinkStrong};
 use std::rc::{Rc};
 use algorithms::{MazeAlgorithm, rand_element};
 
@@ -9,7 +9,7 @@ pub struct Sidewinder;
 
 impl MazeAlgorithm for Sidewinder {
     fn on(&self, grid: &Grid, rng_generator: &RngWrapper) {
-        for row in grid.cells.iter() {
+        for row in grid.cells().iter() {
             let mut run: Vec<CellLinkStrong> = vec![];
         
             for cell in row.iter() {
@@ -24,13 +24,13 @@ impl MazeAlgorithm for Sidewinder {
 
                         if member.borrow().north.is_some() {
                             let north = cell.borrow().north.clone().unwrap().upgrade().unwrap();
-                            link(Rc::clone(&cell), Rc::clone(&north), true);
+                            Cell::link(Rc::clone(&cell), Rc::clone(&north), true);
                         }
                         run.clear();
                     }
                     else {
                         let east = cell.borrow().east.clone().unwrap().upgrade().unwrap();
-                        link(Rc::clone(&cell), Rc::clone(&east), true);
+                        Cell::link(Rc::clone(&cell), Rc::clone(&east), true);
                     }                
                 }
             }

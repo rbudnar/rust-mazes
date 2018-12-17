@@ -1,9 +1,7 @@
 use algorithms::{rand_element, MazeAlgorithm};
-use grid::link;
-use cell::CellLinkStrong;
+use grid::{cell::*, Grid};
 use std::rc::{Rc};
 use rng::RngWrapper;
-use grid::Grid;
 
 #[derive(Debug)]
 pub struct HuntAndKill;
@@ -30,7 +28,7 @@ impl MazeAlgorithm for HuntAndKill {
 
             if !unvisited_neighbors.is_empty() {
                 let neighbor = rand_element(&unvisited_neighbors, rng_generator);
-                link(c, neighbor.clone(), true);
+                Cell::link(c, neighbor.clone(), true);
                 current = Some(neighbor.clone());
             }
             else {
@@ -52,7 +50,7 @@ impl MazeAlgorithm for HuntAndKill {
                             current = Some(cell.clone());
 
                             let neighbor = rand_element(&visited_neighbors, rng_generator);
-                            link(cell.clone(), neighbor.clone(), true);
+                            Cell::link(cell.clone(), neighbor.clone(), true);
                             break;
                         }
                     }

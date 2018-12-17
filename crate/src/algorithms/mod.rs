@@ -1,6 +1,6 @@
+use grid::Grid;
 use std::fmt::Debug;
 use rng::RngWrapper;
-use grid::Grid;
 
 pub mod binary_tree;
 pub mod sidewinder;
@@ -10,7 +10,7 @@ pub mod hunt_and_kill;
 pub mod recursive_backtracker;
 
 pub trait MazeAlgorithm: Debug {
-    fn on(&self,  grid: &Grid, rng_generator: &RngWrapper);
+    fn on(&self, grid: &Grid, rng_generator: &RngWrapper);
 }
 
 fn rand_element<'a, T>(list: &'a [T], rng: &RngWrapper) -> &'a T {

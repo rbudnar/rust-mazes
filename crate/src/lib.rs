@@ -14,21 +14,18 @@ extern crate js_sys;
 extern crate math;
 extern crate test;
 
+use grid::grid_base::GridBase;
 use wasm_bindgen::prelude::*;
-mod cell;
-mod grid;
 mod algorithms;
-mod grid_web;
-mod distances;
 mod rng;
-mod mask;
-mod masked_grid;
-use grid::*;
-use distances::*;
+mod grid;
+use grid::{Grid,
+    standard_grid::StandardGrid,
+    distances::DistanceGrid, 
+    grid_web::grid_to_web 
+};
 use algorithms::{MazeAlgorithm, binary_tree::*, sidewinder::*, aldous_broder::*, wilson::*, hunt_and_kill::*, recursive_backtracker::*};
 use rng::{wasm_rng};
-use mask::*;
-use masked_grid::*;
 
 cfg_if! {
     // When the `console_error_panic_hook` feature is enabled, we can call the
@@ -78,9 +75,11 @@ cfg_if! {
 //     fn append_child(this: &Element, other: Element);
 //     fn alert(s: &str);
 // }
-static mut GRID: Grid = Grid {
-    cells: Vec::new(),
-    rows: 1, columns: 1
+static mut GRID: StandardGrid = StandardGrid {
+    grid: GridBase {
+        cells: Vec::new(),
+        rows: 1, columns: 1
+    },
 };
 
 static mut COLORIZE: bool = true;
@@ -124,7 +123,7 @@ pub fn recursive_backtracker(rows: usize, columns: usize) {
 pub fn redisplay_grid() {
     unsafe {
         let distance_grid = prepare_distance_grid(&GRID);
-        grid_web::grid_to_web(&GRID, &distance_grid, COLORIZE);
+        grid_to_web(&GRID, &distance_grid, COLORIZE);
     }
 }
 
@@ -133,7 +132,7 @@ pub fn on_colorize_change(colorize: bool) {
     unsafe {
         COLORIZE = colorize;
         let distance_grid = prepare_distance_grid(&GRID);
-        grid_web::grid_to_web(&GRID, &distance_grid, COLORIZE);
+        grid_to_web(&GRID, &distance_grid, COLORIZE);
     }
 }
 
@@ -141,42 +140,54 @@ pub fn on_colorize_change(colorize: bool) {
 
 fn build_and_display_grid(alg: impl MazeAlgorithm, rows: usize, columns: usize) {
     unsafe {        
-        GRID = Grid::new(rows, columns, &StandardGridBuilder);
+        GRID = StandardGrid::new(rows, columns);
         let wasm_generator = wasm_rng::WasmRng;
         alg.on(&GRID, &wasm_generator);
 
         let distance_grid = prepare_distance_grid(&GRID);
-        grid_web::grid_to_web(&GRID, &distance_grid, COLORIZE);
+        grid_to_web(&GRID, &distance_grid, COLORIZE);
     }
 }
 
 fn prepare_distance_grid(grid: &Grid) -> DistanceGrid {
-    let root = grid.cells[grid.rows / 2][grid.columns / 2].clone().unwrap();
+    let root = grid.cells()[grid.rows() / 2][grid.columns() / 2].clone().unwrap();
     DistanceGrid::new(&root)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use grid::cell::CellLinkStrong;
     use test::Bencher;
     use rng::{thread_rng};
     use std::collections::HashMap;
     use std::{fs, env};
 
-    fn test_std_grid(alg: impl MazeAlgorithm) -> Grid {
-        let grid = Grid::new(5,5, &StandardGridBuilder);
+    pub struct ConsoleGridFormatter;
+    impl CellFormatter for ConsoleGridFormatter {
+        fn contents_of(&self, _cell: &CellLinkStrong) -> String {
+            String::from(" ")
+        }
+
+        fn background_color(&self, _cell: &CellLinkStrong) -> String {
+            String::from("")
+        }    
+    }
+
+    fn test_std_grid(alg: impl MazeAlgorithm) -> StandardGrid {
+        let grid = StandardGrid::new(5,5);
         
         let thread_rng = thread_rng::ThreadRng;
         alg.on(&grid, &thread_rng);
 
         // Prints normal grid without distances.
-        println!("{}", grid.to_string(&BaseGridFormatter));
+        println!("{}", grid.to_string(&ConsoleGridFormatter));
         grid
     }
 
     #[test]
     fn binary_tree() {
-        let grid = Grid::new(5,5, &StandardGridBuilder);
+        let grid = StandardGrid::new(5,5);
 
         let thread_rng = thread_rng::ThreadRng;
         BinaryTree.on(&grid, &thread_rng);
@@ -184,8 +195,8 @@ mod tests {
         // This prints the grid with Dijkstra's distances inside, rendered as characters a,b,c, etc. 
         // Will probably need to adjust for really large grids if I really want to display them with distances.
         // grabs first cell of first row
-        let root = grid.cells.first().unwrap().first().unwrap();
-        let last = grid.cells.last().unwrap().first().unwrap();
+        let root = grid.cells().first().unwrap().first().unwrap();
+        let last = grid.cells().last().unwrap().first().unwrap();
         let mut distance_grid = DistanceGrid::new(&root.as_ref().unwrap());
         
         
@@ -230,8 +241,8 @@ mod tests {
     
     #[test]
     fn kill_cells() {
-        let grid = Grid::new(5,5, &StandardGridBuilder);
-        let f = grid.cells[0][0].as_ref().unwrap();
+        let grid = StandardGrid::new(5,5);
+        let f = grid.cells()[0][0].as_ref().unwrap();
         let first = f.borrow();
         
         let first_e = first.east.clone().unwrap().upgrade().unwrap();
@@ -239,7 +250,7 @@ mod tests {
         let first_s = first.south.clone().unwrap().upgrade().unwrap();
         first_s.borrow_mut().north = None;
 
-        let l = &grid.cells[4][4].as_ref().unwrap();
+        let l = &grid.cells()[4][4].as_ref().unwrap();
         let last = l.borrow();
         let last_w = last.west.clone().unwrap().upgrade().unwrap();
         last_w.borrow_mut().east = None;
@@ -251,59 +262,59 @@ mod tests {
         RecursiveBacktracker.on(&grid, &thread_rng);
 
         // Prints normal grid without distances.
-        println!("{}", grid.to_string(&BaseGridFormatter));
+        println!("{}", grid.to_string(&ConsoleGridFormatter));
     }
 
     #[bench]
     fn hunt_and_kill_bench(b: &mut Bencher) {
-        let grid = Grid::new(5,5, &StandardGridBuilder);
+        let grid = StandardGrid::new(5,5);
         
         let thread_rng = thread_rng::ThreadRng;
         b.iter(|| HuntAndKill.on(&grid, &thread_rng));
 
-        println!("{}", grid.to_string(&BaseGridFormatter));
+        println!("{}", grid.to_string(&ConsoleGridFormatter));
     }
 
 
-    #[test]
-    #[ignore]
-    fn dead_ends() {
-        let algorithms: Vec<Box<MazeAlgorithm>> =
-            vec![Box::new(BinaryTree), Box::new(Sidewinder), Box::new(AldousBroder), Box::new(Wilson), Box::new(HuntAndKill)];
+    // #[test]
+    // #[ignore]
+    // fn dead_ends() {
+    //     let algorithms: Vec<Box<MazeAlgorithm>> =
+    //         vec![Box::new(BinaryTree), Box::new(Sidewinder), Box::new(AldousBroder), Box::new(Wilson), Box::new(HuntAndKill)];
 
-        let tries = 100;
-        let size = 20;
+    //     let tries = 100;
+    //     let size = 20;
 
-        let thread_rng = thread_rng::ThreadRng;
-        let mut averages: HashMap<String, f64> = HashMap::new();
+    //     let thread_rng = thread_rng::ThreadRng;
+    //     let mut averages: HashMap<String, f64> = HashMap::new();
 
-        for alg in algorithms.iter() {
-            let mut dead_end_counts: Vec<usize> = vec![];
-            println!("Running {:?}", alg);
+    //     for alg in algorithms.iter() {
+    //         let mut dead_end_counts: Vec<usize> = vec![];
+    //         println!("Running {:?}", alg);
             
-            for _ in 0..tries {
-                let mut grid = Grid::new(size,size, &StandardGridBuilder);
-                alg.on(&grid, &thread_rng);
-                dead_end_counts.push(grid.dead_ends().len())
-            }
+    //         for _ in 0..tries {
+    //             let mut grid = StandardGrid::new(size,size);
+    //             alg.on(&grid, &thread_rng);
+    //             dead_end_counts.push(grid.dead_ends().len())
+    //         }
 
-            let total_deadends = dead_end_counts.iter().fold(0, |acc, x| acc + x);
-            averages.insert(format!("{:?}", alg), total_deadends as f64 / dead_end_counts.len() as f64);
-        }
+    //         let total_deadends = dead_end_counts.iter().fold(0, |acc, x| acc + x);
+    //         averages.insert(format!("{:?}", alg), total_deadends as f64 / dead_end_counts.len() as f64);
+    //     }
 
-        let total_cells = size * size;
-        println!("Average dead-ends per {}x{} maze ({} cells):", size, size, total_cells);
+    //     let total_cells = size * size;
+    //     println!("Average dead-ends per {}x{} maze ({} cells):", size, size, total_cells);
 
-        for (alg, avg) in averages.iter() {
-            let formatted = format!("{:.*}", 1, (*avg/total_cells as f64) * 100.0);
-            println!("{} : {} / {} ({:02}%)", alg, avg, total_cells, formatted);
-        }        
-    }
+    //     for (alg, avg) in averages.iter() {
+    //         let formatted = format!("{:.*}", 1, (*avg/total_cells as f64) * 100.0);
+    //         println!("{} : {} / {} ({:02}%)", alg, avg, total_cells, formatted);
+    //     }        
+    // }
 
 
     #[test]
     fn colors() {
-        let grid = Grid::new(5,5, &StandardGridBuilder);
+        let grid = StandardGrid::new(5,5);
 
         let thread_rng = thread_rng::ThreadRng;
         BinaryTree.on(&grid, &thread_rng);
@@ -311,12 +322,12 @@ mod tests {
         // This prints the grid with Dijkstra's distances inside, rendered as characters a,b,c, etc. 
         // Will probably need to adjust for really large grids if I really want to display them with distances.
         // grabs first cell of first row
-        let root = grid.cells.first().unwrap().first().unwrap();
+        let root = grid.cells().first().unwrap().first().unwrap();
         let distance_grid = DistanceGrid::new(root.as_ref().unwrap());
         let color = distance_grid.background_color(&root.as_ref().unwrap());
         assert_eq!(color, "rgb(255,255,255)");
 
-        for row in grid.cells.iter() {
+        for row in grid.cells().iter() {
             for cell in row.iter() {
                 if let Some(cell) = cell {
                     println!("{}", distance_grid.background_color(&cell));
@@ -356,14 +367,14 @@ mod tests {
         mask.set(2,4, false);
         mask.set(4,4, false);
         let masked_grid = MaskedGrid::new(mask);
-        RecursiveBacktracker.on(&masked_grid.grid, &thread_rng::ThreadRng);
-        println!("{}", masked_grid.grid.to_string(&BaseGridFormatter));
+        RecursiveBacktracker.on(&masked_grid, &thread_rng::ThreadRng);
+        println!("{}", masked_grid.grid.to_string(&ConsoleGridFormatter));
     }
 
     #[test]
     fn basic_grid() {
-        let grid = Grid::new(5,5, &StandardGridBuilder);
-        println!("{}", grid.to_string(&BaseGridFormatter));    
+        let grid = StandardGrid::new(5,5);
+        println!("{}", grid.to_string(&ConsoleGridFormatter));    
     }
 
     #[test]
@@ -385,10 +396,7 @@ mod tests {
         }
 
         let masked_grid = MaskedGrid::new(mask);
-        AldousBroder.on(&masked_grid.grid, &thread_rng::ThreadRng);
-        println!("{}", masked_grid.grid.to_string(&BaseGridFormatter));
-        // println!("{}", contents);
-
-
+        AldousBroder.on(&masked_grid, &thread_rng::ThreadRng);
+        println!("{}", masked_grid.grid.to_string(&ConsoleGridFormatter));
     }
 }

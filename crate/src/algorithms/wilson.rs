@@ -1,8 +1,6 @@
-use grid::link;
-use cell::CellLinkStrong;
+use grid::{cell::CellLinkStrong, Grid, cell::Cell};
 use rng::RngWrapper;
 use algorithms::{MazeAlgorithm, rand_element};
-use grid::Grid;
 
 #[derive(Debug)]
 pub struct Wilson;
@@ -40,7 +38,7 @@ impl MazeAlgorithm for Wilson {
 
             let end = path.len() - 1;
             for i in 0..end {
-                link(path[i].clone(), path[i + 1].clone(), true);
+                Cell::link(path[i].clone(), path[i + 1].clone(), true);
                 unvisited.remove_item(&path[i]);
             }
         }

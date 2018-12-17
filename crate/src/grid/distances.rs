@@ -1,6 +1,5 @@
+use grid::{Grid, CellFormatter, cell::{Cell, CellLinkStrong}};
 use std::collections::HashMap;
-use cell::*;
-use grid::*;
 use std::rc::{Rc};
 use std::cell::RefCell;
 use std::char;

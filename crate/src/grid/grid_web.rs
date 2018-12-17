@@ -1,8 +1,7 @@
-use grid::*;
-use cell::*;
-use web_sys::*;
+use grid::{Grid, cell::CellLinkStrong, CellFormatter};
+use web_sys::{HtmlElement, Node};
 use std::rc::{Rc};
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::prelude::JsValue;
 use wasm_bindgen::JsCast;
 
 // Needed to be able to remove the old style sheet when creating new mazes
@@ -24,7 +23,7 @@ pub fn grid_to_web(grid: &Grid, formatter: &CellFormatter, colorize: bool) {
             background-color: #efefef;
             border: 1px solid black;
         }}
-       ", grid.columns);
+       ", grid.columns());
 
     unsafe {
         if STYLESHEET.is_some() {
@@ -39,7 +38,7 @@ pub fn grid_to_web(grid: &Grid, formatter: &CellFormatter, colorize: bool) {
             .expect("sheet should have been added");
     }
 
-    for (i, row) in grid.cells.iter().enumerate() {
+    for (i, row) in grid.cells().iter().enumerate() {
         for (j, cell) in row.iter().enumerate() {
             if let Some(cell) = cell {
                 let html_cell = document.create_element("div").unwrap();
@@ -51,7 +50,7 @@ pub fn grid_to_web(grid: &Grid, formatter: &CellFormatter, colorize: bool) {
                 }
 
                 // bottom of maze
-                if i == grid.rows - 1 {
+                if i == grid.rows() - 1 {
                     add_class(&html_cell, "bb");
                 }
                 // left side 
@@ -60,7 +59,7 @@ pub fn grid_to_web(grid: &Grid, formatter: &CellFormatter, colorize: bool) {
                 }
 
                 // right side
-                if j == grid.columns -1 {
+                if j == grid.columns() -1 {
                     add_class(&html_cell, "br");
                 }
 

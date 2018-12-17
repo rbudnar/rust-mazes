@@ -1,10 +1,7 @@
-use grid::link;
+use grid::{Grid, cell::Cell, cell::CellLinkStrong};
 use algorithms::rand_element;
-use cell::CellLinkStrong;
 use rng::RngWrapper;
 use algorithms::MazeAlgorithm;
-use grid::Grid;
-
 
 #[derive(Debug)]
 pub struct RecursiveBacktracker;
@@ -36,7 +33,7 @@ impl MazeAlgorithm for RecursiveBacktracker {
             
             if !unvisited.is_empty() {
                 let rand_neighbor = rand_element(&unvisited, rng_generator);
-                link(current.clone(), rand_neighbor.clone(), true);
+                Cell::link(current.clone(), rand_neighbor.clone(), true);
                 stack.push(rand_neighbor.clone());
             }
             else {
