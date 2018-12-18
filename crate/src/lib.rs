@@ -157,11 +157,10 @@ fn prepare_distance_grid(grid: &Grid) -> DistanceGrid {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use grid::cell::CellLinkStrong;
+    use grid::{CellFormatter, cell::CellLinkStrong, mask::Mask, masked_grid::MaskedGrid};
     use test::Bencher;
     use rng::{thread_rng};
-    use std::collections::HashMap;
-    use std::{fs, env};
+    use std::fs;
 
     pub struct ConsoleGridFormatter;
     impl CellFormatter for ConsoleGridFormatter {

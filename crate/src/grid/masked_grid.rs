@@ -25,12 +25,7 @@ impl MaskedGrid {
         masked_grid.prepare_grid();
         masked_grid.grid.configure_cells();
         masked_grid
-    }
-
-    fn random_cell(&self, rng: &RngWrapper) -> Option<CellLinkStrong> {
-        let (row, col) = self.mask.borrow().rand_location(rng);
-        self.grid.cells[row][col].clone()
-    }
+    }    
 }
 
 impl Grid for MaskedGrid {
@@ -49,9 +44,8 @@ impl Grid for MaskedGrid {
     }
 
     fn random_cell(&self, rng: &RngWrapper) -> Option<CellLinkStrong> {
-        let row: usize = rng.gen_range(0, self.grid.rows);
-        let col: usize = rng.gen_range(0, self.grid.columns);
-        self.grid.get_cell(row, col)
+        let (row, col) = self.mask.borrow().rand_location(rng);
+        self.grid.cells[row][col].clone()
     }
 
     fn each_cell(&self) -> Vec<Option<CellLinkStrong>> {

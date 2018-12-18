@@ -20,16 +20,19 @@ impl GridBase {
     pub fn to_string(&self, contents: &CellFormatter) -> String {
         let mut output = String::new();
         output += "\r";
-        for _ in 0..self.columns {
-            output += "+---"
-        }
-        output += "+\r\n";
-        
-        for row in self.cells.iter() {
+
+        for (i, row) in self.cells.iter().enumerate() {
             let mut top = String::from("|");
             let mut bottom = String::from("+");
-            for cell in row.iter() {
+            for (j, cell) in row.iter().enumerate() {
                 if let Some(cell) = cell {
+                    if i == 0 {
+                        output += "+---";
+                        if j == self.columns -1 {
+                            output += "+";
+                        }
+                    }                    
+
                     let mut body = format!(" {} ", contents.contents_of(&cell));
                     let e = cell.borrow();
                     let east = e.east.as_ref();
@@ -54,9 +57,58 @@ impl GridBase {
                     bottom += south_border;
                     bottom += &corner;
                 } else {
-                    top += "   |"; 
-                    bottom += "---+";
+                    if i == 0 {
+                        // very top of grid
+                        if j > 0 && self.cells[i][j-1].is_some() {
+                            output += "+   ";
+                        } else {
+                            output += "    ";
+                        }                 
+                    }
+
+                    if j == 0 {
+                        top = String::from(" ");
+                    }                    
+                    
+                    // Handle sides 
+                    if j == self.columns - 1 {
+                        top += "    ";
+                    }
+                    else if j > 0 && !self.cells[i][j + 1].is_some() {
+                        top += "    ";
+                    }
+                    else {
+                        top += "   |"; 
+                    }
+
+                    if j == 0 && (i == self. rows- 1 || (i < self.rows - 1 && !self.cells[i+1][j].is_some())) {
+                        bottom = String::from(" ");
+                    }
+
+                    // Here we need to check the next row/column and see if we need to render the bottom
+                    // 1) Check if last row OR if before the last row and the cell below it is None
+                    if i == self.rows -1 || i < self.rows - 1 && !self.cells[i+1][j].is_some() {
+                        // 2) If we aren't in the last column
+                        if j < self.columns - 1 {
+                            // 3) Check if the next cell to the right or the cell to the south east is present and render the corner
+                            if self.cells[i][j+1].is_some() || self.cells[i+1][j+1].is_some() {
+                                bottom += "   +";                                    
+                            } else {
+                                bottom += "    ";    
+                            }
+
+                        }
+                        else {
+                            bottom += "    ";
+                        }
+                    } else {
+                        bottom += "---+";
+                    }
                 }
+            }
+
+            if i == 0 {
+                output += "\r\n";
             }
 
             output += &format!("{}\r\n", &top);
