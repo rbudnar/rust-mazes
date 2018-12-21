@@ -4,7 +4,7 @@ use rng::RngWrapper;
 pub struct Mask {
     pub rows: usize,
     pub columns: usize,
-    bits: Vec<Vec<bool>>
+    pub bits: Vec<Vec<bool>>
 }
 
 impl Mask {

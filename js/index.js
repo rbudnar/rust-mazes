@@ -1,8 +1,10 @@
 import  "../styles/main.scss";
 var maze_generator;
+
 import("../crate/pkg").then(module => {
     maze_generator = module;
-    module.basic_binary_tree(8,8);
+    maze_generator.add_canvas();
+    maze_generator.basic_binary_tree(8,8);
 });
 
 const sizeSelector = document.querySelector("#size-selector");
@@ -46,3 +48,38 @@ const colorize =  document.querySelector("#colorize");
 colorize.addEventListener("click", () => {
     maze_generator.on_colorize_change(colorize.checked);
 });
+
+
+// This is my reference implementation in JS for canvas drawing. It has been moved to rust.
+const setupCanvas = () => {
+    let startX;
+    let startY;
+    let imgData;
+    const canvas = document.getElementById("mask_canvas");
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "black";
+        
+    canvas.addEventListener("mousedown", e => {
+        imgData = ctx.getImageData(0,0,400,400);
+        startX = e.layerX;
+        startY = e.layerY;
+        canvas.addEventListener("mousemove", mouseMove);
+    });
+
+    canvas.addEventListener("mouseup", e => {
+        canvas.removeEventListener("mousemove", mouseMove);
+        let endX = e.layerX;
+        let endY = e.layerY;
+
+        ctx.fillRect(startX, startY, endX - startX, endY - startY);
+        ctx.restore();
+        ctx.save();
+    });
+
+    const mouseMove = e => {  
+
+        ctx.clearRect(0,0, 400,400);  
+        ctx.putImageData(imgData, 0,0);  
+        ctx.fillRect(startX, startY, e.layerX - startX, e.layerY - startY);  
+    };
+}

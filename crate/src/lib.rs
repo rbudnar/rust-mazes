@@ -14,18 +14,20 @@ extern crate js_sys;
 extern crate math;
 extern crate test;
 
-use grid::grid_base::GridBase;
-use wasm_bindgen::prelude::*;
+
 mod algorithms;
 mod rng;
 mod grid;
 use grid::{Grid,
     standard_grid::StandardGrid,
     distances::DistanceGrid, 
-    grid_web::grid_to_web 
+    grid_web::*,
+    canvas::*,
+    grid_base::GridBase
 };
 use algorithms::{MazeAlgorithm, binary_tree::*, sidewinder::*, aldous_broder::*, wilson::*, hunt_and_kill::*, recursive_backtracker::*};
-use rng::{wasm_rng};
+use rng::wasm_rng;
+use wasm_bindgen::prelude::*;
 
 cfg_if! {
     // When the `console_error_panic_hook` feature is enabled, we can call the
@@ -136,6 +138,16 @@ pub fn on_colorize_change(colorize: bool) {
     }
 }
 
+#[wasm_bindgen]
+pub fn add_canvas() {
+    append_canvas();
+}
+
+#[wasm_bindgen]
+pub fn apply_mask() {
+    canvas_to_mask();
+}
+
 /****** HELPERS ******/
 
 fn build_and_display_grid(alg: impl MazeAlgorithm, rows: usize, columns: usize) {
@@ -149,9 +161,14 @@ fn build_and_display_grid(alg: impl MazeAlgorithm, rows: usize, columns: usize) 
     }
 }
 
-fn prepare_distance_grid(grid: &Grid) -> DistanceGrid {
-    let root = grid.cells()[grid.rows() / 2][grid.columns() / 2].clone().unwrap();
-    DistanceGrid::new(&root)
+fn prepare_distance_grid(grid: &Grid) -> DistanceGrid {   
+    if let Some(root) = grid.cells()[grid.rows() / 2][grid.columns() / 2].clone() {
+        DistanceGrid::new(&root)
+    }
+    else {
+        let root = grid.random_cell(&wasm_rng::WasmRng).unwrap();
+        DistanceGrid::new(&root)
+    }
 }
 
 #[cfg(test)]

@@ -1,3 +1,4 @@
+
 use grid::{Grid, cell::CellLinkStrong, CellFormatter};
 use web_sys::{HtmlElement, Node};
 use std::rc::{Rc};
@@ -80,12 +81,23 @@ pub fn grid_to_web(grid: &Grid, formatter: &CellFormatter, colorize: bool) {
                 }
                 grid_container.append_child(&Node::from(html_cell)).unwrap();
             }
+            else {
+                let html_cell = document.create_element("div").unwrap();
+                add_class(&html_cell, "cell");
+
+                // add_class(&html_cell, "bt");
+                // add_class(&html_cell, "bb");
+                // add_class(&html_cell, "bl");
+                // add_class(&html_cell, "br");
+               
+                html_cell.dyn_ref::<HtmlElement>().unwrap().style().set_property("background-color", "black").unwrap();
+                grid_container.append_child(&Node::from(html_cell)).unwrap();
+            }
         }
     }
 
     let body = Node::from(document.body().unwrap());
     body.append_child(&Node::from(grid_container)).unwrap();
-
 }
 
 fn create_style_sheet() -> web_sys::Element {
