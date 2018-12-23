@@ -22,7 +22,6 @@ pub fn grid_to_web(grid: &Grid, formatter: &CellFormatter, colorize: bool) {
             height: 1000px;
             width: 1000px;
             background-color: #efefef;
-            border: 1px solid black;
         }}
        ", grid.columns());
 
@@ -46,7 +45,7 @@ pub fn grid_to_web(grid: &Grid, formatter: &CellFormatter, colorize: bool) {
                 add_class(&html_cell, "cell");
 
                 // Top of maze
-                if i == 0 {
+                if i == 0 || (i > 0 && !grid.cells()[i-1][j].is_some()) {
                     add_class(&html_cell, "bt");
                 }
 
@@ -55,7 +54,7 @@ pub fn grid_to_web(grid: &Grid, formatter: &CellFormatter, colorize: bool) {
                     add_class(&html_cell, "bb");
                 }
                 // left side 
-                if j == 0 {
+                if j == 0  || ( j > 0 && !grid.cells()[i][j-1].is_some()) {
                     add_class(&html_cell, "bl");
                 }
 
@@ -84,13 +83,8 @@ pub fn grid_to_web(grid: &Grid, formatter: &CellFormatter, colorize: bool) {
             else {
                 let html_cell = document.create_element("div").unwrap();
                 add_class(&html_cell, "cell");
-
-                // add_class(&html_cell, "bt");
-                // add_class(&html_cell, "bb");
-                // add_class(&html_cell, "bl");
-                // add_class(&html_cell, "br");
-               
-                html_cell.dyn_ref::<HtmlElement>().unwrap().style().set_property("background-color", "black").unwrap();
+              
+                html_cell.dyn_ref::<HtmlElement>().unwrap().style().set_property("background-color", "white").unwrap();
                 grid_container.append_child(&Node::from(html_cell)).unwrap();
             }
         }
