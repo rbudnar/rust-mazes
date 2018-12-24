@@ -33,7 +33,7 @@ impl Mask {
             .fold(0, |acc, row| acc + row.iter().fold(0, |acc, &col| acc + if col { 1 } else { 0 }))
     }
 
-    pub fn rand_location(&self, rng: &RngWrapper) -> (usize, usize) {
+    pub fn rand_location(&self, rng: &dyn RngWrapper) -> (usize, usize) {
         loop {
             let row = rng.gen_range(0, self.rows);
             let col = rng.gen_range(0, self.columns);

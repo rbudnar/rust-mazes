@@ -153,7 +153,7 @@ impl DistanceGrid {
         self.show_path_only = show_path_only;
     }
 
-    pub fn build_longest_path(&mut self, grid: &Grid) {
+    pub fn build_longest_path(&mut self, grid: &dyn Grid) {
         let (max_cell, _) = self.distances.max();
 
         let new_root = grid.get_cell(max_cell.0, max_cell.1).unwrap();

@@ -31,7 +31,7 @@ impl Grid for StandardGrid {
         }   
     }
 
-    fn random_cell(&self, rng: &RngWrapper) -> Option<CellLinkStrong> {
+    fn random_cell(&self, rng: &dyn RngWrapper) -> Option<CellLinkStrong> {
         let row: usize = rng.gen_range(0, self.grid.rows);
         let col: usize = rng.gen_range(0, self.grid.columns);
         self.grid.get_cell(row, col)
@@ -57,7 +57,7 @@ impl Grid for StandardGrid {
         self.grid.get_cell(row, column)
     }
 
-    fn to_string(&self, contents: &CellFormatter) -> String {
+    fn to_string(&self, contents: &dyn CellFormatter) -> String {
         self.grid.to_string(contents)
     }
 

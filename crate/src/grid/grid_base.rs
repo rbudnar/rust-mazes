@@ -17,7 +17,7 @@ impl GridBase {
         }
     }
 
-    pub fn to_string(&self, contents: &CellFormatter) -> String {
+    pub fn to_string(&self, contents: &dyn CellFormatter) -> String {
         let mut output = String::new();
         output += "\r";
 
@@ -119,7 +119,7 @@ impl GridBase {
         output
     }
 
-    pub fn random_cell(&self, rng: &RngWrapper) -> Option<CellLinkStrong> {
+    pub fn random_cell(&self, rng: &dyn RngWrapper) -> Option<CellLinkStrong> {
         let row: usize = rng.gen_range(0, self.rows);
         let col: usize = rng.gen_range(0, self.columns);
         self.get_cell(row, col)

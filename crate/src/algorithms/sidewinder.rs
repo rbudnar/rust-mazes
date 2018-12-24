@@ -8,7 +8,7 @@ use crate::algorithms::{MazeAlgorithm, rand_element};
 pub struct Sidewinder;
 
 impl MazeAlgorithm for Sidewinder {
-    fn on(&self, grid: &Grid, rng_generator: &RngWrapper) {
+    fn on(&self, grid: &dyn Grid, rng_generator: &dyn RngWrapper) {
         for row in grid.cells().iter() {
             let mut run: Vec<CellLinkStrong> = vec![];
         

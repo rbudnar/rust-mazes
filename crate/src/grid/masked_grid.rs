@@ -43,7 +43,7 @@ impl Grid for MaskedGrid {
         }   
     }
 
-    fn random_cell(&self, rng: &RngWrapper) -> Option<CellLinkStrong> {
+    fn random_cell(&self, rng: &dyn RngWrapper) -> Option<CellLinkStrong> {
         let (row, col) = self.mask.borrow().rand_location(rng);
         self.grid.cells[row][col].clone()
     }
@@ -68,7 +68,7 @@ impl Grid for MaskedGrid {
         self.grid.get_cell(row, column)
     }
 
-    fn to_string(&self, contents: &CellFormatter) -> String {
+    fn to_string(&self, contents: &dyn CellFormatter) -> String {
         self.grid.to_string(contents)
     }
 

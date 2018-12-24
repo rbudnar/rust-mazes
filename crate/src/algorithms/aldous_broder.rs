@@ -12,7 +12,7 @@ pub struct AldousBroder;
 /// #3b if that neighbor HAS been visited, set the neighbor as the current cell, but do not link.
 /// Repeat until every cell has been visited.
 impl MazeAlgorithm for AldousBroder {
-    fn on(&self, grid: &Grid, rng_generator: &RngWrapper) {
+    fn on(&self, grid: &dyn Grid, rng_generator: &dyn RngWrapper) {
 
         let mut cell = grid.random_cell(rng_generator).unwrap();
        

@@ -6,7 +6,7 @@ use crate::algorithms::{MazeAlgorithm, rand_element};
 pub struct Wilson;
 
 impl MazeAlgorithm for Wilson {
-    fn on(&self, grid: &Grid, rng_generator: &RngWrapper) {
+    fn on(&self, grid: &dyn Grid, rng_generator: &dyn RngWrapper) {
         let mut unvisited: Vec<CellLinkStrong> = vec![];
 
         for cell in grid.each_cell().iter() {

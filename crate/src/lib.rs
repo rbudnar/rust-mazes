@@ -7,11 +7,7 @@
 #[macro_use]
 extern crate cfg_if;
 extern crate test;
-
-
-mod algorithms;
-mod rng;
-mod grid;
+use crate::test::Bencher;
 use crate::grid::{Grid,
     standard_grid::StandardGrid,
     distances::DistanceGrid, 
@@ -19,6 +15,11 @@ use crate::grid::{Grid,
     canvas::*,
     grid_base::GridBase
 };
+
+mod algorithms;
+mod rng;
+mod grid;
+
 use crate::algorithms::{MazeAlgorithm, binary_tree::*, sidewinder::*, aldous_broder::*, wilson::*, hunt_and_kill::*, recursive_backtracker::*};
 use crate::rng::wasm_rng;
 use wasm_bindgen::prelude::*;
@@ -155,7 +156,7 @@ fn build_and_display_grid(alg: impl MazeAlgorithm, rows: usize, columns: usize) 
     }
 }
 
-fn prepare_distance_grid(grid: &Grid) -> DistanceGrid {   
+fn prepare_distance_grid(grid: &dyn Grid) -> DistanceGrid {   
     if let Some(root) = grid.cells()[grid.rows() / 2][grid.columns() / 2].clone() {
         DistanceGrid::new(&root)
     }
@@ -169,7 +170,6 @@ fn prepare_distance_grid(grid: &Grid) -> DistanceGrid {
 mod tests {
     use super::*;
     use crate::grid::{CellFormatter, cell::CellLinkStrong, mask::Mask, masked_grid::MaskedGrid};
-    use crate::test::Bencher;
     use crate::rng::{thread_rng};
     use std::fs;
 

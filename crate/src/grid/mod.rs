@@ -17,12 +17,12 @@ pub trait CellFormatter {
 
 pub trait Grid {
     fn prepare_grid(&mut self);
-    fn random_cell(&self, rng: &RngWrapper) -> Option<CellLinkStrong>;
+    fn random_cell(&self, rng: &dyn RngWrapper) -> Option<CellLinkStrong>;
     fn each_cell(&self) -> Vec<Option<CellLinkStrong>>;
     fn rows(&self) -> usize;
     fn columns(&self) -> usize;
     fn cells(&self) -> &Vec<Vec<Option<CellLinkStrong>>>;
     fn get_cell(&self, row: usize, column: usize) -> Option<CellLinkStrong>;
-    fn to_string(&self, contents: &CellFormatter) -> String;
+    fn to_string(&self, contents: &dyn CellFormatter) -> String;
     fn size(&self) -> usize;
 }

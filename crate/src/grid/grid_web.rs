@@ -8,7 +8,7 @@ use wasm_bindgen::JsCast;
 // Needed to be able to remove the old style sheet when creating new mazes
 static mut STYLESHEET: Option<web_sys::Element> = None;
 
-pub fn grid_to_web(grid: &Grid, formatter: &CellFormatter, colorize: bool) {
+pub fn grid_to_web(grid: &dyn Grid, formatter: &dyn CellFormatter, colorize: bool) {
     cleanup_old_maze();
 
     let document = web_sys::window().unwrap().document().unwrap();
@@ -110,7 +110,7 @@ fn add_class(element: &web_sys::Element, css_class: &str) {
     element.class_list().add(&arr).expect("should do stuff dammit");
 }
 
-fn add_bg_color(element: &web_sys::HtmlElement, cell: &CellLinkStrong, formatter: &CellFormatter) {
+fn add_bg_color(element: &web_sys::HtmlElement, cell: &CellLinkStrong, formatter: &dyn CellFormatter) {
     let color = formatter.background_color(cell);
     element.style().set_property("background-color", &color).unwrap();
 }
