@@ -1,5 +1,5 @@
 
-use grid::{Grid, cell::CellLinkStrong, CellFormatter};
+use crate::grid::{Grid, cell::CellLinkStrong, CellFormatter};
 use web_sys::{HtmlElement, Node};
 use std::rc::{Rc};
 use wasm_bindgen::prelude::JsValue;

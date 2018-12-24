@@ -1,5 +1,5 @@
-use rng::RngWrapper;
-use grid::cell::CellLinkStrong;
+use crate::rng::RngWrapper;
+use crate::grid::cell::CellLinkStrong;
 
 pub mod cell;
 pub mod grid_web;

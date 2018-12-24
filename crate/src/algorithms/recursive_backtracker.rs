@@ -1,7 +1,7 @@
-use grid::{Grid, cell::Cell, cell::CellLinkStrong};
-use algorithms::rand_element;
-use rng::RngWrapper;
-use algorithms::MazeAlgorithm;
+use crate::grid::{Grid, cell::Cell, cell::CellLinkStrong};
+use crate::algorithms::rand_element;
+use crate::rng::RngWrapper;
+use crate::algorithms::MazeAlgorithm;
 
 #[derive(Debug)]
 pub struct RecursiveBacktracker;

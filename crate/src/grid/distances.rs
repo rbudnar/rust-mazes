@@ -1,4 +1,4 @@
-use grid::{Grid, CellFormatter, cell::{Cell, CellLinkStrong}};
+use crate::grid::{Grid, CellFormatter, cell::{Cell, CellLinkStrong}};
 use std::collections::HashMap;
 use std::rc::{Rc};
 use std::cell::RefCell;

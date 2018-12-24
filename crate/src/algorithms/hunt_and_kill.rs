@@ -1,7 +1,7 @@
-use algorithms::{rand_element, MazeAlgorithm};
-use grid::{cell::*, Grid};
+use crate::algorithms::{rand_element, MazeAlgorithm};
+use crate::grid::{cell::*, Grid};
 use std::rc::{Rc};
-use rng::RngWrapper;
+use crate::rng::RngWrapper;
 
 #[derive(Debug)]
 pub struct HuntAndKill;

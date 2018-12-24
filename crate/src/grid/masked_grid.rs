@@ -1,7 +1,7 @@
-use grid::CellFormatter;
-use grid::grid_base::GridBase;
-use rng::RngWrapper;
-use grid::{CellLinkStrong, Grid, mask::Mask, cell::Cell};
+use crate::grid::CellFormatter;
+use crate::grid::grid_base::GridBase;
+use crate::rng::RngWrapper;
+use crate::grid::{CellLinkStrong, Grid, mask::Mask, cell::Cell};
 use std::rc::Rc;
 use std::cell::RefCell;
 

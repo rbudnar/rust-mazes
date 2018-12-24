@@ -1,4 +1,4 @@
-use rng::RngWrapper;
+use crate::rng::RngWrapper;
 
 #[derive(Debug)]
 pub struct Mask {

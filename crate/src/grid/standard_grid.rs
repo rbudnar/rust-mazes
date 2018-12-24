@@ -1,5 +1,5 @@
-use grid::{grid_base::GridBase, Grid, CellFormatter, cell::{CellLinkStrong, Cell}};
-use rng::RngWrapper;
+use crate::grid::{grid_base::GridBase, Grid, CellFormatter, cell::{CellLinkStrong, Cell}};
+use crate::rng::RngWrapper;
 use std::rc::{Rc};
 use std::cell::RefCell;
 

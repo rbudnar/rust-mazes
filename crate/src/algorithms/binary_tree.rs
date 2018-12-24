@@ -1,7 +1,7 @@
-use rng::RngWrapper;
-use grid::{Grid, cell::*};
+use crate::rng::RngWrapper;
+use crate::grid::{Grid, cell::*};
 use std::rc::{Rc};
-use algorithms::{MazeAlgorithm, rand_element};
+use crate::algorithms::{MazeAlgorithm, rand_element};
 
 #[derive(Debug)]
 pub struct BinaryTree;

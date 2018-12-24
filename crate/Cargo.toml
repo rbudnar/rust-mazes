@@ -7,6 +7,7 @@ name = "rust-mazes"
 readme = "./README.md"
 repository = "https://github.com/rbudnar/rust-mazes"
 version = "0.1.0"
+edition = "2018"
 
 [lib]
 crate-type = ["cdylib"]

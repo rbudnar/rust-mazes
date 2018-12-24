@@ -6,27 +6,21 @@
 #![allow(dead_code)]
 #[macro_use]
 extern crate cfg_if;
-extern crate rand;
-extern crate wbg_rand;
-extern crate wasm_bindgen;
-extern crate web_sys;
-extern crate js_sys;
-extern crate math;
 extern crate test;
 
 
 mod algorithms;
 mod rng;
 mod grid;
-use grid::{Grid,
+use crate::grid::{Grid,
     standard_grid::StandardGrid,
     distances::DistanceGrid, 
     grid_web::*,
     canvas::*,
     grid_base::GridBase
 };
-use algorithms::{MazeAlgorithm, binary_tree::*, sidewinder::*, aldous_broder::*, wilson::*, hunt_and_kill::*, recursive_backtracker::*};
-use rng::wasm_rng;
+use crate::algorithms::{MazeAlgorithm, binary_tree::*, sidewinder::*, aldous_broder::*, wilson::*, hunt_and_kill::*, recursive_backtracker::*};
+use crate::rng::wasm_rng;
 use wasm_bindgen::prelude::*;
 
 cfg_if! {
@@ -174,9 +168,9 @@ fn prepare_distance_grid(grid: &Grid) -> DistanceGrid {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use grid::{CellFormatter, cell::CellLinkStrong, mask::Mask, masked_grid::MaskedGrid};
-    use test::Bencher;
-    use rng::{thread_rng};
+    use crate::grid::{CellFormatter, cell::CellLinkStrong, mask::Mask, masked_grid::MaskedGrid};
+    use crate::test::Bencher;
+    use crate::rng::{thread_rng};
     use std::fs;
 
     pub struct ConsoleGridFormatter;

@@ -1,8 +1,8 @@
-use grid::{Grid, cell::Cell};
-use rng::RngWrapper;
-use grid::{cell::CellLinkStrong};
+use crate::grid::{Grid, cell::Cell};
+use crate::rng::RngWrapper;
+use crate::grid::{cell::CellLinkStrong};
 use std::rc::{Rc};
-use algorithms::{MazeAlgorithm, rand_element};
+use crate::algorithms::{MazeAlgorithm, rand_element};
 
 #[derive(Debug)]
 pub struct Sidewinder;

@@ -1,4 +1,4 @@
-use rng::*;
+use crate::rng::*;
 use rand::Rng;
 
 pub struct ThreadRng;

@@ -1,6 +1,6 @@
-use algorithms::MazeAlgorithm;
-use rng::RngWrapper;
-use grid::{Grid, cell::Cell};
+use crate::algorithms::MazeAlgorithm;
+use crate::rng::RngWrapper;
+use crate::grid::{Grid, cell::Cell};
 
 #[derive(Debug)]
 pub struct AldousBroder;

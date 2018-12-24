@@ -1,14 +1,14 @@
 
 use web_sys::ImageData;
 use web_sys::EventTarget;
-use grid::grid_web::grid_to_web;
-use rng::wasm_rng::WasmRng;
-use prepare_distance_grid;
+use crate::grid::grid_web::grid_to_web;
+use crate::rng::wasm_rng::WasmRng;
+use crate::prepare_distance_grid;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlElement, Node, HtmlCanvasElement, CanvasRenderingContext2d};
-use algorithms::{MazeAlgorithm, recursive_backtracker::RecursiveBacktracker};
-use grid::{mask::Mask, masked_grid::MaskedGrid};
+use crate::algorithms::{MazeAlgorithm, recursive_backtracker::RecursiveBacktracker};
+use crate::grid::{mask::Mask, masked_grid::MaskedGrid};
 use std::rc::Rc;
 
 static SAMPLE_RESOLUTION: usize = 5;

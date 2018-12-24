@@ -1,6 +1,6 @@
-use grid::{cell::CellLinkStrong, Grid, cell::Cell};
-use rng::RngWrapper;
-use algorithms::{MazeAlgorithm, rand_element};
+use crate::grid::{cell::CellLinkStrong, Grid, cell::Cell};
+use crate::rng::RngWrapper;
+use crate::algorithms::{MazeAlgorithm, rand_element};
 
 #[derive(Debug)]
 pub struct Wilson;

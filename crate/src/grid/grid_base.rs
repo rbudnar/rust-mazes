@@ -1,5 +1,5 @@
-use grid::{cell::CellLinkStrong, CellFormatter};
-use rng::RngWrapper;
+use crate::grid::{cell::CellLinkStrong, CellFormatter};
+use crate::rng::RngWrapper;
 use std::rc::{Rc};
 
 #[derive(Debug)]
@@ -33,7 +33,7 @@ impl GridBase {
                         }
                     }                    
 
-                    let mut body = format!(" {} ", contents.contents_of(&cell));
+                    let body = format!(" {} ", contents.contents_of(&cell));
                     let e = cell.borrow();
                     let east = e.east.as_ref();
                     let east_border = if east.is_some() && cell.borrow().is_linked(Rc::clone(&east.unwrap().upgrade().unwrap())) {

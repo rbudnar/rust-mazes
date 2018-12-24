@@ -1,6 +1,6 @@
 
 use wbg_rand::{Rng, wasm_rng};
-use rng::*;
+use crate::rng::*;
 
 pub struct WasmRng;
 impl RngWrapper for WasmRng {

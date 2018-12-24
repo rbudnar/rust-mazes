@@ -1,6 +1,6 @@
-use grid::Grid;
+use crate::grid::Grid;
 use std::fmt::Debug;
-use rng::RngWrapper;
+use crate::rng::RngWrapper;
 
 pub mod binary_tree;
 pub mod sidewinder;
