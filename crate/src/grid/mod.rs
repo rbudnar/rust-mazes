@@ -9,6 +9,7 @@ pub mod masked_grid;
 pub mod standard_grid;
 pub mod grid_base;
 pub mod canvas;
+pub mod polar_grid;
 
 pub trait CellFormatter {
     fn contents_of(&self, cell: &CellLinkStrong) -> String;

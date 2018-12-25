@@ -6,6 +6,7 @@
 #[macro_use]
 extern crate cfg_if;
 extern crate test;
+use crate::grid::polar_grid::grid_to_web_polar;
 use crate::grid::{Grid,
     standard_grid::StandardGrid,
     distances::DistanceGrid, 
@@ -150,6 +151,7 @@ fn build_and_display_grid(alg: impl MazeAlgorithm, rows: usize, columns: usize) 
         alg.on(&GRID, &wasm_generator);
 
         let distance_grid = prepare_distance_grid(&GRID);
+        grid_to_web_polar(&GRID);
         grid_to_web(&GRID, &distance_grid, COLORIZE);
     }
 }
