@@ -6,3 +6,4 @@ crate/target
 crate/wasm-pack.log
 crate/Cargo.lock
 wasm-pack.log
+*.exe

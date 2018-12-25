@@ -1,4 +1,3 @@
-// #![feature(use_extern_macros)]
 #![feature(const_vec_new)]
 #![feature(range_contains)]
 #![feature(vec_remove_item)]
@@ -7,7 +6,6 @@
 #[macro_use]
 extern crate cfg_if;
 extern crate test;
-use crate::test::Bencher;
 use crate::grid::{Grid,
     standard_grid::StandardGrid,
     distances::DistanceGrid, 
@@ -171,6 +169,7 @@ mod tests {
     use super::*;
     use crate::grid::{CellFormatter, cell::CellLinkStrong, mask::Mask, masked_grid::MaskedGrid};
     use crate::rng::{thread_rng};
+    use crate::test::Bencher;
     use std::fs;
 
     pub struct ConsoleGridFormatter;

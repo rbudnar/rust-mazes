@@ -24,8 +24,7 @@ pub fn append_canvas() {
     let canvas_container = document.create_element("div").unwrap();
 
     let canvas = document.create_element("canvas").unwrap();
-    canvas_container.append_child(&canvas).unwrap();
-    
+    canvas_container.append_child(&canvas).unwrap();    
     
     canvas.set_attribute("height", "400px").unwrap();
     canvas.set_attribute("width", "400px").unwrap();
@@ -170,7 +169,7 @@ fn setup_drawing(canvas: HtmlCanvasElement) -> Result<(), JsValue> {
         unsafe{
             context.clear_rect(0.0,0.0,400.0,400.0);
             context.put_image_data(IMG_DATA.as_ref().unwrap(), 0.0, 0.0).unwrap();
-            context.fill_rect(START_X as f64, START_Y as f64, (end_x - START_X) as f64, (end_y - START_Y) as f64);
+            context.fill_rect(f64::from(START_X), f64::from(START_Y), f64::from(end_x - START_X), f64::from(end_y - START_Y));
             // web_sys::console::log_1(&JsValue::from_str(&format!("move {} {}", START_X, START_Y)));
         }
 
@@ -197,7 +196,7 @@ fn setup_drawing(canvas: HtmlCanvasElement) -> Result<(), JsValue> {
         let end_y = event.offset_y();
 
         unsafe{
-            context3.fill_rect(START_X as f64, START_Y as f64, (end_x - START_X) as f64, (end_y - START_Y) as f64);
+            context3.fill_rect(f64::from(START_X), f64::from(START_Y), f64::from(end_x - START_X), f64::from(end_y - START_Y));
             cv4.remove_event_listener_with_callback("mousemove", (*mm1).as_ref().unchecked_ref()).unwrap();
         }
     }) as Box<dyn FnMut(_)>);
@@ -256,7 +255,7 @@ pub fn canvas_to_mask() {
             let j_offset = j * 4 * SAMPLE_RESOLUTION;
             let first_index = i_offset + j_offset;
 
-            if data[first_index] == color && data[first_index+1] == color && data[first_index+1] == color {
+            if data[first_index] == color && data[first_index+1] == color && data[first_index+2] == color {
                 // web_sys::console::log_1(&JsValue::from_str(&format!("{}, {}, {}", i, j, first_index)));
                 mask.bits[i][j] = false;
             }

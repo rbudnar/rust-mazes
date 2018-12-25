@@ -45,7 +45,7 @@ pub fn grid_to_web(grid: &dyn Grid, formatter: &dyn CellFormatter, colorize: boo
                 add_class(&html_cell, "cell");
 
                 // Top of maze
-                if i == 0 || (i > 0 && !grid.cells()[i-1][j].is_some()) {
+                if i == 0 || (i > 0 && grid.cells()[i-1][j].is_none()) {
                     add_class(&html_cell, "bt");
                 }
 
@@ -54,7 +54,7 @@ pub fn grid_to_web(grid: &dyn Grid, formatter: &dyn CellFormatter, colorize: boo
                     add_class(&html_cell, "bb");
                 }
                 // left side 
-                if j == 0  || ( j > 0 && !grid.cells()[i][j-1].is_some()) {
+                if j == 0  || ( j > 0 && grid.cells()[i][j-1].is_none()) {
                     add_class(&html_cell, "bl");
                 }
 

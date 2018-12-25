@@ -71,23 +71,20 @@ impl GridBase {
                     }                    
                     
                     // Handle sides 
-                    if j == self.columns - 1 {
-                        top += "    ";
-                    }
-                    else if j > 0 && !self.cells[i][j + 1].is_some() {
+                    if j == self.columns - 1 || (j > 0 && self.cells[i][j + 1].is_none()) {
                         top += "    ";
                     }
                     else {
                         top += "   |"; 
                     }
 
-                    if j == 0 && (i == self. rows- 1 || (i < self.rows - 1 && !self.cells[i+1][j].is_some())) {
+                    if j == 0 && (i == self. rows- 1 || (i < self.rows - 1 && self.cells[i+1][j].is_none())) {
                         bottom = String::from(" ");
                     }
 
                     // Here we need to check the next row/column and see if we need to render the bottom
                     // 1) Check if last row OR if before the last row and the cell below it is None
-                    if i == self.rows -1 || i < self.rows - 1 && !self.cells[i+1][j].is_some() {
+                    if i == self.rows -1 || i < self.rows - 1 && self.cells[i+1][j].is_none() {
                         // 2) If we aren't in the last column
                         if j < self.columns - 1 {
                             // 3) Check if the next cell to the right or the cell to the south east is present and render the corner
