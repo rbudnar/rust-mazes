@@ -8,7 +8,7 @@
             "name": "(Windows) Launch",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/target/debug/rust_webpack-a302b4379bf702ed",
+            "program": "${workspaceRoot}/target/debug/rust_webpack-a8513e1d70e2dbc6",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

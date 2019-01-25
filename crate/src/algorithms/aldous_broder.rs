@@ -19,13 +19,13 @@ impl MazeAlgorithm for AldousBroder {
         // this only works becuase the maze is "perfect"
         let mut unvisited_cells = grid.size() - 1;
         while unvisited_cells > 0 {
-            let neighbors = cell.borrow().neighbors();
+            let neighbors = cell.neighbors();
             let index = rng_generator.gen_range(0, neighbors.len());
 
-            let next_neighbor = &neighbors[index].upgrade().unwrap();
+            let next_neighbor = &neighbors[index];
 
-            if next_neighbor.borrow().links.is_empty() {
-                Cell::link(cell.clone(), next_neighbor.clone(), true);
+            if next_neighbor.links().is_empty() {
+                Cell::link(cell, next_neighbor.clone(), true);
                 unvisited_cells -= 1;
             }
 

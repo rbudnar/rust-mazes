@@ -1,7 +1,8 @@
+use crate::grid::cell::ICell;
 use crate::grid::CellFormatter;
 use crate::grid::grid_base::GridBase;
 use crate::rng::RngWrapper;
-use crate::grid::{CellLinkStrong, Grid, mask::Mask, cell::Cell};
+use crate::grid::{cell::CellLinkStrong, Grid, mask::Mask, cell::Cell};
 use std::rc::Rc;
 use std::cell::RefCell;
 
@@ -43,13 +44,14 @@ impl Grid for MaskedGrid {
         }   
     }
 
-    fn random_cell(&self, rng: &dyn RngWrapper) -> Option<CellLinkStrong> {
+    fn random_cell(&self, rng: &dyn RngWrapper) -> Option<Box<ICell>> {
         let (row, col) = self.mask.borrow().rand_location(rng);
-        self.grid.cells[row][col].clone()
+        Some(Box::new(*self.grid.cells[row][col].clone().unwrap().borrow()) as Box<ICell>)
     }
 
-    fn each_cell(&self) -> Vec<Option<CellLinkStrong>> {
-        self.grid.each_cell()
+    fn each_cell(&self) -> Vec<Option<Box<ICell>>> {
+        self.grid.each_cell().iter()
+            .map(|c| Some(Box::new(*c.unwrap().borrow()) as Box<ICell>)).collect()
     }
 
     fn rows(&self) -> usize {
@@ -60,12 +62,16 @@ impl Grid for MaskedGrid {
         self.grid.rows
     }
 
-    fn cells(&self) -> &Vec<Vec<Option<CellLinkStrong>>> {
-        &self.grid.cells
+    fn cells(&self) -> &Vec<Vec<Option<Box<ICell>>>> {
+        &self.grid.cells.iter().map(|row| 
+            row.iter().map(|c| Some(Box::new(*c.unwrap().borrow()) as Box<ICell>)).collect()
+        ).collect()
     }
 
-    fn get_cell(&self, row: usize, column: usize) -> Option<CellLinkStrong> {
-        self.grid.get_cell(row, column)
+    fn get_cell(&self, row: usize, column: usize) -> Option<Box<ICell>> {
+        let cell = self.grid.get_cell(row, column);
+
+        Some(Box::new(*cell.unwrap().borrow()) as Box<ICell>)
     }
 
     fn to_string(&self, contents: &dyn CellFormatter) -> String {

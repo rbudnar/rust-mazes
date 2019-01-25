@@ -1,4 +1,6 @@
-use crate::grid::{Grid, cell::Cell, cell::CellLinkStrong};
+use crate::grid::cell::{ICell, ICellStrong};
+use std::rc::Rc;
+use crate::grid::{Grid};
 use crate::algorithms::rand_element;
 use crate::rng::RngWrapper;
 use crate::algorithms::MazeAlgorithm;
@@ -14,27 +16,41 @@ pub struct RecursiveBacktracker;
 impl MazeAlgorithm for RecursiveBacktracker {
     fn on(&self, grid: &dyn Grid, rng_generator: &dyn RngWrapper) {
         let cells = grid.each_cell();
-        let mut stack: Vec<CellLinkStrong> = vec![];
+        let mut stack: Vec<ICellStrong> = vec![];
         let mut start = rand_element(&cells, rng_generator);
         while start.is_none() {
             start = rand_element(&cells, rng_generator);
+            println!("finding");
         }
 
         stack.push(start.clone().unwrap());
 
         while !stack.is_empty() {
             let current = stack.last().unwrap().clone();
-            let neighbors = current.borrow().neighbors();
+            // let neighbors = current.borrow().neighbors();
             
-            let unvisited: Vec<CellLinkStrong> = neighbors.iter()
-                                     .map(|n| n.upgrade().unwrap())
-                                     .filter(|n| n.borrow().links().is_empty())
-                                     .collect();
+            // let unvisited: Vec<ICellStrong> = neighbors.iter()
+            //                         .filter(|n| n.borrow().links().is_empty())
+            //                         .map(|n| Rc::clone(&n))
+            //                         .collect();
             
+            let neighbors = current.borrow().neighbors_i();
+                        
+            let unvisited: Vec<ICellStrong> = 
+                        grid.each_cell().iter().filter(|ref c| {
+                            let c = c.as_ref().unwrap().borrow();
+                            neighbors.contains(&c.index()) && c.links_i().is_empty()
+                        })
+                        .map(|c2| Rc::clone(c2.as_ref().unwrap()))
+                        .collect();
+
             if !unvisited.is_empty() {
                 let rand_neighbor = rand_element(&unvisited, rng_generator);
-                Cell::link(current.clone(), rand_neighbor.clone(), true);
-                stack.push(rand_neighbor.clone());
+                current.borrow_mut().link_i(rand_neighbor.borrow().index());
+                rand_neighbor.borrow_mut().link_i(current.borrow().index());
+                // current.borrow_mut().link(Rc::clone(rand_neighbor));
+                // rand_neighbor.borrow_mut().link(Rc::clone(&current));
+                stack.push(Rc::clone(&rand_neighbor));
             }
             else {
                 stack.pop();

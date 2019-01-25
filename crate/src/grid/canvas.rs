@@ -1,13 +1,13 @@
 
 use web_sys::ImageData;
 use web_sys::EventTarget;
-use crate::grid::grid_web::grid_to_web;
+// use crate::grid::grid_web::grid_to_web;
 use crate::rng::wasm_rng::WasmRng;
-use crate::prepare_distance_grid;
+// use crate::prepare_distance_grid;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlElement, Node, HtmlCanvasElement, CanvasRenderingContext2d};
-use crate::algorithms::{MazeAlgorithm, recursive_backtracker::RecursiveBacktracker};
+// use crate::algorithms::{MazeAlgorithm, recursive_backtracker::RecursiveBacktracker};
 use crate::grid::{mask::Mask, masked_grid::MaskedGrid};
 use std::rc::Rc;
 
@@ -264,7 +264,7 @@ pub fn canvas_to_mask() {
     }
 
     let masked_grid = MaskedGrid::new(mask);
-    RecursiveBacktracker.on(&masked_grid, &WasmRng);
-    let distance_grid = prepare_distance_grid(&masked_grid);
-    grid_to_web(&masked_grid, &distance_grid, false);    
+    // RecursiveBacktracker.on(&masked_grid, &WasmRng);
+    // let distance_grid = prepare_distance_grid(&masked_grid);
+    // grid_to_web(&masked_grid, &distance_grid, false);    
 }

@@ -1,3 +1,5 @@
+use crate::grid::cell::ICellStrong;
+use crate::grid::cell::ICell;
 use crate::grid::{grid_base::GridBase, Grid, CellFormatter, cell::{CellLinkStrong, Cell}};
 use crate::rng::RngWrapper;
 use std::rc::{Rc};
@@ -14,31 +16,36 @@ impl StandardGrid {
             grid
         };
         std_grid.prepare_grid();
-        std_grid.grid.configure_cells();
-
+        // std_grid.grid.configure_cells();
+        std_grid.grid.configure_cells_i();
         std_grid
     }
 }
 
 impl Grid for StandardGrid {
     fn prepare_grid(&mut self) {
+        let mut index = 0;
         for i in 0..self.grid.rows {
             let mut row: Vec<Option<CellLinkStrong>> = Vec::new();
+            
             for j in 0..self.grid.columns {
-                row.push(Some(Rc::new(RefCell::new(Cell::new(i as usize, j as usize)))));
+                row.push(Some(Cell::new(i as usize, j as usize, index)));
+
+                index += 1;
             }
             self.grid.cells.push(row);
         }   
     }
 
-    fn random_cell(&self, rng: &dyn RngWrapper) -> Option<CellLinkStrong> {
+    fn random_cell(&self, rng: &dyn RngWrapper) -> Option<ICellStrong> {
         let row: usize = rng.gen_range(0, self.grid.rows);
         let col: usize = rng.gen_range(0, self.grid.columns);
-        self.grid.get_cell(row, col)
+        self.get_cell(row, col)
     }
 
-    fn each_cell(&self) -> Vec<Option<CellLinkStrong>> {
-        self.grid.each_cell()
+    fn each_cell(&self) -> Vec<Option<ICellStrong>> {
+        self.grid.each_cell().iter()
+            .map(|c| Some(Rc::clone(&c.as_ref().unwrap()) as ICellStrong)).collect()
     }
 
     fn rows(&self) -> usize {
@@ -49,12 +56,16 @@ impl Grid for StandardGrid {
         self.grid.rows
     }
 
-    fn cells(&self) -> &Vec<Vec<Option<CellLinkStrong>>> {
-        &self.grid.cells
+    fn cells(&self) -> Vec<Vec<Option<ICellStrong>>> {
+        self.grid.cells.iter().map(|row| 
+            row.iter().map(|c| Some(Rc::clone(&c.as_ref().unwrap()) as ICellStrong)).collect()
+        ).collect()
     }
     
-    fn get_cell(&self, row: usize, column: usize) -> Option<CellLinkStrong> {
-        self.grid.get_cell(row, column)
+    fn get_cell(&self, row: usize, column: usize) -> Option<ICellStrong> {
+        let cell = self.grid.get_cell(row, column);
+
+        Some(Rc::clone(&cell.unwrap()) as ICellStrong)
     }
 
     fn to_string(&self, contents: &dyn CellFormatter) -> String {

@@ -2,11 +2,11 @@ use crate::grid::Grid;
 use std::fmt::Debug;
 use crate::rng::RngWrapper;
 
-pub mod binary_tree;
-pub mod sidewinder;
-pub mod aldous_broder;
-pub mod wilson;
-pub mod hunt_and_kill;
+// pub mod binary_tree;
+// pub mod sidewinder;
+// pub mod aldous_broder;
+// pub mod wilson;
+// pub mod hunt_and_kill;
 pub mod recursive_backtracker;
 
 pub trait MazeAlgorithm: Debug {
