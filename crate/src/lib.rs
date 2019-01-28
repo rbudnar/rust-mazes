@@ -20,8 +20,9 @@ mod algorithms;
 mod rng;
 mod grid;
 
+
 // use crate::algorithms::{MazeAlgorithm, binary_tree::*, sidewinder::*, aldous_broder::*, wilson::*, hunt_and_kill::*, recursive_backtracker::*};
-use crate::algorithms::{MazeAlgorithm, recursive_backtracker::*};
+use crate::algorithms::{MazeAlgorithm, sidewinder::*, recursive_backtracker::*, aldous_broder::*, hunt_and_kill::*, wilson::*,};
 use crate::rng::wasm_rng;
 use wasm_bindgen::prelude::*;
 
@@ -232,21 +233,21 @@ static mut COLORIZE: bool = true;
 //         test_std_grid(Sidewinder);
 //     }
 
-//     #[test]
-//     fn aldous_broder() {
-//         test_std_grid(AldousBroder);
-//     }
+    #[test]
+    fn aldous_broder() {
+        test_std_grid(AldousBroder);
+    }
 
-//     #[test]
-//     fn wilson() {
-//         test_std_grid(Wilson);
-//     }
+    #[test]
+    fn wilson() {
+        test_std_grid(Wilson);
+    }
 
     
-//     #[test]
-//     fn hunt_and_kill() {
-//         test_std_grid(HuntAndKill);
-//     }
+    #[test]
+    fn hunt_and_kill() {
+        test_std_grid(HuntAndKill);
+    }
 
     #[test]
     fn recursive_backtracker() {

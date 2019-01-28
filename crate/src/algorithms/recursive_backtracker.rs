@@ -20,7 +20,6 @@ impl MazeAlgorithm for RecursiveBacktracker {
         let mut start = rand_element(&cells, rng_generator);
         while start.is_none() {
             start = rand_element(&cells, rng_generator);
-            println!("finding");
         }
 
         stack.push(start.clone().unwrap());

@@ -68,6 +68,18 @@ impl Grid for StandardGrid {
         Some(Rc::clone(&cell.unwrap()) as ICellStrong)
     }
 
+    fn get_cell_at_index(&self, index: usize) -> ICellStrong {
+        let cells = self.each_cell();
+        let c = cells.iter().find(|c| {
+            if let Some(c) = c {
+                return c.borrow().index() == index
+            }
+            return false;
+        }).unwrap();
+
+        return Rc::clone(&c.as_ref().unwrap())
+    }
+
     fn to_string(&self, contents: &dyn CellFormatter) -> String {
         self.grid.to_string(contents)
     }

@@ -26,6 +26,7 @@ pub trait Grid {
     fn columns(&self) -> usize;
     fn cells(&self) -> Vec<Vec<Option<ICellStrong>>>;
     fn get_cell(&self, row: usize, column: usize) -> Option<ICellStrong>;
+    fn get_cell_at_index(&self, index: usize) -> ICellStrong;
     fn to_string(&self, contents: &dyn CellFormatter) -> String;
     fn size(&self) -> usize;
 }

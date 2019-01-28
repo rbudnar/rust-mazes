@@ -1,3 +1,4 @@
+use crate::grid::cell::ICellStrong;
 use crate::grid::{Grid, cell::Cell};
 use crate::rng::RngWrapper;
 use crate::grid::{cell::CellLinkStrong};
@@ -10,7 +11,7 @@ pub struct Sidewinder;
 impl MazeAlgorithm for Sidewinder {
     fn on(&self, grid: &dyn Grid, rng_generator: &dyn RngWrapper) {
         for row in grid.cells().iter() {
-            let mut run: Vec<CellLinkStrong> = vec![];
+            let mut run: Vec<ICellStrong> = vec![];
         
             for cell in row.iter() {
                 if let Some(cell) = cell {
@@ -24,13 +25,17 @@ impl MazeAlgorithm for Sidewinder {
 
                         if member.borrow().north.is_some() {
                             let north = cell.borrow().north.clone().unwrap().upgrade().unwrap();
-                            Cell::link(Rc::clone(&cell), Rc::clone(&north), true);
+                            cell.borrow_mut().link_i(north.borrow().index());
+                            north.borrow_mut().link_i(cell.borrow().index());
+                            // Cell::link(Rc::clone(&cell), Rc::clone(&north), true);
                         }
                         run.clear();
                     }
                     else {
                         let east = cell.borrow().east.clone().unwrap().upgrade().unwrap();
-                        Cell::link(Rc::clone(&cell), Rc::clone(&east), true);
+                        cell.borrow_mut().link_i(east.borrow().index());
+                        east.borrow_mut().link_i(cell.borrow().index());
+                        // Cell::link(Rc::clone(&cell), Rc::clone(&east), true);
                     }                
                 }
             }

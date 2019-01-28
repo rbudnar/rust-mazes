@@ -237,41 +237,6 @@ impl GridBase {
             .collect()        
     }
 
-    pub fn configure_cells(&mut self) {
-        for row in &mut self.cells.iter() {
-            for cell in &mut row.iter() {
-                if let Some(cell) = cell {
-                    // can't subtract from a usize of 0 apparently
-                    let cell_row = cell.borrow().row;
-                    if cell_row > 0 {
-                        let north = self.get_cell(cell_row - 1, cell.borrow().column);
-                        if north.is_some() {
-                            cell.borrow_mut().north = Some(Rc::downgrade(&Rc::clone(&north.unwrap())));
-                        }
-                    }
-
-                    let south = self.get_cell(cell.borrow().row + 1, cell.borrow().column);
-                    if south.is_some() {
-                        cell.borrow_mut().south = Some(Rc::downgrade(&Rc::clone(&south.unwrap())));
-                    }
-
-                    let east = self.get_cell(cell.borrow().row, cell.borrow().column + 1);
-                    if east.is_some() {
-                        cell.borrow_mut().east = Some(Rc::downgrade(&Rc::clone(&east.unwrap())));
-                    }
-
-                    let cell_column = cell.borrow().column;
-                    if cell_column > 0 {
-                        let west = self.get_cell(cell.borrow().row, cell_column - 1);
-                        if west.is_some() {
-                            cell.borrow_mut().west = Some(Rc::downgrade(&Rc::clone(&west.unwrap())));
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     pub fn configure_cells_i(&mut self) {
         for row in &mut self.cells.iter() {
             for cell in &mut row.iter() {
@@ -307,8 +272,6 @@ impl GridBase {
         }
     }
 
-
-
     pub fn get_cell(&self, row: usize, column: usize) -> Option<CellLinkStrong> {
         if row >= self.rows || column >= self.columns {
             return None;
@@ -316,24 +279,23 @@ impl GridBase {
         
         self.cells[row][column].clone()
     }
-
-    pub fn dead_ends(&self) -> Vec<Option<CellLinkStrong>> {
-        self.each_cell().iter()
-            .filter(|c| {
-                if let Some(c) = c {
-                    c.borrow().links.len() == 1
-                } else {
-                    false
-                }
-            })
-            .map(|x| {
-                if let Some(x) = x {
-                    Some(Rc::clone(x))
-                }
-                else {
-                    None
-                }
-            })
-            .collect()
-    }
+    // pub fn dead_ends(&self) -> Vec<Option<CellLinkStrong>> {
+    //     self.each_cell().iter()
+    //         .filter(|c| {
+    //             if let Some(c) = c {
+    //                 c.borrow().links.len() == 1
+    //             } else {
+    //                 false
+    //             }
+    //         })
+    //         .map(|x| {
+    //             if let Some(x) = x {
+    //                 Some(Rc::clone(x))
+    //             }
+    //             else {
+    //                 None
+    //             }
+    //         })
+    //         .collect()
+    // }
 }
