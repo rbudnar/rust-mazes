@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use crate::rng::RngWrapper;
 
 // pub mod binary_tree;
-pub mod sidewinder;
+// pub mod sidewinder;
 pub mod aldous_broder;
 pub mod wilson;
 pub mod hunt_and_kill;

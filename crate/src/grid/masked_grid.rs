@@ -1,3 +1,6 @@
+use web_sys::Element;
+use web_sys::Document;
+use crate::grid::cell::ICellStrong;
 use crate::grid::cell::ICell;
 use crate::grid::CellFormatter;
 use crate::grid::grid_base::GridBase;
@@ -24,18 +27,25 @@ impl MaskedGrid {
         };
 
         masked_grid.prepare_grid();
-        masked_grid.grid.configure_cells();
+        masked_grid.grid.configure_cells_i();
         masked_grid
     }    
 }
 
 impl Grid for MaskedGrid {
+
+    fn new_cell(&self, row: usize, column: usize, index: usize) -> ICellStrong {
+        Cell::new(row, column, index)
+    }
+
     fn prepare_grid(&mut self) {
         for i in 0..self.grid.rows {
             let mut row: Vec<Option<CellLinkStrong>> = Vec::new();
+            let mut index = 0;
             for j in 0..self.grid.columns {
                 if self.mask.borrow().get(i, j) {
-                    row.push(Some(Rc::new(RefCell::new(Cell::new(i as usize, j as usize)))));
+                    row.push(Some(Cell::new(i as usize, j as usize, index)));
+                    index += 1;
                 } else {
                     row.push(None);
                 }
@@ -44,14 +54,20 @@ impl Grid for MaskedGrid {
         }   
     }
 
-    fn random_cell(&self, rng: &dyn RngWrapper) -> Option<Box<ICell>> {
-        let (row, col) = self.mask.borrow().rand_location(rng);
-        Some(Box::new(*self.grid.cells[row][col].clone().unwrap().borrow()) as Box<ICell>)
+    fn random_cell(&self, rng: &dyn RngWrapper) -> Option<ICellStrong> {
+        self.grid.random_cell(rng)
     }
 
-    fn each_cell(&self) -> Vec<Option<Box<ICell>>> {
-        self.grid.each_cell().iter()
-            .map(|c| Some(Box::new(*c.unwrap().borrow()) as Box<ICell>)).collect()
+    fn each_cell(&self) -> Vec<Option<ICellStrong>> {
+        self.grid.each_cell()
+    }
+
+    fn get_cell_at_index(&self, index: usize) -> ICellStrong {
+        return self.grid.get_cell_at_index(index);
+    }
+
+    fn get_cell_links(&self, index: usize) -> Vec<ICellStrong> {
+        return self.grid.get_cell_links(index);
     }
 
     fn rows(&self) -> usize {
@@ -62,16 +78,12 @@ impl Grid for MaskedGrid {
         self.grid.rows
     }
 
-    fn cells(&self) -> &Vec<Vec<Option<Box<ICell>>>> {
-        &self.grid.cells.iter().map(|row| 
-            row.iter().map(|c| Some(Box::new(*c.unwrap().borrow()) as Box<ICell>)).collect()
-        ).collect()
+    fn cells(&self) -> Vec<Vec<Option<ICellStrong>>> {
+        self.grid.cells()
     }
 
-    fn get_cell(&self, row: usize, column: usize) -> Option<Box<ICell>> {
-        let cell = self.grid.get_cell(row, column);
-
-        Some(Box::new(*cell.unwrap().borrow()) as Box<ICell>)
+    fn get_cell(&self, row: usize, column: usize) -> Option<ICellStrong> {
+        self.grid.get_cell(row, column)
     }
 
     fn to_string(&self, contents: &dyn CellFormatter) -> String {
@@ -80,5 +92,9 @@ impl Grid for MaskedGrid {
 
     fn size(&self) -> usize {
         self.mask.borrow().count()
+    }
+
+    fn to_web(&self, document: &Document, grid_container: &Element, formatter: &dyn CellFormatter, colorize: bool) {
+        self.grid.to_web(document, grid_container, formatter, colorize);
     }
 }

@@ -41,8 +41,8 @@ impl MazeAlgorithm for Wilson {
 
             let end = path.len() - 1;
             for i in 0..end {
-                path[i].borrow_mut().link_i(path[i + 1].borrow().index());
-                path[i+1].borrow_mut().link_i(path[i].borrow().index());
+                path[i].borrow_mut().link(path[i + 1].borrow().index());
+                path[i+1].borrow_mut().link(path[i].borrow().index());
                 unvisited.remove_item(&path[i]);
             }
         }

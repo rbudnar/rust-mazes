@@ -1,9 +1,7 @@
+use web_sys::{Element, Document};
 use crate::grid::cell::ICellStrong;
-use crate::grid::cell::ICell;
 use crate::grid::{grid_base::GridBase, Grid, CellFormatter, cell::{CellLinkStrong, Cell}};
 use crate::rng::RngWrapper;
-use std::rc::{Rc};
-use std::cell::RefCell;
 
 pub struct StandardGrid {
     pub grid: GridBase,
@@ -16,13 +14,16 @@ impl StandardGrid {
             grid
         };
         std_grid.prepare_grid();
-        // std_grid.grid.configure_cells();
         std_grid.grid.configure_cells_i();
         std_grid
     }
 }
 
 impl Grid for StandardGrid {
+    fn new_cell(&self, row: usize, column: usize, index: usize) -> ICellStrong {
+        Cell::new(row, column, index)
+    }
+
     fn prepare_grid(&mut self) {
         let mut index = 0;
         for i in 0..self.grid.rows {
@@ -38,14 +39,11 @@ impl Grid for StandardGrid {
     }
 
     fn random_cell(&self, rng: &dyn RngWrapper) -> Option<ICellStrong> {
-        let row: usize = rng.gen_range(0, self.grid.rows);
-        let col: usize = rng.gen_range(0, self.grid.columns);
-        self.get_cell(row, col)
+        self.grid.random_cell(rng)
     }
 
     fn each_cell(&self) -> Vec<Option<ICellStrong>> {
-        self.grid.each_cell().iter()
-            .map(|c| Some(Rc::clone(&c.as_ref().unwrap()) as ICellStrong)).collect()
+        self.grid.each_cell()
     }
 
     fn rows(&self) -> usize {
@@ -57,27 +55,24 @@ impl Grid for StandardGrid {
     }
 
     fn cells(&self) -> Vec<Vec<Option<ICellStrong>>> {
-        self.grid.cells.iter().map(|row| 
-            row.iter().map(|c| Some(Rc::clone(&c.as_ref().unwrap()) as ICellStrong)).collect()
-        ).collect()
+        self.grid.cells()
     }
     
     fn get_cell(&self, row: usize, column: usize) -> Option<ICellStrong> {
-        let cell = self.grid.get_cell(row, column);
-
-        Some(Rc::clone(&cell.unwrap()) as ICellStrong)
+        self.grid.get_cell(row, column)
     }
 
-    fn get_cell_at_index(&self, index: usize) -> ICellStrong {
-        let cells = self.each_cell();
-        let c = cells.iter().find(|c| {
-            if let Some(c) = c {
-                return c.borrow().index() == index
-            }
-            return false;
-        }).unwrap();
+    fn get_cell_links(&self, index: usize) -> Vec<ICellStrong> {
+        return self.grid.get_cell_links(index);
+    }
 
-        return Rc::clone(&c.as_ref().unwrap())
+    // fn get_neighbor_links(&self, index: usize) -> Vec<ICellStrong> { 
+
+    // }
+
+    fn get_cell_at_index(&self, index: usize) -> ICellStrong {
+        return self.grid.get_cell_at_index(index);
+  
     }
 
     fn to_string(&self, contents: &dyn CellFormatter) -> String {
@@ -86,5 +81,9 @@ impl Grid for StandardGrid {
 
     fn size(&self) -> usize {
         self.grid.rows * self.grid.columns
+    }
+
+    fn to_web(&self, document: &Document, grid_container: &Element, formatter: &dyn CellFormatter, colorize: bool) {
+        self.grid.to_web(document, grid_container, formatter, colorize);
     }
 }

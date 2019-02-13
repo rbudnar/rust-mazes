@@ -23,10 +23,10 @@ impl MazeAlgorithm for AldousBroder {
             let rand_neighbor = rng_generator.gen_range(0, neighbors.len());
 
             let next_neighbor = grid.get_cell_at_index(neighbors[rand_neighbor]);
-            let is_emtpy = next_neighbor.borrow().links_i().is_empty();
+            let is_emtpy = next_neighbor.borrow().links().is_empty();
             if is_emtpy {
-                cell.borrow_mut().link_i(next_neighbor.borrow().index());
-                next_neighbor.borrow_mut().link_i(cell.borrow().index());
+                cell.borrow_mut().link(next_neighbor.borrow().index());
+                next_neighbor.borrow_mut().link(cell.borrow().index());
                 unvisited_cells -= 1;
             }
 
