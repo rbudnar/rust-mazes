@@ -187,7 +187,10 @@ impl GridBase {
             return None;
         }
         
-        Some(self.cells[row][column].clone().unwrap() as ICellStrong)
+        if let Some(c) = self.cells[row][column].clone() {
+            return Some(c as ICellStrong)
+        }
+        return None;
     }
 
     pub fn cells(&self) -> Vec<Vec<Option<ICellStrong>>> {
@@ -241,8 +244,9 @@ impl GridBase {
 
     pub fn to_web(&self, document: &Document, grid_container: &Element, formatter: &dyn CellFormatter, colorize: bool) {
         for (i, row) in self.cells().iter().enumerate() {
-            for (j, cell) in row.iter().enumerate() {
+            for (j, cell) in row.iter().enumerate() {                
                 if let Some(cell) = cell {
+                    web_sys::console::log_1(&JsValue::from_str(&format!("{:?}", cell)));
                     let html_cell = document.create_element("div").unwrap();
                     add_class(&html_cell, "cell");
 
@@ -287,6 +291,7 @@ impl GridBase {
                     grid_container.append_child(&Node::from(html_cell)).unwrap();
                 }
                 else {
+                    web_sys::console::log_1(&JsValue::from_str("else no cell"));
                     let html_cell = document.create_element("div").unwrap();
                     add_class(&html_cell, "cell");
                 

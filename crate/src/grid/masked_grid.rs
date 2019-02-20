@@ -39,9 +39,9 @@ impl Grid for MaskedGrid {
     }
 
     fn prepare_grid(&mut self) {
+        let mut index = 0;
         for i in 0..self.grid.rows {
             let mut row: Vec<Option<CellLinkStrong>> = Vec::new();
-            let mut index = 0;
             for j in 0..self.grid.columns {
                 if self.mask.borrow().get(i, j) {
                     row.push(Some(Cell::new(i as usize, j as usize, index)));
@@ -55,7 +55,12 @@ impl Grid for MaskedGrid {
     }
 
     fn random_cell(&self, rng: &dyn RngWrapper) -> Option<ICellStrong> {
-        self.grid.random_cell(rng)
+        let (row, col) = self.mask.borrow().rand_location(rng);
+        
+        if let Some(c) = self.grid.cells[row][col].clone() {
+            return Some(c as ICellStrong)
+        }
+        return None;
     }
 
     fn each_cell(&self) -> Vec<Option<ICellStrong>> {

@@ -38,11 +38,11 @@ impl MazeAlgorithm for HuntAndKill {
 
                 for cell in grid.each_cell().iter() {
                     if let Some(cell) = cell {
-                        let neighbors_indexes = cell.borrow().neighbors_i();
+                        let neighbors_i = cell.borrow().neighbors_i();
                         let visited_neighbors: Vec<ICellStrong> = grid.each_cell().iter()
                             .filter(|c| {
                                 if let Some(c) = c {
-                                    return neighbor_indexes.contains(&c.borrow().index()) && !c.borrow().links().is_empty();
+                                    return neighbors_i.contains(&c.borrow().index()) && !c.borrow().links().is_empty();
                                 }
                                 return false;
                             })
