@@ -15,7 +15,7 @@ use crate::grid::{mask::Mask, masked_grid::MaskedGrid, Grid};
 use std::rc::Rc;
 use wasm_bindgen::prelude::JsValue;
 
-static SAMPLE_RESOLUTION: usize = 5;
+static SAMPLE_RESOLUTION: usize = 20;
 static mut INVERT_MASK: bool = false;
 static mut START_X: i32 = 0;
 static mut START_Y: i32 = 0;
@@ -270,7 +270,7 @@ pub fn canvas_to_mask() {
     let masked_grid = MaskedGrid::new(mask);
     
     web_sys::console::log_1(&JsValue::from_str("mask new'd"));
-    AldousBroder.on(&masked_grid, &WasmRng);
+    RecursiveBacktracker.on(&masked_grid, &WasmRng);
     web_sys::console::log_1(&JsValue::from_str("Alg done"));
     let distance_grid = prepare_distance_grid(&masked_grid);
     web_sys::console::log_1(&JsValue::from_str("Dist Grid prepared"));

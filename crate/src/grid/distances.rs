@@ -5,6 +5,7 @@ use std::rc::{Rc};
 use std::cell::RefCell;
 use std::char;
 use math::round;
+use wasm_bindgen::prelude::JsValue;
 
 #[derive(Debug)]
 pub struct Distances {

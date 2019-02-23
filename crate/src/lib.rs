@@ -161,13 +161,24 @@ fn build_and_display_grid(alg: impl MazeAlgorithm, rows: usize, columns: usize) 
 }
 
 fn prepare_distance_grid(grid: &dyn Grid) -> DistanceGrid {   
-    if let Some(root) = grid.cells()[grid.rows() / 2][grid.columns() / 2].clone() {
+    if let Some(root) = grid.get_cell(grid.rows() / 2, grid.columns() / 2) {
+        web_sys::console::log_1(&JsValue::from_str("1st"));
         DistanceGrid::new(&root, grid)
     }
     else {
         let root = grid.random_cell(&wasm_rng::WasmRng).unwrap();
         DistanceGrid::new(&root, grid)
     }
+    // if let Some(root) = grid.cells()[grid.rows() / 2][grid.columns() / 2].clone() {
+    //     web_sys::console::log_1(&JsValue::from_str("1st"));
+    //     DistanceGrid::new(&root, grid)
+    // }
+    // else {
+    //     web_sys::console::log_1(&JsValue::from_str("2nd"));
+    //     let root = grid.random_cell(&wasm_rng::WasmRng).unwrap();
+    //     web_sys::console::log_1(&JsValue::from_str("dist new go"));
+    //     DistanceGrid::new(&root, grid)
+    // }
 }
 
 #[cfg(test)]

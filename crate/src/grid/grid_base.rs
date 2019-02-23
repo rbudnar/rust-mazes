@@ -243,8 +243,14 @@ impl GridBase {
     // }
 
     pub fn to_web(&self, document: &Document, grid_container: &Element, formatter: &dyn CellFormatter, colorize: bool) {
+        web_sys::console::log_1(&JsValue::from_str(&format!("{:?}", self.cells)));
+
         for (i, row) in self.cells().iter().enumerate() {
-            for (j, cell) in row.iter().enumerate() {                
+            web_sys::console::log_1(&JsValue::from_str(&format!("{}", "row")));
+
+            for (j, cell) in row.iter().enumerate() {    
+                web_sys::console::log_1(&JsValue::from_str(&format!("{}", 1)));
+
                 if let Some(cell) = cell {
                     web_sys::console::log_1(&JsValue::from_str(&format!("{:?}", cell)));
                     let html_cell = document.create_element("div").unwrap();
