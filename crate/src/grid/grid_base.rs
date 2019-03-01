@@ -1,4 +1,5 @@
-use crate::grid::cell::Cell;
+use std::collections::HashMap;
+use crate::grid::cell::{Cell, ICell};
 use crate::grid::grid_web::add_bg_color;
 use web_sys::{HtmlElement, Node};
 use wasm_bindgen::JsCast;
@@ -10,10 +11,12 @@ use crate::grid::{cell::CellLinkStrong, CellFormatter};
 use crate::rng::RngWrapper;
 use std::rc::{Rc};
 use wasm_bindgen::prelude::JsValue;
+use math::round;
 
 #[derive(Debug)]
 pub struct GridBase {
     pub cells: Vec<Vec<Option<CellLinkStrong>>>,
+    pub cells_h: HashMap<usize, HashMap<usize, Option<CellLinkStrong>>>,
     pub rows: usize, 
     pub columns: usize
 }
@@ -22,6 +25,7 @@ impl GridBase {
     pub fn new(rows: usize, columns: usize)-> GridBase {
         GridBase {
             cells: Vec::new(),
+            cells_h: HashMap::new(),
             rows, columns            
         }
     }
@@ -147,6 +151,27 @@ impl GridBase {
             .collect()        
     }
 
+    pub fn neighbors(&self, row: usize, column: usize) {
+        let mut neighbors: Vec<ICellStrong> = vec![];
+        if let Some(cell) = self.get_cell_h_rc(row, column) {
+            for c in cell.borrow().neighbors_i().iter() {
+                neighbors.push(Rc::clone(&self.get_cell_h(c).unwrap()))
+            }
+        }
+
+    }
+
+    pub fn get_cell_h_rc(&self, row: usize, column: usize) -> Option<CellLinkStrong> {
+        if let Some(r) = self.cells_h.get(&row) {
+            if let Some(cell) = r.get(&column) {
+                if let Some(cell) = cell {
+                    return Some(Rc::clone(&cell));
+                }
+            }
+        }
+        None
+    }
+
     pub fn configure_cells_i(&mut self) {
         for row in &mut self.cells.iter() {
             for cell in &mut row.iter() {
@@ -180,6 +205,54 @@ impl GridBase {
                 }
             }
         }
+
+        for (row_key, row_h) in &mut self.cells_h.iter() {
+            for (cell_key, cell) in &mut row_h.iter() {
+                if let Some(cell) = cell {
+                    // can't subtract from a usize of 0 apparently
+                    let cell_row = cell.borrow().row;
+                    if cell_row > 0 {
+                        let north = self.get_cell(cell_row - 1, cell.borrow().column);
+                        if north.is_some() {
+                            cell.borrow_mut().north_i = Some(north.unwrap().borrow().index());
+                        }
+                    }
+
+                    let south = self.get_cell(cell.borrow().row + 1, cell.borrow().column);
+                    if south.is_some() {
+                        cell.borrow_mut().south_i = Some(south.unwrap().borrow().index());
+                    }
+
+                    let east = self.get_cell(cell.borrow().row, cell.borrow().column + 1);
+                    if east.is_some() {
+                        cell.borrow_mut().east_i = Some(east.unwrap().borrow().index());
+                    }
+
+                    let cell_column = cell.borrow().column;
+                    if cell_column > 0 {
+                        let west = self.get_cell(cell.borrow().row, cell_column - 1);
+                        if west.is_some() {
+                            cell.borrow_mut().west_i = Some(west.unwrap().borrow().index());
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    pub fn get_cell_h(&self, index: &usize) -> Option<ICellStrong> {
+        let row = round::floor(*index as f64 / self.rows as f64, 0) as usize;
+        let column = (index % self.rows) as usize;
+        let row_h = self.cells_h.get(&row);
+        if let Some(r) = row_h {
+            let cell = r.get(&column);
+            if let Some(cell) = cell {
+                if let Some(cell) = cell {
+                    return Some(Rc::clone(cell) as ICellStrong);
+                }
+            }
+        }
+        return None;
     }
 
     pub fn get_cell(&self, row: usize, column: usize) -> Option<ICellStrong> {
@@ -197,8 +270,7 @@ impl GridBase {
         self.cells.iter().map(|row| 
             row.iter().map(|c| Some(Rc::clone(&c.as_ref().unwrap()) as ICellStrong)).collect()
         ).collect()
-    }
-    
+    }    
 
     pub fn get_cell_at_index(&self, index: usize) -> ICellStrong {
         let cells = self.each_cell();

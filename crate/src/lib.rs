@@ -7,6 +7,7 @@
 extern crate cfg_if;
 extern crate test;
 // use crate::grid::polar_grid::grid_to_web_polar;
+use std::collections::HashMap;
 use crate::grid::cell::ICellStrong;
 use crate::grid::cell::ICell;
 use crate::grid::{Grid,
@@ -75,9 +76,11 @@ cfg_if! {
 //     fn append_child(this: &Element, other: Element);
 //     fn alert(s: &str);
 // }
+
 static mut GRID: StandardGrid = StandardGrid {
     grid: GridBase {
         cells: Vec::new(),
+        cells_h: HashMap::new(),
         rows: 1, columns: 1
     },
 };

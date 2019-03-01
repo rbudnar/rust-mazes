@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use web_sys::{Element, Document};
 use crate::grid::cell::ICellStrong;
 use crate::grid::{grid_base::GridBase, Grid, CellFormatter, cell::{CellLinkStrong, Cell}};
@@ -28,14 +29,19 @@ impl Grid for StandardGrid {
         let mut index = 0;
         for i in 0..self.grid.rows {
             let mut row: Vec<Option<CellLinkStrong>> = Vec::new();
+            let mut row_h: HashMap<usize, Option<CellLinkStrong>> = HashMap::new();
             
             for j in 0..self.grid.columns {
+                row_h.insert(j, Some(Cell::new(i as usize, j as usize, index)));
                 row.push(Some(Cell::new(i as usize, j as usize, index)));
 
                 index += 1;
             }
             self.grid.cells.push(row);
-        }   
+            self.grid.cells_h.insert(i, row_h);
+        }
+
+
     }
 
     fn random_cell(&self, rng: &dyn RngWrapper) -> Option<ICellStrong> {

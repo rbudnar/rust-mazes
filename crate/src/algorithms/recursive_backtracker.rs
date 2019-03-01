@@ -22,12 +22,9 @@ impl MazeAlgorithm for RecursiveBacktracker {
         while start.is_none() {
             start = rand_element(&cells, rng_generator);
         }
-        web_sys::console::log_1(&JsValue::from_str(&format!("{}", 1)));
         stack.push(start.clone().unwrap());
-        web_sys::console::log_1(&JsValue::from_str(&format!("{}", 2)));
         while !stack.is_empty() {
             web_sys::console::log_1(&JsValue::from_str(&format!("{}", stack.len())));
-            // web_sys::console::log_1(&JsValue::from_str(&format!("{}", 3)));
             let current = stack.last().unwrap().clone();          
             let neighbors = current.borrow().neighbors_i();
 
@@ -40,34 +37,11 @@ impl MazeAlgorithm for RecursiveBacktracker {
                     return false;
                 }).map(|c| Rc::clone(&c.as_ref().unwrap())).collect();
                         
-            // let unvisited: Vec<ICellStrong> = 
-            //             grid.each_cell().iter().filter(|ref c| {
-            //                 web_sys::console::log_1(&JsValue::from_str(&format!("{}", 5)));
-            //                 // let c = c.as_ref().unwrap().borrow();
-            //                 if let Some(c) = c.as_ref() {
-            //                     let c = c.borrow();
-            //                     web_sys::console::log_1(&JsValue::from_str(&format!("{}", 6)));
-            //                     let include = neighbors.contains(&c.index()) && c.links().is_empty();
-            //                     web_sys::console::log_1(&JsValue::from_str(&format!("{}", 7)));
-            //                     return include;
-            //                 }
-            //                 return false;
-            //                 // neighbors.contains(&c.index()) && c.links().is_empty()
-            //             })
-            //             .map(|c2| Rc::clone(c2.as_ref().unwrap()))
-            //             .collect();
-
             let unvisited: Vec<ICellStrong> = 
                 neighbors_.iter().filter(|ref c| {
-                    // let c = c.as_ref().unwrap().borrow();
-                    // if let Some(c) = c.as_ref() {
                     let c = c.borrow();
-                    // let include = neighbors.contains(&c.index()) && c.links().is_empty();
                     let include = c.links().is_empty();
                     return include;
-                    // }
-                    // return false;
-                    // neighbors.contains(&c.index()) && c.links().is_empty()
                 })
                 .map(|c2| Rc::clone(c2))
                 .collect();
