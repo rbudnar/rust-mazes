@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use web_sys::Element;
 use web_sys::Document;
 use crate::grid::cell::ICellStrong;
-use crate::grid::cell::ICell;
 use crate::grid::CellFormatter;
 use crate::grid::grid_base::GridBase;
 use crate::rng::RngWrapper;
@@ -46,10 +45,10 @@ impl Grid for MaskedGrid {
             for j in 0..self.grid.columns {
                 if self.mask.borrow().get(i, j) {
                     row.insert(j, Some(Cell::new(i as usize, j as usize, index)));
-                    index += 1;
                 } else {
                     row.insert(j, None);
                 }
+                index += 1;
             }
             self.grid.cells_h.as_mut().unwrap().insert(i, row);
         }   
@@ -59,21 +58,25 @@ impl Grid for MaskedGrid {
         let (row, col) = self.mask.borrow().rand_location(rng);
         
         if let Some(c) = self.grid.get_cell(row, col).clone() {
-            return Some(c as ICellStrong)
+            return Some(c as ICellStrong);
         }
-        return None;
+        None
+    }
+
+    fn neighbors(&self, row: usize, column: usize) -> Vec<ICellStrong> {
+        self.grid.neighbors(row, column)
     }
 
     fn each_cell(&self) -> Vec<Option<ICellStrong>> {
         self.grid.each_cell()
     }
 
-    fn get_cell_at_index(&self, index: usize) -> ICellStrong {
-        return self.grid.get_cell_at_index(index);
+    fn get_cell_at_index(&self, index: usize) -> Option<ICellStrong> {
+        self.grid.get_cell_at_index(index)
     }
 
     fn get_cell_links(&self, index: usize) -> Vec<ICellStrong> {
-        return self.grid.get_cell_links(index);
+        self.grid.get_cell_links(index)
     }
 
     fn rows(&self) -> usize {

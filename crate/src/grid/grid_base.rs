@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use crate::grid::cell::{Cell, ICell};
+use crate::grid::cell::{Cell};
 use crate::grid::grid_web::add_bg_color;
 use web_sys::{HtmlElement, Node};
 use wasm_bindgen::JsCast;
@@ -10,7 +10,6 @@ use crate::grid::cell::ICellStrong;
 use crate::grid::{cell::CellLinkStrong, CellFormatter};
 use crate::rng::RngWrapper;
 use std::rc::{Rc};
-use wasm_bindgen::prelude::JsValue;
 use math::round;
 use std::cmp::Ordering;
 
@@ -38,6 +37,7 @@ impl GridBase {
             let mut bottom = String::from("+");
             for (j, cell) in row.iter().enumerate() {
                 if let Some(cell) = cell {
+                    // println!("i: {} r: {} j: {} c: {}, idx: {}", i, cell.borrow().row(), j, cell.borrow().column(), cell.borrow().index());
                     if i == 0 {
                         output += "+---";
                         if j == self.columns -1 {
@@ -46,7 +46,7 @@ impl GridBase {
                     }                    
 
                     // let body = format!(" {} ", contents.contents_of(&cell));
-                    let body = format!("   ");
+                    let body = "   ".to_string();
                     let e = cell.borrow();
                     let east = e.east_i.as_ref();
                     let east_border = if east.is_some() && cell.borrow().is_linked_i(*east.unwrap()) {
@@ -72,7 +72,6 @@ impl GridBase {
                 } else {
                     if i == 0 {
                         // very top of grid
-                        // if j > 0 && self.cells[i][j-1].is_some() {
                         if j > 0 && self.get_cell(i, j-1).is_some() {
                             output += "+   ";
                         } else {
@@ -137,9 +136,9 @@ impl GridBase {
     }
 
     pub fn each_cell(&self) -> Vec<Option<ICellStrong>> { 
-        self.cells_h.as_ref().unwrap().iter()
-            .map(|(row_i, row)| {
-                return row.iter().map(|(col_i, column)| {
+        self.cells_h().iter()
+            .map(|row| {
+                row.iter().map(|column| {
                     if let Some(c) = column {
                         Some(Rc::clone(c) as ICellStrong)
                     }
@@ -156,7 +155,10 @@ impl GridBase {
         let mut neighbors: Vec<ICellStrong> = vec![];
         if let Some(cell) = self.get_cell(row, column) {
             for c in cell.borrow().neighbors_i().iter() {
-                neighbors.push(Rc::clone(&self.get_cell_at_index(*c)));
+                let neighbor = self.get_cell_at_index(*c);
+                if let Some(neighbor) = neighbor {
+                    neighbors.push(Rc::clone(&neighbor));
+                }
             }
         }
 
@@ -164,8 +166,8 @@ impl GridBase {
     }
 
     pub fn configure_cells_i(&mut self) {
-        for (row_key, row_h) in &mut self.cells_h.as_ref().unwrap().iter() {
-            for (cell_key, cell) in &mut row_h.iter() {
+        for (_, row_h) in &mut self.cells_h.as_ref().unwrap().iter() {
+            for (_, cell) in &mut row_h.iter() {
                 if let Some(cell) = cell {
                     // can't subtract from a usize of 0 apparently
                     let cell_row = cell.borrow().row;
@@ -198,14 +200,19 @@ impl GridBase {
         }
     }
 
-    pub fn get_cell_at_index(&self, index: usize) -> ICellStrong {
+    pub fn get_cell_at_index(&self, index: usize) -> Option<ICellStrong> {
         let row = round::floor(index as f64 / self.rows as f64, 0) as usize;
         let column = (index % self.columns) as usize;
         let row_h = self.cells_h.as_ref().unwrap().get(&row).unwrap();
+        // web_sys::console::log_1(&JsValue::from_str(&format!("computed RC {} {} {}", index, row, column)));
 
         // booo on this :(
-        let cell = row_h.get(&column).unwrap().as_ref().unwrap();
-        return Rc::clone(&cell) as ICellStrong;
+        if let Some(cell) = row_h.get(&column).unwrap().as_ref() {
+            return Some(Rc::clone(&cell) as ICellStrong);
+        }
+        else {
+            return None;
+        }
     }
 
     pub fn get_cell(&self, row: usize, column: usize) -> Option<ICellStrong> {
@@ -220,10 +227,45 @@ impl GridBase {
     }
 
     pub fn cells(&self) -> Vec<Vec<Option<ICellStrong>>> {
-        self.cells_h.as_ref().unwrap().iter().map(|(_, row)| 
-            row.iter().map(|(_, c)| Some(Rc::clone(&c.as_ref().unwrap()) as ICellStrong)).collect()
-        ).collect()
-    }    
+        /// Have to first sort the rows, then sort the cells in each row. Display expects them ordered.
+        let mut a: Vec<(usize, &HashMap<usize, Option<CellLinkStrong>>)> = 
+            self.cells_h.as_ref().unwrap()
+                .iter()
+                .map(|(row, hashmap)| (*row, hashmap))
+                .collect();
+        
+        a.sort_by(|a, b| {
+            if a.0 < b.0 {
+                Ordering::Less
+            } else if a.0 == b.0 {
+                Ordering::Equal
+            } else {
+                Ordering::Greater
+            }
+        });
+
+        let b: Vec<&HashMap<usize, Option<CellLinkStrong>>> = a.iter().map(|(_, hashmap)| *hashmap).collect();
+        
+        b.iter().map(|row| {
+            let mut r: Vec<(&usize, Option<ICellStrong>)> = row.iter()
+                .map(|(i, c)| {
+                    if let Some(cell) = c {
+                        return (i, Some(Rc::clone(&cell) as ICellStrong));
+                    } else {
+                        return (i, None);
+                    }
+                }).collect();
+
+            r.sort_by(cmp_i_cell);
+            r.iter().map(|(_, c)| {
+                if let Some(cell) = c {
+                    return Some(Rc::clone(cell));
+                } else {
+                    return None;
+                }
+            }).collect()
+        }).collect()
+    }
 
     pub fn cells_h(&self) -> Vec<Vec<Option<CellLinkStrong>>> {
         let mut a: Vec<(usize, &HashMap<usize, Option<CellLinkStrong>>)> = self.cells_h.as_ref().unwrap().iter().map(|(row, hashmap)| {
@@ -232,35 +274,50 @@ impl GridBase {
         
         a.sort_by(|a, b| {
             if a.0 < b.0 {
-                return Ordering::Less;
+                Ordering::Less
             } else if a.0 == b.0 {
-                return Ordering::Equal;
-            }
-            else {
-                return Ordering::Greater;
+                Ordering::Equal
+            } else {
+                Ordering::Greater
             }
         });
 
         let b: Vec<&HashMap<usize, Option<CellLinkStrong>>> = a.iter().map(|(_, hashmap)| *hashmap).collect();
         
-        let mut v: Vec<Vec<Option<CellLinkStrong>>> = b.iter().map(|row| {
-            let mut r: Vec<Option<CellLinkStrong>> = row.iter().map(|(_, c)| Some(Rc::clone(&c.as_ref().unwrap()))).collect();
-            r.sort_by(cmp_cell);
-            return r;
-        }).collect();
+        b.iter().map(|row| {
+            let mut r: Vec<(&usize, Option<CellLinkStrong>)> = row.iter().map(|(i, c)| {
+                if let Some(cell) = c {
+                    return (i, Some(Rc::clone(cell)));
+                } else {
+                    return (i, None);
+                }
+            })
+            .collect();
 
-        return v;
+            r.sort_by(cmp_cell);
+
+            r.iter().map(|(_, c)| {
+                if let Some(cell) = c {
+                    return Some(Rc::clone(cell));
+                } else {
+                    return None;
+                }
+            }).collect()
+        }).collect()
     }     
 
-    
-
-    pub fn get_cell_links(&self, index: usize) -> Vec<ICellStrong> {
-        self.each_cell().iter().filter(|&c| {
-            if let Some(c) = c {
-                return c.borrow().links().contains(&index);
+    pub fn get_cell_links(&self, index: usize) -> Vec<ICellStrong> {       
+        let cell = self.get_cell_at_index(index);
+        let mut links: Vec<ICellStrong> = vec![];
+        if let Some(cell) = cell {
+            for link_index in cell.borrow().links().iter() {
+                if let Some(link) = self.get_cell_at_index(*link_index) {
+                    links.push(Rc::clone(&link));
+                }
             }
-            return false;
-        }).map(|c| Rc::clone(&c.as_ref().unwrap())).collect()
+        }
+        
+        links
     }
 
     
@@ -285,16 +342,12 @@ impl GridBase {
     // }
 
     pub fn to_web(&self, document: &Document, grid_container: &Element, formatter: &dyn CellFormatter, colorize: bool) {
-        // web_sys::console::log_1(&JsValue::from_str(&format!("{:?}", self.cells)));
 
         for (i, row) in self.cells().iter().enumerate() {
-            web_sys::console::log_1(&JsValue::from_str(&format!("{}", "row")));
 
             for (j, cell) in row.iter().enumerate() {    
-                web_sys::console::log_1(&JsValue::from_str(&format!("{}", 1)));
 
                 if let Some(cell) = cell {
-                    web_sys::console::log_1(&JsValue::from_str(&format!("{:?}", cell)));
                     let html_cell = document.create_element("div").unwrap();
                     add_class(&html_cell, "cell");
 
@@ -328,9 +381,6 @@ impl GridBase {
                             add_class(&html_cell, "bb");            
                         }
                     }
-                    else {
-                        web_sys::console::log_1(&JsValue::from_str(&format!("no e")));
-                    }
 
                     let c = html_cell.dyn_ref::<HtmlElement>().unwrap().clone();
                     if colorize {
@@ -339,7 +389,7 @@ impl GridBase {
                     grid_container.append_child(&Node::from(html_cell)).unwrap();
                 }
                 else {
-                    web_sys::console::log_1(&JsValue::from_str("else no cell"));
+                    // web_sys::console::log_1(&JsValue::from_str("else no cell"));
                     let html_cell = document.create_element("div").unwrap();
                     add_class(&html_cell, "cell");
                 
@@ -351,15 +401,27 @@ impl GridBase {
     }
 }
 
-fn cmp_cell(a: &Option<CellLinkStrong>, b: &Option<CellLinkStrong>) -> Ordering {
-    let a = a.as_ref().unwrap().borrow().index;
-    let b = b.as_ref().unwrap().borrow().index;
+fn cmp_cell(a: &(&usize, Option<CellLinkStrong>), b: &(&usize, Option<CellLinkStrong>)) -> Ordering {
+    let a = a.0;
+    let b = b.0;
+
     if a < b {
-        return Ordering::Less;
+        Ordering::Less
     } else if a == b {
-        return Ordering::Equal;
+        Ordering::Equal
+    } else {
+        Ordering::Greater
     }
-    else {
-        return Ordering::Greater;
+}
+
+fn cmp_i_cell(a: &(&usize, Option<ICellStrong>), b: &(&usize, Option<ICellStrong>)) -> Ordering {
+    let a = a.0;
+    let b = b.0;
+    if a < b {
+        Ordering::Less
+    } else if a == b {
+        Ordering::Equal
+    } else {
+        Ordering::Greater
     }
 }

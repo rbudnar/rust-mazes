@@ -24,15 +24,16 @@ impl MazeAlgorithm for AldousBroder {
             let neighbors = cell.borrow().neighbors_i();
             let rand_neighbor = rng_generator.gen_range(0, neighbors.len());
 
-            let next_neighbor = grid.get_cell_at_index(neighbors[rand_neighbor]);
-            let is_empty = next_neighbor.borrow().links().is_empty();
+            if let Some(next_neighbor) = grid.get_cell_at_index(neighbors[rand_neighbor]) {
+                let is_empty = next_neighbor.borrow().links().is_empty();
 
-            if is_empty {
-                cell.borrow_mut().link(next_neighbor.borrow().index());
-                next_neighbor.borrow_mut().link(cell.borrow().index());
-                unvisited_cells -= 1;
+                if is_empty {
+                    cell.borrow_mut().link(next_neighbor.borrow().index());
+                    next_neighbor.borrow_mut().link(cell.borrow().index());
+                    unvisited_cells -= 1;
+                }
+                cell = next_neighbor.clone();
             }
-            cell = next_neighbor.clone();
         }
     }
 }

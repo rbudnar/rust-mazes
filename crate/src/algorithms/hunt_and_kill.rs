@@ -22,7 +22,7 @@ impl MazeAlgorithm for HuntAndKill {
                     if let Some(c) = c {
                         return neighbor_indexes.contains(&c.borrow().index()) && c.borrow().links().is_empty();
                     }
-                    return false;
+                    false
                 })
                 .map(|c| Rc::clone(&c.as_ref().unwrap()))
                 .collect();
@@ -44,7 +44,7 @@ impl MazeAlgorithm for HuntAndKill {
                                 if let Some(c) = c {
                                     return neighbors_i.contains(&c.borrow().index()) && !c.borrow().links().is_empty();
                                 }
-                                return false;
+                                false
                             })
                             .map(|c| Rc::clone(&c.as_ref().unwrap()))
                             .collect();

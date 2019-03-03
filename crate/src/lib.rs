@@ -165,7 +165,6 @@ fn build_and_display_grid(alg: impl MazeAlgorithm, rows: usize, columns: usize) 
 
 fn prepare_distance_grid(grid: &dyn Grid) -> DistanceGrid {   
     if let Some(root) = grid.get_cell(grid.rows() / 2, grid.columns() / 2) {
-        web_sys::console::log_1(&JsValue::from_str("1st"));
         DistanceGrid::new(&root, grid)
     }
     else {
@@ -173,7 +172,6 @@ fn prepare_distance_grid(grid: &dyn Grid) -> DistanceGrid {
         DistanceGrid::new(&root, grid)
     }
     // if let Some(root) = grid.cells()[grid.rows() / 2][grid.columns() / 2].clone() {
-    //     web_sys::console::log_1(&JsValue::from_str("1st"));
     //     DistanceGrid::new(&root, grid)
     // }
     // else {
@@ -388,52 +386,53 @@ mod tests {
     //     println!("{:?}", mask.rand_location(&thread_rng::ThreadRng));
     // }
 
-    // #[test]
-    // fn masked_grid() {
-    //     let mut mask = Mask::new(5, 5);
+    #[test]
+    fn masked_grid() {
+        let mut mask = Mask::new(5, 5);
 
-    //     mask.set(0,2, false);
-    //     mask.set(1,2, false);
-    //     mask.set(2,2, false);
+        mask.set(0,2, false);
+        mask.set(1,2, false);
+        mask.set(2,2, false);
         
-    //     mask.set(0,0, false);
-    //     mask.set(2,0, false);
-    //     mask.set(3,0, false);
+        mask.set(0,0, false);
+        mask.set(2,0, false);
+        mask.set(3,0, false);
 
-    //     mask.set(1,4, false);
-    //     mask.set(2,4, false);
-    //     mask.set(4,4, false);
-    //     let masked_grid = MaskedGrid::new(mask);
-    //     RecursiveBacktracker.on(&masked_grid, &thread_rng::ThreadRng);
-    //     println!("{}", masked_grid.grid.to_string(&ConsoleGridFormatter));
-    // }
-
-//     #[test]
-//     fn basic_grid() {
-//         let grid = StandardGrid::new(5,5);
-//         println!("{}", grid.to_string(&ConsoleGridFormatter));    
-//     }
+        mask.set(1,4, false);
+        mask.set(2,4, false);
+        mask.set(4,4, false);
+        let masked_grid = MaskedGrid::new(mask);
+        RecursiveBacktracker.on(&masked_grid, &thread_rng::ThreadRng);
+        println!("{}", masked_grid.grid.to_string(&ConsoleGridFormatter));
+    }
 
     // #[test]
-    // fn mask_from_file() {
-    //     let filename = "mask.txt";
-    //     let contents = fs::read_to_string(filename).expect("Error with file");
-    //     let rows = contents.lines().count();
-    //     let cols = contents.lines().map(|line| line.len()).max().unwrap();
-    //     println!("{}, {}", rows, cols);
-    //     let mut mask = Mask::new(rows, cols);
-    //     let X = 'X';
-    //     for (i, line) in contents.lines().enumerate() {
-    //         println!("{}: {}", i, line);
-    //         for (j, c) in line.chars().enumerate() {
-    //             if c == X {
-    //                 mask.set(i, j, false);
-    //             }
-    //         }
-    //     }
-
-    //     let masked_grid = MaskedGrid::new(mask);
-    //     AldousBroder.on(&masked_grid, &thread_rng::ThreadRng);
-    //     println!("{}", masked_grid.grid.to_string(&ConsoleGridFormatter));
+    // fn basic_grid() {
+    //     let grid = StandardGrid::new(5,5);
+    //     println!("{}", grid.to_string(&ConsoleGridFormatter));    
     // }
+
+    #[test]
+    fn mask_from_file() {
+        let filename = "mask.txt";
+        let contents = fs::read_to_string(filename).expect("Error with file");
+        let rows = contents.lines().count();
+        let cols = contents.lines().map(|line| line.len()).max().unwrap();
+        println!("{}, {}", rows, cols);
+        let mut mask = Mask::new(rows, cols);
+        let X = 'X';
+        for (i, line) in contents.lines().enumerate() {
+            println!("{}: {}", i, line);
+            for (j, c) in line.chars().enumerate() {
+                if c == X {
+                    mask.set(i, j, false);
+                }
+            }
+        }
+
+        let masked_grid = MaskedGrid::new(mask);
+        // AldousBroder.on(&masked_grid, &thread_rng::ThreadRng);
+        RecursiveBacktracker.on(&masked_grid, &thread_rng::ThreadRng);
+        println!("{}", masked_grid.grid.to_string(&ConsoleGridFormatter));
+    }
 }

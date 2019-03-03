@@ -1,11 +1,9 @@
 use crate::grid::cell::ICellStrong;
-use crate::grid::{Grid, CellFormatter, cell::{Cell, CellLinkStrong}};
+use crate::grid::{Grid, CellFormatter};
 use std::collections::HashMap;
 use std::rc::{Rc};
-use std::cell::RefCell;
 use std::char;
 use math::round;
-use wasm_bindgen::prelude::JsValue;
 
 #[derive(Debug)]
 pub struct Distances {
@@ -59,16 +57,14 @@ impl Distances {
 
             for fcell in frontier.iter() {
                 let distance = *distances.get_distance(fcell.borrow().row(), fcell.borrow().column()).unwrap();
-                for linked in grid.get_cell_links(fcell.borrow().index()).iter() {
-                // for linked in fcell.borrow().links_i().iter() {
-                    // if let Some(l) = linked {
-                        let c = linked.borrow();
-                        
-                        if !distances.is_visited(c.row(), c.column()) {
-                            distances.insert(c.row(), c.column(), distance + 1);
-                            new_frontier.push(Rc::clone(&linked));
-                        }
-                    // }
+                let cell_links = grid.get_cell_links(fcell.borrow().index());
+                for linked in cell_links.iter() {
+                    let c = linked.borrow();
+                    
+                    if !distances.is_visited(c.row(), c.column()) {
+                        distances.insert(c.row(), c.column(), distance + 1);
+                        new_frontier.push(Rc::clone(&linked));
+                    }
                 }
             }
 

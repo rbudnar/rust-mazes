@@ -1,21 +1,18 @@
 
-use crate::algorithms::hunt_and_kill::HuntAndKill;
-use crate::algorithms::aldous_broder::AldousBroder;
 use crate::grid::grid_web::grid_to_web;
 use crate::prepare_distance_grid;
 use web_sys::ImageData;
 use web_sys::EventTarget;
-// use crate::grid::grid_web::grid_to_web;
 use crate::rng::wasm_rng::WasmRng;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{HtmlElement, Node, HtmlCanvasElement, CanvasRenderingContext2d};
 use crate::algorithms::{MazeAlgorithm, recursive_backtracker::RecursiveBacktracker};
-use crate::grid::{mask::Mask, masked_grid::MaskedGrid, Grid};
+use crate::grid::{mask::Mask, masked_grid::MaskedGrid};
 use std::rc::Rc;
 use wasm_bindgen::prelude::JsValue;
 
-static SAMPLE_RESOLUTION: usize = 20;
+static SAMPLE_RESOLUTION: usize = 5;
 static mut INVERT_MASK: bool = false;
 static mut START_X: i32 = 0;
 static mut START_Y: i32 = 0;
@@ -231,7 +228,6 @@ pub fn canvas_to_mask() {
     let height = canvas.offset_height() as usize;
     
     // web_sys::console::log_2(&JsValue::from(width), &JsValue::from(height));
-
     let context = canvas.get_context("2d")
         .unwrap()
         .unwrap()
@@ -239,7 +235,7 @@ pub fn canvas_to_mask() {
         .unwrap();
 
     let img_data = context.get_image_data(0.0, 0.0, width as f64, height as f64).unwrap();
-    web_sys::console::log_1(&img_data);
+    // web_sys::console::log_1(&img_data);
 
     let mut mask = Mask::new(height / SAMPLE_RESOLUTION, width / SAMPLE_RESOLUTION);
     let data = &img_data.data();
@@ -260,19 +256,13 @@ pub fn canvas_to_mask() {
             let first_index = i_offset + j_offset;
 
             if data[first_index] == color && data[first_index+1] == color && data[first_index+2] == color {
-                // web_sys::console::log_1(&JsValue::from_str(&format!("{}, {}, {}", i, j, first_index)));
                 mask.bits[i][j] = false;
             }
         }
-        // web_sys::console::log_1(&JsValue::from_str(&format!("{}, {}, {}", i, cell_count, cell_count*4*SAMPLE_RESOLUTION)));
     }
-    web_sys::console::log_1(&JsValue::from_str("about to new up mask"));
     let masked_grid = MaskedGrid::new(mask);
     
-    web_sys::console::log_1(&JsValue::from_str("mask new'd"));
     RecursiveBacktracker.on(&masked_grid, &WasmRng);
-    web_sys::console::log_1(&JsValue::from_str("Alg done"));
     let distance_grid = prepare_distance_grid(&masked_grid);
-    web_sys::console::log_1(&JsValue::from_str("Dist Grid prepared"));
     grid_to_web(&masked_grid, &distance_grid, false);
 }

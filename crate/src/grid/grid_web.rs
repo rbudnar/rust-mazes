@@ -1,6 +1,6 @@
 
 use crate::grid::cell::ICellStrong;
-use crate::grid::{Grid, cell::CellLinkStrong, CellFormatter};
+use crate::grid::{Grid, CellFormatter};
 use web_sys::{Node};
 use wasm_bindgen::prelude::JsValue;
 

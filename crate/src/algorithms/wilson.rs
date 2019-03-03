@@ -22,20 +22,20 @@ impl MazeAlgorithm for Wilson {
         while !unvisited.is_empty() {
             let mut path: Vec<ICellStrong> = vec![];
 
-            let mut cell = rand_element(&unvisited, rng_generator).clone();
+            let cell = rand_element(&unvisited, rng_generator).clone();
             path.push(cell.clone());
 
             while unvisited.contains(&cell) {
                 let neighbors = cell.borrow().neighbors_i();
                 // cell = rand_element(&neighbors, rng_generator).upgrade().unwrap().clone();
                 let cell_index = rand_element(&neighbors, rng_generator);
-                cell = grid.get_cell_at_index(*cell_index);
-                
-                if let Some(position) = path.iter().position(|c| c.borrow().row() == cell.borrow().row() && c.borrow().column() == cell.borrow().column()) {
-                    path = path[0..=position].to_vec();
-                } 
-                else {
-                    path.push(cell.clone());
+                if let Some(cell) = grid.get_cell_at_index(*cell_index) {
+                    if let Some(position) = path.iter().position(|c| c.borrow().row() == cell.borrow().row() && c.borrow().column() == cell.borrow().column()) {
+                        path = path[0..=position].to_vec();
+                    } 
+                    else {
+                        path.push(cell.clone());
+                    }
                 }
             }
 

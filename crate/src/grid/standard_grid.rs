@@ -36,9 +36,7 @@ impl Grid for StandardGrid {
                 index += 1;
             }
             self.grid.cells_h.as_mut().unwrap().insert(i, row_h);
-        }
-
-        
+        }        
     }
 
     fn random_cell(&self, rng: &dyn RngWrapper) -> Option<ICellStrong> {
@@ -66,15 +64,15 @@ impl Grid for StandardGrid {
     }
 
     fn get_cell_links(&self, index: usize) -> Vec<ICellStrong> {
-        return self.grid.get_cell_links(index);
+        self.grid.get_cell_links(index)
     }
 
-    // fn get_neighbor_links(&self, index: usize) -> Vec<ICellStrong> { 
+    fn neighbors(&self, row: usize, column: usize) -> Vec<ICellStrong> {
+        self.grid.neighbors(row, column)
+    }
 
-    // }
-
-    fn get_cell_at_index(&self, index: usize) -> ICellStrong {
-        return self.grid.get_cell_at_index(index);
+    fn get_cell_at_index(&self, index: usize) -> Option<ICellStrong> {
+        self.grid.get_cell_at_index(index)
   
     }
 

@@ -27,10 +27,10 @@ pub trait Grid {
     fn columns(&self) -> usize;
     fn cells(&self) -> Vec<Vec<Option<ICellStrong>>>;
     fn get_cell(&self, row: usize, column: usize) -> Option<ICellStrong>;
-    fn get_cell_at_index(&self, index: usize) -> ICellStrong;
+    fn get_cell_at_index(&self, index: usize) -> Option<ICellStrong>;
     fn get_cell_links(&self, index: usize) -> Vec<ICellStrong>;
     fn to_string(&self, contents: &dyn CellFormatter) -> String;
     fn size(&self) -> usize;
     fn to_web(&self, document: &Document, grid_container: &Element, formatter: &dyn CellFormatter, colorize: bool);
-    // fn get_neighbor_links(&self, index: usize) -> Vec<ICellStrong>;
+    fn neighbors(&self, row: usize, column: usize) -> Vec<ICellStrong>;
 }

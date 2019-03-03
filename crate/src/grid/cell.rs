@@ -26,7 +26,7 @@ impl Debug for ICell {
 
 impl PartialEq for ICell {
     fn eq(&self, rhs: &ICell) -> bool {
-        return self.index() == rhs.index();
+        self.index() == rhs.index()
     }
 }
 
@@ -109,8 +109,7 @@ impl Cell {
             index
         };
 
-        let rc = Rc::new(RefCell::new(c));
-        rc
+        Rc::new(RefCell::new(c))
     }
 
     pub fn is_linked_i(&self, other: usize) -> bool {

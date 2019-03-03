@@ -1,10 +1,9 @@
-use crate::grid::cell::{ICell, ICellStrong};
+use crate::grid::cell::{ICellStrong};
 use std::rc::Rc;
 use crate::grid::{Grid};
 use crate::algorithms::rand_element;
 use crate::rng::RngWrapper;
 use crate::algorithms::MazeAlgorithm;
-// use wasm_bindgen::prelude::JsValue;
 
 #[derive(Debug)]
 pub struct RecursiveBacktracker;
@@ -24,38 +23,23 @@ impl MazeAlgorithm for RecursiveBacktracker {
         }
         stack.push(start.clone().unwrap());
         while !stack.is_empty() {
-            // web_sys::console::log_1(&JsValue::from_str(&format!("{}", stack.len())));
             let current = stack.last().unwrap().clone();          
-            let neighbors = current.borrow().neighbors_i();
+            let neighbors = grid.neighbors(current.borrow().row(), current.borrow().column());
 
-            let neighbors_: Vec<ICellStrong> = grid.each_cell().iter()
-                .filter(|ref c| {
-                    // return c.is_some();
-                    if let Some(c) = c.as_ref() {
-                        return c.borrow().neighbors_i().contains(&current.borrow().index());
-                    }
-                    return false;
-                }).map(|c| Rc::clone(&c.as_ref().unwrap())).collect();
                         
             let unvisited: Vec<ICellStrong> = 
-                neighbors_.iter().filter(|ref c| {
-                    let c = c.borrow();
-                    let include = c.links().is_empty();
-                    return include;
-                })
-                .map(|c2| Rc::clone(c2))
-                .collect();
-            // web_sys::console::log_1(&JsValue::from_str(&format!("{}", 8)));
+                neighbors.iter()
+                    .filter(|ref c| c.borrow().links().is_empty())
+                    .map(|c| Rc::clone(c))
+                    .collect();
 
             if !unvisited.is_empty() {
-                // web_sys::console::log_1(&JsValue::from_str(&format!("{}", "not empty")));
                 let rand_neighbor = rand_element(&unvisited, rng_generator);
                 current.borrow_mut().link(rand_neighbor.borrow().index());
                 rand_neighbor.borrow_mut().link(current.borrow().index());
                 stack.push(Rc::clone(&rand_neighbor));
             }
             else {
-                // web_sys::console::log_1(&JsValue::from_str(&format!("{}", "empty")));
                 stack.pop();
             }
         }         
