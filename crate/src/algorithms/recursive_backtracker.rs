@@ -4,7 +4,7 @@ use crate::grid::{Grid};
 use crate::algorithms::rand_element;
 use crate::rng::RngWrapper;
 use crate::algorithms::MazeAlgorithm;
-use wasm_bindgen::prelude::JsValue;
+// use wasm_bindgen::prelude::JsValue;
 
 #[derive(Debug)]
 pub struct RecursiveBacktracker;
@@ -24,7 +24,7 @@ impl MazeAlgorithm for RecursiveBacktracker {
         }
         stack.push(start.clone().unwrap());
         while !stack.is_empty() {
-            web_sys::console::log_1(&JsValue::from_str(&format!("{}", stack.len())));
+            // web_sys::console::log_1(&JsValue::from_str(&format!("{}", stack.len())));
             let current = stack.last().unwrap().clone();          
             let neighbors = current.borrow().neighbors_i();
 

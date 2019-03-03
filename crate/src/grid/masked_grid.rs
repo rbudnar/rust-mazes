@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use web_sys::Element;
 use web_sys::Document;
 use crate::grid::cell::ICellStrong;
@@ -41,23 +42,23 @@ impl Grid for MaskedGrid {
     fn prepare_grid(&mut self) {
         let mut index = 0;
         for i in 0..self.grid.rows {
-            let mut row: Vec<Option<CellLinkStrong>> = Vec::new();
+            let mut row: HashMap<usize, Option<CellLinkStrong>> = HashMap::new();
             for j in 0..self.grid.columns {
                 if self.mask.borrow().get(i, j) {
-                    row.push(Some(Cell::new(i as usize, j as usize, index)));
+                    row.insert(j, Some(Cell::new(i as usize, j as usize, index)));
                     index += 1;
                 } else {
-                    row.push(None);
+                    row.insert(j, None);
                 }
             }
-            self.grid.cells.push(row);
+            self.grid.cells_h.as_mut().unwrap().insert(i, row);
         }   
     }
 
     fn random_cell(&self, rng: &dyn RngWrapper) -> Option<ICellStrong> {
         let (row, col) = self.mask.borrow().rand_location(rng);
         
-        if let Some(c) = self.grid.cells[row][col].clone() {
+        if let Some(c) = self.grid.get_cell(row, col).clone() {
             return Some(c as ICellStrong)
         }
         return None;

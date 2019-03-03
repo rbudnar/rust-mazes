@@ -1,7 +1,7 @@
 use crate::algorithms::MazeAlgorithm;
 use crate::rng::RngWrapper;
 use crate::grid::{Grid};
-use wasm_bindgen::prelude::JsValue;
+// use wasm_bindgen::prelude::JsValue;
 
 #[derive(Debug)]
 pub struct AldousBroder;
@@ -20,7 +20,7 @@ impl MazeAlgorithm for AldousBroder {
         // this only works becuase the maze is "perfect"
         let mut unvisited_cells = grid.size() - 1;
         while unvisited_cells > 0 {
-            web_sys::console::log_1(&JsValue::from_str(&format!("{}", unvisited_cells)));
+            // web_sys::console::log_1(&JsValue::from_str(&format!("{}", unvisited_cells)));
             let neighbors = cell.borrow().neighbors_i();
             let rand_neighbor = rng_generator.gen_range(0, neighbors.len());
 

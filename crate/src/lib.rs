@@ -79,8 +79,8 @@ cfg_if! {
 
 static mut GRID: StandardGrid = StandardGrid {
     grid: GridBase {
-        cells: Vec::new(),
-        cells_h: HashMap::new(),
+        // cells: Vec::new(),
+        cells_h: None, //HashMap::new(),
         rows: 1, columns: 1
     },
 };
@@ -348,65 +348,65 @@ mod tests {
 //     // }
 
 
-    #[test]
-    fn colors() {
-        let grid = StandardGrid::new(5,5);
+    // #[test]
+    // fn colors() {
+    //     let grid = StandardGrid::new(5,5);
 
-        let thread_rng = thread_rng::ThreadRng;
-        AldousBroder.on(&grid, &thread_rng);
+    //     let thread_rng = thread_rng::ThreadRng;
+    //     AldousBroder.on(&grid, &thread_rng);
 
-        // This prints the grid with Dijkstra's distances inside, rendered as characters a,b,c, etc. 
-        // Will probably need to adjust for really large grids if I really want to display them with distances.
-        // grabs first cell of first row
-        let cells = grid.cells(); 
-        let root = cells.first().unwrap().first().unwrap();
-        let distance_grid = DistanceGrid::new(root.as_ref().unwrap(), &grid);
-        let color = distance_grid.background_color(&root.as_ref().unwrap());
-        assert_eq!(color, "rgb(255,255,255)");
+    //     // This prints the grid with Dijkstra's distances inside, rendered as characters a,b,c, etc. 
+    //     // Will probably need to adjust for really large grids if I really want to display them with distances.
+    //     // grabs first cell of first row
+    //     let cells = grid.cells(); 
+    //     let root = cells.first().unwrap().first().unwrap();
+    //     let distance_grid = DistanceGrid::new(root.as_ref().unwrap(), &grid);
+    //     let color = distance_grid.background_color(&root.as_ref().unwrap());
+    //     assert_eq!(color, "rgb(255,255,255)");
 
-        for row in grid.cells().iter() {
-            for cell in row.iter() {
-                if let Some(cell) = cell {
-                    println!("{}", distance_grid.background_color(&cell));
-                }
-            }
-        }
-    }
+    //     for row in grid.cells().iter() {
+    //         for cell in row.iter() {
+    //             if let Some(cell) = cell {
+    //                 println!("{}", distance_grid.background_color(&cell));
+    //             }
+    //         }
+    //     }
+    // }
 
-    #[test]
-    fn mask() {
-        let mut mask = Mask::new(5, 5);
+    // #[test]
+    // fn mask() {
+    //     let mut mask = Mask::new(5, 5);
 
-        mask.set(0,2, false);
-        mask.set(1,2, false);
-        mask.set(2,2, false);
-        mask.set(3,2, false);
-        mask.set(4,2, false);
-        println!("{}", mask.get(1,2));
-        println!("{:#?}", mask);
-        println!("{}", mask.count());
-        println!("{:?}", mask.rand_location(&thread_rng::ThreadRng));
-    }
+    //     mask.set(0,2, false);
+    //     mask.set(1,2, false);
+    //     mask.set(2,2, false);
+    //     mask.set(3,2, false);
+    //     mask.set(4,2, false);
+    //     println!("{}", mask.get(1,2));
+    //     println!("{:#?}", mask);
+    //     println!("{}", mask.count());
+    //     println!("{:?}", mask.rand_location(&thread_rng::ThreadRng));
+    // }
 
-    #[test]
-    fn masked_grid() {
-        let mut mask = Mask::new(5, 5);
+    // #[test]
+    // fn masked_grid() {
+    //     let mut mask = Mask::new(5, 5);
 
-        mask.set(0,2, false);
-        mask.set(1,2, false);
-        mask.set(2,2, false);
+    //     mask.set(0,2, false);
+    //     mask.set(1,2, false);
+    //     mask.set(2,2, false);
         
-        mask.set(0,0, false);
-        mask.set(2,0, false);
-        mask.set(3,0, false);
+    //     mask.set(0,0, false);
+    //     mask.set(2,0, false);
+    //     mask.set(3,0, false);
 
-        mask.set(1,4, false);
-        mask.set(2,4, false);
-        mask.set(4,4, false);
-        let masked_grid = MaskedGrid::new(mask);
-        RecursiveBacktracker.on(&masked_grid, &thread_rng::ThreadRng);
-        println!("{}", masked_grid.grid.to_string(&ConsoleGridFormatter));
-    }
+    //     mask.set(1,4, false);
+    //     mask.set(2,4, false);
+    //     mask.set(4,4, false);
+    //     let masked_grid = MaskedGrid::new(mask);
+    //     RecursiveBacktracker.on(&masked_grid, &thread_rng::ThreadRng);
+    //     println!("{}", masked_grid.grid.to_string(&ConsoleGridFormatter));
+    // }
 
 //     #[test]
 //     fn basic_grid() {
@@ -414,26 +414,26 @@ mod tests {
 //         println!("{}", grid.to_string(&ConsoleGridFormatter));    
 //     }
 
-    #[test]
-    fn mask_from_file() {
-        let filename = "mask.txt";
-        let contents = fs::read_to_string(filename).expect("Error with file");
-        let rows = contents.lines().count();
-        let cols = contents.lines().map(|line| line.len()).max().unwrap();
-        println!("{}, {}", rows, cols);
-        let mut mask = Mask::new(rows, cols);
-        let X = 'X';
-        for (i, line) in contents.lines().enumerate() {
-            println!("{}: {}", i, line);
-            for (j, c) in line.chars().enumerate() {
-                if c == X {
-                    mask.set(i, j, false);
-                }
-            }
-        }
+    // #[test]
+    // fn mask_from_file() {
+    //     let filename = "mask.txt";
+    //     let contents = fs::read_to_string(filename).expect("Error with file");
+    //     let rows = contents.lines().count();
+    //     let cols = contents.lines().map(|line| line.len()).max().unwrap();
+    //     println!("{}, {}", rows, cols);
+    //     let mut mask = Mask::new(rows, cols);
+    //     let X = 'X';
+    //     for (i, line) in contents.lines().enumerate() {
+    //         println!("{}: {}", i, line);
+    //         for (j, c) in line.chars().enumerate() {
+    //             if c == X {
+    //                 mask.set(i, j, false);
+    //             }
+    //         }
+    //     }
 
-        let masked_grid = MaskedGrid::new(mask);
-        AldousBroder.on(&masked_grid, &thread_rng::ThreadRng);
-        println!("{}", masked_grid.grid.to_string(&ConsoleGridFormatter));
-    }
+    //     let masked_grid = MaskedGrid::new(mask);
+    //     AldousBroder.on(&masked_grid, &thread_rng::ThreadRng);
+    //     println!("{}", masked_grid.grid.to_string(&ConsoleGridFormatter));
+    // }
 }
