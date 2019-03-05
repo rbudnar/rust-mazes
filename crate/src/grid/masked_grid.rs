@@ -5,6 +5,7 @@ use crate::rng::RngWrapper;
 use crate::grid::{cell::CellLinkStrong, Grid, mask::Mask, cell::Cell};
 use std::rc::Rc;
 use std::cell::RefCell;
+use web_sys::{Element, Document};
 
 pub struct MaskedGrid {
     mask: Rc<RefCell<Mask>>,
@@ -80,5 +81,9 @@ impl Grid for MaskedGrid {
 
     fn size(&self) -> usize {
         self.mask.borrow().count()
+    }
+
+    fn to_web(&self, document: &Document, grid_container: &Element, formatter: &dyn CellFormatter, colorize: bool) {
+        self.grid.to_web(document, grid_container, formatter, colorize);
     }
 }

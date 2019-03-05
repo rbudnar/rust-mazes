@@ -27,29 +27,17 @@ impl MazeAlgorithm for RecursiveBacktracker {
 
         while !stack.is_empty() {
             let current = stack.last().unwrap().clone();
-            // let neighbors = current.borrow().neighbors();
+            let neighbors = current.borrow().neighbors();
             
-            // let unvisited: Vec<ICellStrong> = neighbors.iter()
-            //                         .filter(|n| n.borrow().links().is_empty())
-            //                         .map(|n| Rc::clone(&n))
-            //                         .collect();
-            
-            let neighbors = current.borrow().neighbors_i();
-                        
-            let unvisited: Vec<ICellStrong> = 
-                        grid.each_cell().iter().filter(|ref c| {
-                            let c = c.as_ref().unwrap().borrow();
-                            neighbors.contains(&c.index()) && c.links_i().is_empty()
-                        })
-                        .map(|c2| Rc::clone(c2.as_ref().unwrap()))
-                        .collect();
+            let unvisited: Vec<ICellStrong> = neighbors.iter()
+                                    .filter(|n| n.borrow().links().is_empty())
+                                    .map(|n| Rc::clone(&n))
+                                    .collect();
 
             if !unvisited.is_empty() {
                 let rand_neighbor = rand_element(&unvisited, rng_generator);
-                current.borrow_mut().link_i(rand_neighbor.borrow().index());
-                rand_neighbor.borrow_mut().link_i(current.borrow().index());
-                // current.borrow_mut().link(Rc::clone(rand_neighbor));
-                // rand_neighbor.borrow_mut().link(Rc::clone(&current));
+                current.borrow_mut().link(Rc::clone(rand_neighbor));
+                rand_neighbor.borrow_mut().link(Rc::clone(&current));
                 stack.push(Rc::clone(&rand_neighbor));
             }
             else {

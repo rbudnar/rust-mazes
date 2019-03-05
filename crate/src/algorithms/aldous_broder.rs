@@ -1,6 +1,7 @@
 use crate::algorithms::MazeAlgorithm;
 use crate::rng::RngWrapper;
-use crate::grid::{Grid, cell::Cell};
+use crate::grid::{Grid};
+use std::rc::Rc;
 
 #[derive(Debug)]
 pub struct AldousBroder;
@@ -19,13 +20,14 @@ impl MazeAlgorithm for AldousBroder {
         // this only works becuase the maze is "perfect"
         let mut unvisited_cells = grid.size() - 1;
         while unvisited_cells > 0 {
-            let neighbors = cell.neighbors();
+            let neighbors = cell.borrow().neighbors();
             let index = rng_generator.gen_range(0, neighbors.len());
 
             let next_neighbor = &neighbors[index];
 
-            if next_neighbor.links().is_empty() {
-                Cell::link(cell, next_neighbor.clone(), true);
+            if next_neighbor.borrow().links().is_empty() {
+                cell.borrow_mut().link(Rc::clone(next_neighbor));
+                next_neighbor.borrow_mut().link(Rc::clone(&cell));
                 unvisited_cells -= 1;
             }
 

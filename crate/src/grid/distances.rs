@@ -1,4 +1,4 @@
-use crate::grid::{Grid, CellFormatter, cell::{Cell, CellLinkStrong}};
+use crate::grid::{Grid, CellFormatter, cell::{Cell, ICellStrong}};
 use std::collections::HashMap;
 use std::rc::{Rc};
 use std::cell::RefCell;
@@ -167,7 +167,7 @@ impl DistanceGrid {
 }
 
 impl CellFormatter for DistanceGrid {
-    fn contents_of(&self, cell: &CellLinkStrong) -> String {
+    fn contents_of(&self, cell: &ICellStrong) -> String {
         let c = cell.borrow();
 
         let distance = if self.show_path_only {
@@ -191,7 +191,7 @@ impl CellFormatter for DistanceGrid {
         " ".to_owned()
     }
 
-    fn background_color(&self, cell: &CellLinkStrong) -> String {
+    fn background_color(&self, cell: &ICellStrong) -> String {
         if let Some(distance) = self.distances.get_distance(cell.borrow().row, cell.borrow().column) {
             let (_, max_distance) = self.distances.max();
             

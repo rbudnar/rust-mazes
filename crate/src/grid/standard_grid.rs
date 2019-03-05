@@ -1,9 +1,8 @@
 use crate::grid::cell::ICellStrong;
-use crate::grid::cell::ICell;
 use crate::grid::{grid_base::GridBase, Grid, CellFormatter, cell::{CellLinkStrong, Cell}};
 use crate::rng::RngWrapper;
 use std::rc::{Rc};
-use std::cell::RefCell;
+use web_sys::{Element, Document};
 
 pub struct StandardGrid {
     pub grid: GridBase,
@@ -16,8 +15,7 @@ impl StandardGrid {
             grid
         };
         std_grid.prepare_grid();
-        // std_grid.grid.configure_cells();
-        std_grid.grid.configure_cells_i();
+        std_grid.grid.configure_cells();
         std_grid
     }
 }
@@ -74,5 +72,9 @@ impl Grid for StandardGrid {
 
     fn size(&self) -> usize {
         self.grid.rows * self.grid.columns
+    }
+
+    fn to_web(&self, document: &Document, grid_container: &Element, formatter: &dyn CellFormatter, colorize: bool) {
+        self.grid.to_web(document, grid_container, formatter, colorize);
     }
 }

@@ -7,6 +7,7 @@
 extern crate cfg_if;
 extern crate test;
 // use crate::grid::polar_grid::grid_to_web_polar;
+use crate::grid::cell::ICellStrong;
 use crate::grid::cell::ICell;
 use crate::grid::{Grid,
     standard_grid::StandardGrid,
@@ -21,7 +22,7 @@ mod rng;
 mod grid;
 
 // use crate::algorithms::{MazeAlgorithm, binary_tree::*, sidewinder::*, aldous_broder::*, wilson::*, hunt_and_kill::*, recursive_backtracker::*};
-use crate::algorithms::{MazeAlgorithm, recursive_backtracker::*};
+use crate::algorithms::{MazeAlgorithm, recursive_backtracker::*, aldous_broder::*, hunt_and_kill::*, wilson::*};
 use crate::rng::wasm_rng;
 use wasm_bindgen::prelude::*;
 
@@ -146,31 +147,31 @@ static mut COLORIZE: bool = true;
 
 /****** HELPERS ******/
 
-// fn build_and_display_grid(alg: impl MazeAlgorithm, rows: usize, columns: usize) {
-//     unsafe {        
-//         GRID = StandardGrid::new(rows, columns);
-//         let wasm_generator = wasm_rng::WasmRng;
-//         alg.on(&GRID, &wasm_generator);
+fn build_and_display_grid(alg: impl MazeAlgorithm, rows: usize, columns: usize) {
+    unsafe {        
+        GRID = StandardGrid::new(rows, columns);
+        let wasm_generator = wasm_rng::WasmRng;
+        alg.on(&GRID, &wasm_generator);
 
-//         let distance_grid = prepare_distance_grid(&GRID);
-//         grid_to_web_polar(&GRID);
-//         grid_to_web(&GRID, &distance_grid, COLORIZE);
-//     }
-// }
+        let distance_grid = prepare_distance_grid(&GRID);
+        // grid_to_web_polar(&GRID);
+        grid_to_web(&GRID, &distance_grid, COLORIZE);
+    }
+}
 
-// fn prepare_distance_grid(grid: &dyn Grid) -> DistanceGrid {   
-//     if let Some(root) = grid.cells()[grid.rows() / 2][grid.columns() / 2].clone() {
-//         DistanceGrid::new(&root)
-//     }
-//     else {
-//         let root = grid.random_cell(&wasm_rng::WasmRng).unwrap();
-//         DistanceGrid::new(&root)
-//     }
-// }
+fn prepare_distance_grid(grid: &dyn Grid) -> DistanceGrid {   
+    if let Some(root) = grid.cells()[grid.rows() / 2][grid.columns() / 2].clone() {
+        DistanceGrid::new(&root)
+    }
+    else {
+        let root = grid.random_cell(&wasm_rng::WasmRng).unwrap();
+        DistanceGrid::new(&root)
+    }
+}
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
+#[cfg(test)]
+mod tests {
+    use super::*;
     // use crate::grid::{CellFormatter, cell::CellLinkStrong, mask::Mask, masked_grid::MaskedGrid};
     use crate::rng::{thread_rng};
 //     use crate::test::Bencher;
@@ -179,11 +180,11 @@ static mut COLORIZE: bool = true;
 
     pub struct ConsoleGridFormatter;
     impl CellFormatter for ConsoleGridFormatter {
-        fn contents_of(&self, _cell: &ICell) -> String {
+        fn contents_of(&self, _cell: &ICellStrong) -> String {
             String::from(" ")
         }
 
-        fn background_color(&self, _cell: &ICell) -> String {
+        fn background_color(&self, _cell: &ICellStrong) -> String {
             String::from("")
         }    
     }
@@ -232,21 +233,21 @@ static mut COLORIZE: bool = true;
 //         test_std_grid(Sidewinder);
 //     }
 
-//     #[test]
-//     fn aldous_broder() {
-//         test_std_grid(AldousBroder);
-//     }
+    #[test]
+    fn aldous_broder() {
+        test_std_grid(AldousBroder);
+    }
 
-//     #[test]
-//     fn wilson() {
-//         test_std_grid(Wilson);
-//     }
+    #[test]
+    fn wilson() {
+        test_std_grid(Wilson);
+    }
 
     
-//     #[test]
-//     fn hunt_and_kill() {
-//         test_std_grid(HuntAndKill);
-//     }
+    #[test]
+    fn hunt_and_kill() {
+        test_std_grid(HuntAndKill);
+    }
 
     #[test]
     fn recursive_backtracker() {
@@ -413,4 +414,4 @@ static mut COLORIZE: bool = true;
 //         AldousBroder.on(&masked_grid, &thread_rng::ThreadRng);
 //         println!("{}", masked_grid.grid.to_string(&ConsoleGridFormatter));
 //     }
-// }
+}

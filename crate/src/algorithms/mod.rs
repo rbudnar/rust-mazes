@@ -4,9 +4,9 @@ use crate::rng::RngWrapper;
 
 // pub mod binary_tree;
 // pub mod sidewinder;
-// pub mod aldous_broder;
-// pub mod wilson;
-// pub mod hunt_and_kill;
+pub mod aldous_broder;
+pub mod wilson;
+pub mod hunt_and_kill;
 pub mod recursive_backtracker;
 
 pub trait MazeAlgorithm: Debug {

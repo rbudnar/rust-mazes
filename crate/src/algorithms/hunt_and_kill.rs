@@ -16,19 +16,16 @@ impl MazeAlgorithm for HuntAndKill {
         let mut current = grid.random_cell(rng_generator);
         while current.is_some() {
             let c = current.clone().unwrap();
-            let unvisited_neighbors: Vec<CellLinkStrong> = c.borrow().neighbors()
-                                .iter()
-                                .filter(|&c| {
-                                    let cref = c.upgrade().unwrap();
-                                    let nb = cref.borrow();
-                                    nb.links().is_empty() 
-                                })
-                                .map(|x| Rc::clone(&x.upgrade().unwrap()))
-                                .collect();
-
+            let unvisited_neighbors: Vec<ICellStrong> = c.borrow().neighbors()
+                    .iter()
+                    .filter(|&c| c.borrow().links().is_empty())
+                    .map(|x| Rc::clone(&x))
+                    .collect();
+            
             if !unvisited_neighbors.is_empty() {
                 let neighbor = rand_element(&unvisited_neighbors, rng_generator);
-                Cell::link(c, neighbor.clone(), true);
+                c.borrow_mut().link(Rc::clone(neighbor));
+                neighbor.borrow_mut().link(Rc::clone(&c));
                 current = Some(neighbor.clone());
             }
             else {
@@ -36,21 +33,18 @@ impl MazeAlgorithm for HuntAndKill {
 
                 for cell in grid.each_cell().iter() {
                     if let Some(cell) = cell {
-                        let visited_neighbors: Vec<CellLinkStrong> = cell.borrow().neighbors()
+                        let visited_neighbors: Vec<ICellStrong> = cell.borrow().neighbors()
                                     .iter()
-                                    .filter(|&c| {
-                                        let cref = c.upgrade().unwrap();
-                                        let nb = cref.borrow();
-                                        !nb.links().is_empty() 
-                                    })
-                                    .map(|x| Rc::clone(&x.upgrade().unwrap()))
+                                    .filter(|&c| !c.borrow().links().is_empty())
+                                    .map(|x| Rc::clone(&x))
                                     .collect();
 
                         if cell.borrow().links().is_empty() && !visited_neighbors.is_empty() {
                             current = Some(cell.clone());
 
                             let neighbor = rand_element(&visited_neighbors, rng_generator);
-                            Cell::link(cell.clone(), neighbor.clone(), true);
+                            cell.borrow_mut().link(Rc::clone(neighbor));
+                            neighbor.borrow_mut().link(Rc::clone(cell));
                             break;
                         }
                     }

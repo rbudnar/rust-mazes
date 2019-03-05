@@ -12,9 +12,6 @@ pub trait ICell {
     fn neighbors(&self) -> Vec<ICellStrong>;
     fn links(&self) -> Vec<Option<ICellStrong>>;
     fn link(&mut self, other: ICellStrong);
-    fn neighbors_i(&self) -> Vec<usize>;
-    fn link_i(&mut self, other: usize);
-    fn links_i(&self) -> &Vec<usize>;
     fn as_any(&self) -> &dyn Any;
     fn row(&self) -> usize;
     fn column(&self) -> usize;
@@ -24,6 +21,12 @@ pub trait ICell {
 impl Debug for ICell {
     fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
         write!(f, "")
+    }
+}
+
+impl PartialEq for ICell {
+    fn eq(&self, rhs: &ICell) -> bool {
+        self.index() == rhs.index()
     }
 }
 
@@ -41,11 +44,6 @@ pub struct Cell {
     pub east: Option<CellLinkWeak>,
     pub west: Option<CellLinkWeak>,
     self_rc: Weak<RefCell<Cell>>,
-    pub links2: Vec<usize>,
-    pub north_i: Option<usize>,
-    pub south_i: Option<usize>,
-    pub east_i: Option<usize>,
-    pub west_i: Option<usize>
 }
 
 impl PartialEq for Cell {
@@ -111,43 +109,11 @@ impl ICell for Cell {
             }).collect()
     }
 
-    fn link(&mut self, other: ICellStrong) {
-        let _self: CellLinkStrong = self.self_rc.upgrade().unwrap();
-        
+    fn link(&mut self, other: ICellStrong) {       
         if let Some(nl) = other.borrow().as_any().downcast_ref::<Cell>() {
             let _other: CellLinkWeak = Rc::downgrade(&Rc::clone(&nl.self_rc.upgrade().unwrap()));
             self.links.push(Some(_other));
         }
-    }
-
-    fn link_i(&mut self, other: usize) {
-        self.links2.push(other);
-    }
-
-    fn links_i(&self) -> &Vec<usize> {
-        &self.links2
-    }
-
-    fn neighbors_i(&self) -> Vec<usize>{
-        let mut vec: Vec<usize> = vec![];
-        
-        if let Some(north) = self.north_i {
-            vec.push(north);
-        }
-
-        if let Some(south) = self.south_i {
-            vec.push(south);
-        }
-
-        if let Some(east) = self.east_i {
-            vec.push(east);
-        }
-
-        if let Some(west) = self.west_i {
-            vec.push(west);
-        }
-
-        vec
     }
 }
 
@@ -160,13 +126,8 @@ impl Cell {
             east: None, 
             west: None, 
             links: Vec::new(), 
-            links2: Vec::new(),
+            index,
             self_rc: Weak::new(),
-            north_i: None,
-            south_i: None,
-            east_i: None,
-            west_i: None,
-            index
         };
 
         let rc = Rc::new(RefCell::new(c));
@@ -178,15 +139,6 @@ impl Cell {
     pub fn is_linked(&self, other: CellLinkStrong) -> bool {
         self.index_of_other(Rc::clone(&other)).is_some()        
     }
-
-    pub fn is_linked_i(&self, other: usize) -> bool {
-        self.index_of_other_i(other).is_some()        
-    }
-
-    pub fn index_of_other_i(&self, other: usize) -> Option<&usize> {
-        self.links2.iter().find(|&&c| c == other)
-    }
-
 
     pub fn index_of_other(&self, other: CellLinkStrong) -> Option<usize> {
         let other_row: usize = other.borrow().row;
