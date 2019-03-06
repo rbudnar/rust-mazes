@@ -68,35 +68,29 @@ impl ICell for Cell {
     }
 
     fn neighbors(&self) -> Vec<ICellStrong> {
-        let mut vec: Vec<CellLinkWeak> = vec![];
+        let mut vec: Vec<ICellStrong> = vec![];
 
         if let Some(ref north) = self.north {
-            vec.push(north.clone());
+            let north = north.upgrade().unwrap();
+            vec.push(north as ICellStrong);
         }
 
         if let Some(ref south) = self.south {
-            vec.push(south.clone());
+            let south = south.upgrade().unwrap();
+            vec.push(south as ICellStrong);
         }
 
         if let Some(ref east) = self.east {
-            vec.push(east.clone());
+            let east = east.upgrade().unwrap();
+            vec.push(east as ICellStrong);
         }
 
         if let Some(ref west) = self.west {
-            vec.push(west.clone());
+            let west = west.upgrade().unwrap();
+            vec.push(west as ICellStrong);
         }
 
-        let v: Vec<ICellStrong> = vec.iter()
-            .map(|c| {
-                let cell = c.upgrade();
-                let cell = cell.unwrap();
-
-                let cell: ICellStrong = Rc::clone(&cell) as ICellStrong;
-                cell
-            })
-            .collect();
-
-        v
+        vec
     }
 
     fn links(&self) -> Vec<Option<ICellStrong>> {

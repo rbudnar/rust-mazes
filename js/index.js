@@ -4,7 +4,7 @@ var maze_generator;
 import("../crate/pkg").then(module => {
     maze_generator = module;
     maze_generator.add_canvas();
-    maze_generator.basic_binary_tree(8,8);
+    maze_generator.recursive_backtracker(8,8);
 });
 
 const sizeSelector = document.querySelector("#size-selector");
@@ -15,12 +15,12 @@ const renderMaze = () => {
     let alg = parseInt(algorithmSelector.value);
     let size = parseInt(sizeSelector.value);
     switch (alg) {
-        case 1: 
-            maze_generator.basic_binary_tree(size, size);
-            break;
-        case 2: 
-            maze_generator.sidewinder(size, size);
-            break;
+        // case 1: 
+        //     maze_generator.basic_binary_tree(size, size);
+        //     break;
+        // case 2: 
+        //     maze_generator.sidewinder(size, size);
+        //     break;
         case 3: 
             maze_generator.aldous_broder(size, size);
             break;

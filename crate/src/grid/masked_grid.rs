@@ -1,4 +1,4 @@
-use crate::grid::cell::ICell;
+use crate::grid::cell::ICellStrong;
 use crate::grid::CellFormatter;
 use crate::grid::grid_base::GridBase;
 use crate::rng::RngWrapper;
@@ -40,7 +40,7 @@ impl Grid for MaskedGrid {
             let mut row: Vec<Option<CellLinkStrong>> = Vec::new();
             for j in 0..self.grid.columns {
                 if self.mask.borrow().get(i, j) {
-                    row.push(Some(Rc::new(RefCell::new(Cell::new(i as usize, j as usize)))));
+                    row.push(Some(Cell::new(i as usize, j as usize, 0)));
                 } else {
                     row.push(None);
                 }
@@ -49,14 +49,17 @@ impl Grid for MaskedGrid {
         }   
     }
 
-    fn random_cell(&self, rng: &dyn RngWrapper) -> Option<Box<ICell>> {
+    fn random_cell(&self, rng: &dyn RngWrapper) -> Option<ICellStrong> {
         let (row, col) = self.mask.borrow().rand_location(rng);
-        Some(Box::new(*self.grid.cells[row][col].clone().unwrap().borrow()) as Box<ICell>)
+        
+        if let Some(c) = self.grid.cells[row][col].clone() {
+            return Some(c as ICellStrong);
+        }
+        None
     }
 
-    fn each_cell(&self) -> Vec<Option<Box<ICell>>> {
-        self.grid.each_cell().iter()
-            .map(|c| Some(Box::new(*c.unwrap().borrow()) as Box<ICell>)).collect()
+    fn each_cell(&self) -> Vec<Option<ICellStrong>> {
+        self.grid.each_cell()
     }
 
     fn rows(&self) -> usize {
@@ -67,16 +70,12 @@ impl Grid for MaskedGrid {
         self.grid.rows
     }
 
-    fn cells(&self) -> &Vec<Vec<Option<Box<ICell>>>> {
-        &self.grid.cells.iter().map(|row| 
-            row.iter().map(|c| Some(Box::new(*c.unwrap().borrow()) as Box<ICell>)).collect()
-        ).collect()
+    fn cells(&self) -> Vec<Vec<Option<ICellStrong>>> {
+        self.grid.cells()
     }
 
-    fn get_cell(&self, row: usize, column: usize) -> Option<Box<ICell>> {
-        let cell = self.grid.get_cell(row, column);
-
-        Some(Box::new(*cell.unwrap().borrow()) as Box<ICell>)
+    fn get_cell(&self, row: usize, column: usize) -> Option<ICellStrong> {
+        self.grid.get_cell(row, column)
     }
 
     fn to_string(&self, contents: &dyn CellFormatter) -> String {

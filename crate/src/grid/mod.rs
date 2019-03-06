@@ -6,10 +6,10 @@ pub mod cell;
 pub mod grid_web;
 pub mod distances;
 pub mod mask;
-// pub mod masked_grid;
+pub mod masked_grid;
 pub mod standard_grid;
 pub mod grid_base;
-// pub mod canvas;
+pub mod canvas;
 // pub mod polar_grid;
 // pub mod polar_cell;
 

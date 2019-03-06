@@ -127,24 +127,24 @@ impl GridBase {
         output
     }
 
-    pub fn random_cell(&self, rng: &dyn RngWrapper) -> Option<CellLinkStrong> {
+    pub fn random_cell(&self, rng: &dyn RngWrapper) -> Option<ICellStrong> {
         let row: usize = rng.gen_range(0, self.rows);
         let col: usize = rng.gen_range(0, self.columns);
         self.get_cell(row, col)
     }
-
-    pub fn each_cell(&self) -> Vec<Option<CellLinkStrong>> { 
+  
+    pub fn each_cell(&self) -> Vec<Option<ICellStrong>> {     
         self.cells.iter()
-            .flatten()                
+            .flatten()
             .map(|x| {
                 if let Some(x) = x {
-                    Some(Rc::clone(x))
+                    Some(Rc::clone(x) as ICellStrong)
                 }
                 else {
                     None
                 }
-            })
-            .collect()        
+            })                            
+            .collect() 
     }
 
     pub fn configure_cells(&mut self) {
@@ -154,25 +154,25 @@ impl GridBase {
                     // can't subtract from a usize of 0 apparently
                     let cell_row = cell.borrow().row;
                     if cell_row > 0 {
-                        let north = self.get_cell(cell_row - 1, cell.borrow().column);
+                        let north = self.get_cell_link_strong(cell_row - 1, cell.borrow().column);
                         if north.is_some() {
                             cell.borrow_mut().north = Some(Rc::downgrade(&Rc::clone(&north.unwrap())));
                         }
                     }
 
-                    let south = self.get_cell(cell.borrow().row + 1, cell.borrow().column);
+                    let south = self.get_cell_link_strong(cell.borrow().row + 1, cell.borrow().column);
                     if south.is_some() {
                         cell.borrow_mut().south = Some(Rc::downgrade(&Rc::clone(&south.unwrap())));
                     }
 
-                    let east = self.get_cell(cell.borrow().row, cell.borrow().column + 1);
+                    let east = self.get_cell_link_strong(cell.borrow().row, cell.borrow().column + 1);
                     if east.is_some() {
                         cell.borrow_mut().east = Some(Rc::downgrade(&Rc::clone(&east.unwrap())));
                     }
 
                     let cell_column = cell.borrow().column;
                     if cell_column > 0 {
-                        let west = self.get_cell(cell.borrow().row, cell_column - 1);
+                        let west = self.get_cell_link_strong(cell.borrow().row, cell_column - 1);
                         if west.is_some() {
                             cell.borrow_mut().west = Some(Rc::downgrade(&Rc::clone(&west.unwrap())));
                         }
@@ -184,11 +184,26 @@ impl GridBase {
 
     pub fn cells(&self) -> Vec<Vec<Option<ICellStrong>>> {
         self.cells.iter().map(|row| 
-            row.iter().map(|c| Some(Rc::clone(&c.as_ref().unwrap()) as ICellStrong)).collect()
+            row.iter().map(|c| {
+                if let Some(c) = c {
+                    return Some(Rc::clone(&c) as ICellStrong);
+                }
+                None
+            }).collect()
         ).collect()
     }
 
-    pub fn get_cell(&self, row: usize, column: usize) -> Option<CellLinkStrong> {
+    pub fn get_cell(&self, row: usize, column: usize) -> Option<ICellStrong> {
+        if row >= self.rows || column >= self.columns {
+            return None;
+        }
+        if let Some(cell) = self.cells[row][column].clone() {
+            return Some(Rc::clone(&cell) as ICellStrong);
+        }
+        None
+    }
+
+    pub fn get_cell_link_strong(&self, row: usize, column: usize) -> Option<CellLinkStrong> {
         if row >= self.rows || column >= self.columns {
             return None;
         }
@@ -196,25 +211,25 @@ impl GridBase {
         self.cells[row][column].clone()
     }
 
-    pub fn dead_ends(&self) -> Vec<Option<CellLinkStrong>> {
-        self.each_cell().iter()
-            .filter(|c| {
-                if let Some(c) = c {
-                    c.borrow().links.len() == 1
-                } else {
-                    false
-                }
-            })
-            .map(|x| {
-                if let Some(x) = x {
-                    Some(Rc::clone(x))
-                }
-                else {
-                    None
-                }
-            })
-            .collect()
-    }
+    // pub fn dead_ends(&self) -> Vec<Option<CellLinkStrong>> {
+    //     self.each_cell().iter()
+    //         .filter(|c| {
+    //             if let Some(c) = c {
+    //                 c.borrow().links.len() == 1
+    //             } else {
+    //                 false
+    //             }
+    //         })
+    //         .map(|x| {
+    //             if let Some(x) = x {
+    //                 Some(Rc::clone(x))
+    //             }
+    //             else {
+    //                 None
+    //             }
+    //         })
+    //         .collect()
+    // }
 
     pub fn to_web(&self, document: &Document, grid_container: &Element, formatter: &dyn CellFormatter, colorize: bool) {
         for (i, row) in self.cells().iter().enumerate() {

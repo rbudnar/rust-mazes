@@ -7,14 +7,11 @@
 extern crate cfg_if;
 extern crate test;
 // use crate::grid::polar_grid::grid_to_web_polar;
-use crate::grid::distances::DistanceGrid;
-use crate::grid::cell::ICellStrong;
-use crate::grid::cell::ICell;
 use crate::grid::{Grid,
     standard_grid::StandardGrid,
-    // distances::DistanceGrid, 
+    distances::DistanceGrid, 
     grid_web::*,
-    // canvas::*,
+    canvas::*,
     grid_base::GridBase
 };
 
@@ -97,54 +94,54 @@ static mut COLORIZE: bool = true;
 //     build_and_display_grid(Sidewinder, rows, columns);
 // }
 
-// #[wasm_bindgen]
-// pub fn aldous_broder(rows: usize, columns: usize) {
-//     build_and_display_grid(AldousBroder, rows, columns);
-// }
+#[wasm_bindgen]
+pub fn aldous_broder(rows: usize, columns: usize) {
+    build_and_display_grid(AldousBroder, rows, columns);
+}
 
-// #[wasm_bindgen]
-// pub fn wilson(rows: usize, columns: usize) {
-//     build_and_display_grid(Wilson, rows, columns);
-// }
+#[wasm_bindgen]
+pub fn wilson(rows: usize, columns: usize) {
+    build_and_display_grid(Wilson, rows, columns);
+}
 
-// #[wasm_bindgen]
-// pub fn hunt_and_kill(rows: usize, columns: usize) {
-//     build_and_display_grid(HuntAndKill, rows, columns);
-// }
+#[wasm_bindgen]
+pub fn hunt_and_kill(rows: usize, columns: usize) {
+    build_and_display_grid(HuntAndKill, rows, columns);
+}
 
-// #[wasm_bindgen]
-// pub fn recursive_backtracker(rows: usize, columns: usize) {
-//     build_and_display_grid(RecursiveBacktracker, rows, columns);
-// }
+#[wasm_bindgen]
+pub fn recursive_backtracker(rows: usize, columns: usize) {
+    build_and_display_grid(RecursiveBacktracker, rows, columns);
+}
 
 /****** OTHER FEATURES ******/
 
-// #[wasm_bindgen]
-// pub fn redisplay_grid() {
-//     unsafe {
-//         let distance_grid = prepare_distance_grid(&GRID);
-//         grid_to_web(&GRID, &distance_grid, COLORIZE);
-//     }
-// }
+#[wasm_bindgen]
+pub fn redisplay_grid() {
+    unsafe {
+        let distance_grid = prepare_distance_grid(&GRID);
+        grid_to_web(&GRID, &distance_grid, COLORIZE);
+    }
+}
 
-// #[wasm_bindgen]
-// pub fn on_colorize_change(colorize: bool) {
-//     unsafe {
-//         COLORIZE = colorize;
-//         let distance_grid = prepare_distance_grid(&GRID);
-//         grid_to_web(&GRID, &distance_grid, COLORIZE);
-//     }
-// }
+#[wasm_bindgen]
+pub fn on_colorize_change(colorize: bool) {
+    unsafe {
+        COLORIZE = colorize;
+        let distance_grid = prepare_distance_grid(&GRID);
+        grid_to_web(&GRID, &distance_grid, COLORIZE);
+    }
+}
 
-// #[wasm_bindgen]
-// pub fn add_canvas() {
-//     append_canvas();
-// }
+#[wasm_bindgen]
+pub fn add_canvas() {
+    append_canvas();
+}
 
-// #[wasm_bindgen]
-// pub fn apply_mask() {
-//     canvas_to_mask();
-// }
+#[wasm_bindgen]
+pub fn apply_mask() {
+    canvas_to_mask();
+}
 
 /****** HELPERS ******/
 
@@ -173,11 +170,11 @@ fn prepare_distance_grid(grid: &dyn Grid) -> DistanceGrid {
 #[cfg(test)]
 mod tests {
     use super::*;
-    // use crate::grid::{CellFormatter, cell::CellLinkStrong, mask::Mask, masked_grid::MaskedGrid};
+    use crate::grid::{CellFormatter, cell::ICellStrong, mask::Mask, masked_grid::MaskedGrid};
     use crate::rng::{thread_rng};
 //     use crate::test::Bencher;
-//     use std::fs;
-    use crate::grid::{CellFormatter, cell::CellLinkStrong};
+    use std::fs;
+    // use crate::grid::{CellFormatter, cell::CellLinkStrong};
 
     pub struct ConsoleGridFormatter;
     impl CellFormatter for ConsoleGridFormatter {
@@ -352,40 +349,40 @@ mod tests {
 //         }
 //     }
 
-//     #[test]
-//     fn mask() {
-//         let mut mask = Mask::new(5, 5);
+    #[test]
+    fn mask() {
+        let mut mask = Mask::new(5, 5);
 
-//         mask.set(0,2, false);
-//         mask.set(1,2, false);
-//         mask.set(2,2, false);
-//         mask.set(3,2, false);
-//         mask.set(4,2, false);
-//         println!("{}", mask.get(1,2));
-//         println!("{:#?}", mask);
-//         println!("{}", mask.count());
-//         println!("{:?}", mask.rand_location(&thread_rng::ThreadRng));
-//     }
+        mask.set(0,2, false);
+        mask.set(1,2, false);
+        mask.set(2,2, false);
+        mask.set(3,2, false);
+        mask.set(4,2, false);
+        println!("{}", mask.get(1,2));
+        println!("{:#?}", mask);
+        println!("{}", mask.count());
+        println!("{:?}", mask.rand_location(&thread_rng::ThreadRng));
+    }
 
-//     #[test]
-//     fn masked_grid() {
-//         let mut mask = Mask::new(5, 5);
+    #[test]
+    fn masked_grid() {
+        let mut mask = Mask::new(5, 5);
 
-//         mask.set(0,2, false);
-//         mask.set(1,2, false);
-//         mask.set(2,2, false);
+        mask.set(0,2, false);
+        mask.set(1,2, false);
+        mask.set(2,2, false);
         
-//         mask.set(0,0, false);
-//         mask.set(2,0, false);
-//         mask.set(3,0, false);
+        mask.set(0,0, false);
+        mask.set(2,0, false);
+        mask.set(3,0, false);
 
-//         mask.set(1,4, false);
-//         mask.set(2,4, false);
-//         mask.set(4,4, false);
-//         let masked_grid = MaskedGrid::new(mask);
-//         RecursiveBacktracker.on(&masked_grid, &thread_rng::ThreadRng);
-//         println!("{}", masked_grid.grid.to_string(&ConsoleGridFormatter));
-//     }
+        mask.set(1,4, false);
+        mask.set(2,4, false);
+        mask.set(4,4, false);
+        let masked_grid = MaskedGrid::new(mask);
+        RecursiveBacktracker.on(&masked_grid, &thread_rng::ThreadRng);
+        println!("{}", masked_grid.grid.to_string(&ConsoleGridFormatter));
+    }
 
 //     #[test]
 //     fn basic_grid() {
@@ -393,26 +390,26 @@ mod tests {
 //         println!("{}", grid.to_string(&ConsoleGridFormatter));    
 //     }
 
-//     #[test]
-//     fn mask_from_file() {
-//         let filename = "mask.txt";
-//         let contents = fs::read_to_string(filename).expect("Error with file");
-//         let rows = contents.lines().count();
-//         let cols = contents.lines().map(|line| line.len()).max().unwrap();
-//         println!("{}, {}", rows, cols);
-//         let mut mask = Mask::new(rows, cols);
-//         let X = 'X';
-//         for (i, line) in contents.lines().enumerate() {
-//             println!("{}: {}", i, line);
-//             for (j, c) in line.chars().enumerate() {
-//                 if c == X {
-//                     mask.set(i, j, false);
-//                 }
-//             }
-//         }
+    #[test]
+    fn mask_from_file() {
+        let filename = "mask.txt";
+        let contents = fs::read_to_string(filename).expect("Error with file");
+        let rows = contents.lines().count();
+        let cols = contents.lines().map(|line| line.len()).max().unwrap();
+        println!("{}, {}", rows, cols);
+        let mut mask = Mask::new(rows, cols);
+        let X = 'X';
+        for (i, line) in contents.lines().enumerate() {
+            println!("{}: {}", i, line);
+            for (j, c) in line.chars().enumerate() {
+                if c == X {
+                    mask.set(i, j, false);
+                }
+            }
+        }
 
-//         let masked_grid = MaskedGrid::new(mask);
-//         AldousBroder.on(&masked_grid, &thread_rng::ThreadRng);
-//         println!("{}", masked_grid.grid.to_string(&ConsoleGridFormatter));
-//     }
+        let masked_grid = MaskedGrid::new(mask);
+        AldousBroder.on(&masked_grid, &thread_rng::ThreadRng);
+        println!("{}", masked_grid.grid.to_string(&ConsoleGridFormatter));
+    }
 }
