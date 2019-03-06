@@ -19,6 +19,7 @@ pub trait CellFormatter {
 }
 
 pub trait Grid {
+    fn new_cell(&self, row: usize, column: usize, index: usize) -> ICellStrong;
     fn prepare_grid(&mut self);
     fn random_cell(&self, rng: &dyn RngWrapper) -> Option<ICellStrong>;
     fn each_cell(&self) -> Vec<Option<ICellStrong>>;

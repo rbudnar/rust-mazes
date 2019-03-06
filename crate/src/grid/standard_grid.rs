@@ -21,6 +21,10 @@ impl StandardGrid {
 }
 
 impl Grid for StandardGrid {
+    fn new_cell(&self, row: usize, column: usize, index: usize) -> ICellStrong {
+        Cell::new(row, column, index)
+    }
+
     fn prepare_grid(&mut self) {
         let mut index = 0;
         for i in 0..self.grid.rows {

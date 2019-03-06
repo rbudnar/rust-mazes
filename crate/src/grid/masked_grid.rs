@@ -31,6 +31,10 @@ impl MaskedGrid {
 }
 
 impl Grid for MaskedGrid {
+    fn new_cell(&self, row: usize, column: usize, index: usize) -> ICellStrong {
+        Cell::new(row, column, index)
+    }
+
     fn prepare_grid(&mut self) {
         for i in 0..self.grid.rows {
             let mut row: Vec<Option<CellLinkStrong>> = Vec::new();
