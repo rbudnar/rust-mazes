@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use crate::grid::cell::{Cell};
 use crate::grid::grid_web::add_bg_color;
 use web_sys::{HtmlElement, Node};
@@ -16,14 +15,16 @@ use std::rc::{Rc};
 pub struct GridBase {
     pub cells: Vec<Vec<Option<CellLinkStrong>>>,
     pub rows: usize, 
-    pub columns: usize
+    pub columns: usize,
+    pub cells_: Option<Vec<Vec<Option<ICellStrong>>>>,
 }
 
 impl GridBase {
     pub fn new(rows: usize, columns: usize)-> GridBase {
         GridBase {
             cells: Vec::new(),
-            rows, columns            
+            rows, columns,
+            cells_: None
         }
     }
 
@@ -44,7 +45,7 @@ impl GridBase {
                     }                    
 
                     // let body = format!(" {} ", contents.contents_of(&cell));
-                    let body = format!("   ");
+                    let body = "   ".to_string();
                     let e = cell.borrow();
                     let east = e.east.as_ref();
                     let east_border = if east.is_some() && cell.borrow().is_linked(east.as_ref().unwrap().upgrade().unwrap()) {
@@ -171,6 +172,7 @@ impl GridBase {
                     }
 
                     let cell_column = cell.borrow().column;
+                    
                     if cell_column > 0 {
                         let west = self.get_cell_link_strong(cell.borrow().row, cell_column - 1);
                         if west.is_some() {
@@ -180,17 +182,33 @@ impl GridBase {
                 }
             }
         }
+
+        self.create_cells();
+
     }
 
-    pub fn cells(&self) -> Vec<Vec<Option<ICellStrong>>> {
-        self.cells.iter().map(|row| 
-            row.iter().map(|c| {
-                if let Some(c) = c {
-                    return Some(Rc::clone(&c) as ICellStrong);
-                }
-                None
-            }).collect()
-        ).collect()
+    pub fn cells(&self) -> &Vec<Vec<Option<ICellStrong>>> {
+        self.cells_.as_ref().unwrap()
+    }
+
+    fn create_cells(&mut self) {
+        if self.cells_.is_some() {
+            return;
+        }
+
+        let mut cells_: Option<Vec<Vec<Option<ICellStrong>>>>;
+        {
+            cells_ = Some(self.cells.iter().map(|row| 
+                row.iter().map(|c| {
+                    if let Some(c) = c {
+                        return Some(Rc::clone(&c) as ICellStrong);
+                    }
+                    None
+                }).collect()
+            ).collect());
+        }
+
+        self.cells_ = cells_;
     }
 
     pub fn get_cell(&self, row: usize, column: usize) -> Option<ICellStrong> {
@@ -232,7 +250,9 @@ impl GridBase {
     // }
 
     pub fn to_web(&self, document: &Document, grid_container: &Element, formatter: &dyn CellFormatter, colorize: bool) {
-        for (i, row) in self.cells().iter().enumerate() {
+        let cells = self.cells();
+
+        for (i, row) in cells.iter().enumerate() {
             for (j, cell) in row.iter().enumerate() {    
                 if let Some(cell) = cell {
                     let html_cell = document.create_element("div").unwrap();

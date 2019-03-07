@@ -1,7 +1,6 @@
-use crate::grid::{Grid, CellFormatter, cell::{Cell, ICellStrong}};
+use crate::grid::{Grid, CellFormatter, cell::ICellStrong};
 use std::collections::HashMap;
 use std::rc::{Rc};
-use std::cell::RefCell;
 use std::char;
 use math::round;
 
@@ -59,7 +58,6 @@ impl Distances {
                 let distance = *distances.get_distance(fcell.borrow().row(), fcell.borrow().column()).unwrap();
                 for link in fcell.borrow().links().iter() {
                     if let Some(link) = link {
-                        // let cls = l.upgrade().unwrap();
                         let c = link.borrow();
                         
                         if !distances.is_visited(c.row(), c.column()) {
@@ -81,7 +79,7 @@ impl Distances {
 
         while !(current.borrow().row() == self.root.0 && current.borrow().column() == self.root.1) {
             let current_distance = *self.get_distance(current.borrow().row(), current.borrow().column()).unwrap();
-            let mut next_current: ICellStrong = grid.new_cell(0, 0, 0); //Rc::new(RefCell::new(Cell::new(0, 0))); 
+            let mut next_current: ICellStrong = grid.new_cell(0, 0);
 
             for n in current.borrow().links().iter() {
                 if let Some(n) = n {

@@ -19,13 +19,13 @@ pub trait CellFormatter {
 }
 
 pub trait Grid {
-    fn new_cell(&self, row: usize, column: usize, index: usize) -> ICellStrong;
+    fn new_cell(&self, row: usize, column: usize) -> ICellStrong;
     fn prepare_grid(&mut self);
     fn random_cell(&self, rng: &dyn RngWrapper) -> Option<ICellStrong>;
     fn each_cell(&self) -> Vec<Option<ICellStrong>>;
     fn rows(&self) -> usize;
     fn columns(&self) -> usize;
-    fn cells(&self) -> Vec<Vec<Option<ICellStrong>>>;
+    fn cells(&self) -> &Vec<Vec<Option<ICellStrong>>>;
     fn get_cell(&self, row: usize, column: usize) -> Option<ICellStrong>;
     fn to_string(&self, contents: &dyn CellFormatter) -> String;
     fn size(&self) -> usize;

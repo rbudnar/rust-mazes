@@ -1,4 +1,4 @@
-use crate::grid::cell::{ICell, ICellStrong};
+use crate::grid::cell::{ICellStrong};
 use std::rc::Rc;
 use crate::grid::{Grid};
 use crate::algorithms::rand_element;
@@ -20,7 +20,6 @@ impl MazeAlgorithm for RecursiveBacktracker {
         let mut start = rand_element(&cells, rng_generator);
         while start.is_none() {
             start = rand_element(&cells, rng_generator);
-            println!("finding");
         }
 
         stack.push(start.clone().unwrap());

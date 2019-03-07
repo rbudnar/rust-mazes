@@ -31,8 +31,8 @@ impl MaskedGrid {
 }
 
 impl Grid for MaskedGrid {
-    fn new_cell(&self, row: usize, column: usize, index: usize) -> ICellStrong {
-        Cell::new(row, column, index)
+    fn new_cell(&self, row: usize, column: usize) -> ICellStrong {
+        Cell::new(row, column)
     }
 
     fn prepare_grid(&mut self) {
@@ -40,7 +40,7 @@ impl Grid for MaskedGrid {
             let mut row: Vec<Option<CellLinkStrong>> = Vec::new();
             for j in 0..self.grid.columns {
                 if self.mask.borrow().get(i, j) {
-                    row.push(Some(Cell::new(i as usize, j as usize, 0)));
+                    row.push(Some(Cell::new(i as usize, j as usize)));
                 } else {
                     row.push(None);
                 }
@@ -70,7 +70,7 @@ impl Grid for MaskedGrid {
         self.grid.rows
     }
 
-    fn cells(&self) -> Vec<Vec<Option<ICellStrong>>> {
+    fn cells(&self) -> &Vec<Vec<Option<ICellStrong>>> {
         self.grid.cells()
     }
 

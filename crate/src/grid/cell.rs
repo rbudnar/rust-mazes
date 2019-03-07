@@ -15,7 +15,6 @@ pub trait ICell {
     fn as_any(&self) -> &dyn Any;
     fn row(&self) -> usize;
     fn column(&self) -> usize;
-    fn index(&self) -> usize;
 }
 
 impl Debug for ICell {
@@ -26,7 +25,7 @@ impl Debug for ICell {
 
 impl PartialEq for ICell {
     fn eq(&self, rhs: &ICell) -> bool {
-        self.index() == rhs.index()
+        self.row() == rhs.row() && self.column() == rhs.column()
     }
 }
 
@@ -37,7 +36,6 @@ pub type CellLinkStrong = Rc<RefCell<Cell>>;
 pub struct Cell {
     pub row: usize,
     pub column: usize,
-    pub index: usize,
     pub links: Vec<Option<CellLinkWeak>>,
     pub north: Option<CellLinkWeak>,
     pub south: Option<CellLinkWeak>,
@@ -63,10 +61,7 @@ impl ICell for Cell {
     fn column(&self) -> usize {
         self.column
     }
-    fn index(&self) -> usize {
-        self.index
-    }
-
+    
     fn neighbors(&self) -> Vec<ICellStrong> {
         let mut vec: Vec<ICellStrong> = vec![];
 
@@ -112,7 +107,7 @@ impl ICell for Cell {
 }
 
 impl Cell {
-    pub fn new(row: usize, column: usize, index: usize) -> CellLinkStrong {
+    pub fn new(row: usize, column: usize) -> CellLinkStrong {
         let c = Cell {
             row, column, 
             north: None, 
@@ -120,7 +115,6 @@ impl Cell {
             east: None, 
             west: None, 
             links: Vec::new(), 
-            index,
             self_rc: Weak::new(),
         };
 

@@ -1,10 +1,8 @@
 
 use crate::grid::cell::ICellStrong;
-use crate::grid::{Grid, cell::CellLinkStrong, CellFormatter};
-use web_sys::{HtmlElement, Node};
-use std::rc::{Rc};
+use crate::grid::{Grid, CellFormatter};
+use web_sys::{Node};
 use wasm_bindgen::prelude::JsValue;
-use wasm_bindgen::JsCast;
 
 // Needed to be able to remove the old style sheet when creating new mazes
 static mut STYLESHEET: Option<web_sys::Element> = None;
@@ -40,58 +38,6 @@ pub fn grid_to_web(grid: &dyn Grid, formatter: &dyn CellFormatter, colorize: boo
     }
 
     grid.to_web(&document, &grid_container, formatter, colorize);
-
-    // for (i, row) in grid.cells().iter().enumerate() {
-    //     for (j, cell) in row.iter().enumerate() {
-    //         if let Some(cell) = cell {
-    //             let html_cell = document.create_element("div").unwrap();
-    //             add_class(&html_cell, "cell");
-
-    //             // Top of maze
-    //             if i == 0 || (i > 0 && grid.cells()[i-1][j].is_none()) {
-    //                 add_class(&html_cell, "bt");
-    //             }
-
-    //             // bottom of maze
-    //             if i == grid.rows() - 1 {
-    //                 add_class(&html_cell, "bb");
-    //             }
-    //             // left side 
-    //             if j == 0  || ( j > 0 && grid.cells()[i][j-1].is_none()) {
-    //                 add_class(&html_cell, "bl");
-    //             }
-
-    //             // right side
-    //             if j == grid.columns() -1 {
-    //                 add_class(&html_cell, "br");
-    //             }
-
-    //             let e = cell.borrow();
-    //             let east = e.east.as_ref();
-    //             if !(east.is_some() && cell.borrow().is_linked(Rc::clone(&east.unwrap().upgrade().unwrap()))) {
-    //                 add_class(&html_cell, "br");            
-    //             }
-
-    //             let south = e.south.as_ref();
-    //             if !(south.is_some() && cell.borrow().is_linked(Rc::clone(&south.unwrap().upgrade().unwrap()))) {
-    //                 add_class(&html_cell, "bb");            
-    //             }
-
-    //             let c = html_cell.dyn_ref::<HtmlElement>().unwrap().clone();
-    //             if colorize {
-    //                 add_bg_color(&c, cell, formatter);
-    //             }
-    //             grid_container.append_child(&Node::from(html_cell)).unwrap();
-    //         }
-    //         else {
-    //             let html_cell = document.create_element("div").unwrap();
-    //             add_class(&html_cell, "cell");
-              
-    //             html_cell.dyn_ref::<HtmlElement>().unwrap().style().set_property("background-color", "white").unwrap();
-    //             grid_container.append_child(&Node::from(html_cell)).unwrap();
-    //         }
-    //     }
-    // }
 
     let body = Node::from(document.body().unwrap());
     body.append_child(&Node::from(grid_container)).unwrap();

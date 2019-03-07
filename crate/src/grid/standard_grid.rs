@@ -21,19 +21,17 @@ impl StandardGrid {
 }
 
 impl Grid for StandardGrid {
-    fn new_cell(&self, row: usize, column: usize, index: usize) -> ICellStrong {
-        Cell::new(row, column, index)
+    fn new_cell(&self, row: usize, column: usize) -> ICellStrong {
+        Cell::new(row, column)
     }
 
     fn prepare_grid(&mut self) {
-        let mut index = 0;
         for i in 0..self.grid.rows {
             let mut row: Vec<Option<CellLinkStrong>> = Vec::new();
             
             for j in 0..self.grid.columns {
-                row.push(Some(Cell::new(i as usize, j as usize, index)));
+                row.push(Some(Cell::new(i as usize, j as usize)));
 
-                index += 1;
             }
             self.grid.cells.push(row);
         }   
@@ -58,10 +56,8 @@ impl Grid for StandardGrid {
         self.grid.rows
     }
 
-    fn cells(&self) -> Vec<Vec<Option<ICellStrong>>> {
-        self.grid.cells.iter().map(|row| 
-            row.iter().map(|c| Some(Rc::clone(&c.as_ref().unwrap()) as ICellStrong)).collect()
-        ).collect()
+    fn cells(&self) -> &Vec<Vec<Option<ICellStrong>>> {
+        self.grid.cells()
     }
     
     fn get_cell(&self, row: usize, column: usize) -> Option<ICellStrong> {
