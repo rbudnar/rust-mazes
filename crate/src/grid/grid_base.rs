@@ -16,7 +16,7 @@ pub struct GridBase {
     pub cells: Vec<Vec<Option<CellLinkStrong>>>,
     pub rows: usize, 
     pub columns: usize,
-    pub cells_: Option<Vec<Vec<Option<ICellStrong>>>>,
+    pub cells_: Option<Vec<Vec<Option<ICellStrong>>>>
 }
 
 impl GridBase {
@@ -196,9 +196,8 @@ impl GridBase {
             return;
         }
 
-        let mut cells_: Option<Vec<Vec<Option<ICellStrong>>>>;
-        {
-            cells_ = Some(self.cells.iter().map(|row| 
+        self.cells_ = Some(
+            self.cells.iter().map(|row| 
                 row.iter().map(|c| {
                     if let Some(c) = c {
                         return Some(Rc::clone(&c) as ICellStrong);
@@ -206,9 +205,6 @@ impl GridBase {
                     None
                 }).collect()
             ).collect());
-        }
-
-        self.cells_ = cells_;
     }
 
     pub fn get_cell(&self, row: usize, column: usize) -> Option<ICellStrong> {

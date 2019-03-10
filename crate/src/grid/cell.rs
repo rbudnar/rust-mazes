@@ -41,7 +41,7 @@ pub struct Cell {
     pub south: Option<CellLinkWeak>,
     pub east: Option<CellLinkWeak>,
     pub west: Option<CellLinkWeak>,
-    self_rc: Weak<RefCell<Cell>>,
+    self_rc: CellLinkWeak,
 }
 
 impl PartialEq for Cell {
@@ -90,12 +90,9 @@ impl ICell for Cell {
 
     fn links(&self) -> Vec<Option<ICellStrong>> {
         self.links.iter()
-            .map(|c| {
-                let c1 = c.as_ref().unwrap().upgrade();
-                let c2 = c1.unwrap();
-                let cell: ICellStrong = Rc::clone(&c2) as ICellStrong;
-                Some(cell)
-            }).collect()
+            .map(|c| 
+                Some(c.as_ref().unwrap().upgrade().unwrap() as ICellStrong)
+            ).collect()
     }
 
     fn link(&mut self, other: ICellStrong) {       

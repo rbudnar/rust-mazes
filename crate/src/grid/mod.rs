@@ -10,8 +10,8 @@ pub mod masked_grid;
 pub mod standard_grid;
 pub mod grid_base;
 pub mod canvas;
-// pub mod polar_grid;
-// pub mod polar_cell;
+pub mod polar_grid;
+pub mod polar_cell;
 
 pub trait CellFormatter {
     fn contents_of(&self, cell: &ICellStrong) -> String;

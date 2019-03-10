@@ -12,14 +12,14 @@ use crate::grid::{Grid,
     distances::DistanceGrid, 
     grid_web::*,
     canvas::*,
-    grid_base::GridBase
+    grid_base::GridBase,
+    polar_grid::*
 };
 
 mod algorithms;
 mod rng;
 mod grid;
 
-// use crate::algorithms::{MazeAlgorithm, binary_tree::*, sidewinder::*, aldous_broder::*, wilson::*, hunt_and_kill::*, recursive_backtracker::*};
 use crate::algorithms::{MazeAlgorithm, recursive_backtracker::*, aldous_broder::*, hunt_and_kill::*, wilson::*};
 use crate::rng::wasm_rng;
 use wasm_bindgen::prelude::*;
@@ -153,8 +153,12 @@ fn build_and_display_grid(alg: impl MazeAlgorithm, rows: usize, columns: usize) 
         alg.on(&GRID, &wasm_generator);
 
         let distance_grid = prepare_distance_grid(&GRID);
-        // grid_to_web_polar(&GRID);
+        let polar_grid = PolarGrid::new(rows, columns);
+        alg.on(&polar_grid, &wasm_generator);
+        let polar_distance_grid = prepare_distance_grid(&GRID);
+        grid_to_web_polar(&polar_grid, &polar_distance_grid, COLORIZE);
         grid_to_web(&GRID, &distance_grid, COLORIZE);
+        
     }
 }
 
@@ -173,7 +177,7 @@ mod tests {
     use super::*;
     use crate::grid::{CellFormatter, cell::ICellStrong, mask::Mask, masked_grid::MaskedGrid};
     use crate::rng::{thread_rng};
-//     use crate::test::Bencher;
+    // use crate::test::Bencher;
     use std::fs;
 
     pub struct ConsoleGridFormatter;

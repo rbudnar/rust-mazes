@@ -1,4 +1,5 @@
 
+use crate::grid::cell::ICellStrong;
 use std::any::Any;
 use crate::grid::cell::ICell;
 use std::rc::{Rc, Weak};
@@ -14,7 +15,8 @@ pub struct PolarCell {
     pub outward: Vec<Option<PolarCellLinkWeak>>,
     pub links: Vec<Option<PolarCellLinkWeak>>,
     pub row: usize,
-    pub column: usize
+    pub column: usize,
+    self_rc: PolarCellLinkWeak
 }
 
 impl PartialEq for PolarCell {
@@ -28,68 +30,77 @@ impl ICell for PolarCell {
         self
     }
 
-    fn neighbors(&self) -> Vec<Box<ICell>> {
-        let mut vec: Vec<PolarCellLinkWeak> = vec![];
+    fn neighbors(&self) -> Vec<ICellStrong> {
+        let mut vec: Vec<ICellStrong> = vec![];
 
         if let Some(ref cw) = self.cw {
-            vec.push(cw.clone());
+            let cw = cw.upgrade().unwrap();
+            vec.push(cw as ICellStrong);
         }
 
         if let Some(ref ccw) = self.ccw {
-            vec.push(ccw.clone());
+            let ccw = ccw.upgrade().unwrap();
+            vec.push(ccw as ICellStrong);
         }
 
         if let Some(ref inward) = self.inward {
-            vec.push(inward.clone());
+            let inward = inward.upgrade().unwrap();
+            vec.push(inward as ICellStrong);
         }
 
-        let o: Vec<PolarCellLinkWeak>  = self.outward.iter()
-            .fold(vec![], |mut acc, x| {
-                if let Some(x) = x {
-                    acc.push(Rc::downgrade(&Rc::clone(&x.upgrade().unwrap())));
-                }
-                acc
-            });
-
-        let v: Vec<Box<ICell>> = vec.iter().chain(o.iter())
-            .map(|c| {
-                    let cell = *c.upgrade().unwrap().borrow();
-                    Box::new(cell) as Box<ICell>
-                }).collect();
-        v
-    }
-
-    fn links(&self) -> &Vec<Option<Box<ICell>>> {
-        &self.links.iter().map(|&c| {
-            let cell = *c.as_ref().unwrap().upgrade().unwrap().borrow();
-            Some(Box::new(cell) as Box<ICell>)
-            }).collect()
-    }
-  
-    fn link(&mut self, other: Box<ICell>, bidir: bool) {        
-        if let nl = other.as_any().downcast_ref::<PolarCellLinkStrong>() {
-            let newlink: PolarCellLinkWeak = Rc::downgrade(&nl.unwrap());
-            self.links.push(Some(newlink));
-
-            if bidir {
-                self.link(other, false);
+        for out in self.outward.iter() {
+            if let Some(out) = out {
+                let out = out.upgrade().unwrap();
+                vec.push(out as ICellStrong);
             }
         }
+
+        vec
+    }
+
+    fn links(&self) -> Vec<Option<ICellStrong>> {
+        self.links.iter()
+            .map(|c| 
+                Some(c.as_ref().unwrap().upgrade().unwrap() as ICellStrong)
+            ).collect()
+    }
+ 
+    fn link(&mut self, other: ICellStrong) {       
+        if let Some(nl) = other.borrow().as_any().downcast_ref::<PolarCell>() {
+            let _other: PolarCellLinkWeak = Rc::downgrade(&Rc::clone(&nl.self_rc.upgrade().unwrap()));
+            self.links.push(Some(_other));
+        }
+    }
+
+    fn row(&self) -> usize {
+        self.row
+    }
+
+    fn column(&self) -> usize {
+        self.column
     }
 }
 
 impl PolarCell {
-    pub fn new(row: usize, column: usize) -> PolarCell {
-        PolarCell {
+    pub fn new(row: usize, column: usize) -> PolarCellLinkStrong {
+        let cell = PolarCell {
             cw: None,
             ccw: None,
             inward: None,
             outward: vec![],
             links: vec![],
             row,
-            column
-        }
+            column,
+            self_rc: Weak::new(),
+        };
+
+        let rc = Rc::new(RefCell::new(cell));
+        rc.borrow_mut().self_rc = Rc::downgrade(&rc);
+
+        rc
     }
+
+
     pub fn is_linked(&self, other: PolarCellLinkStrong) -> bool {
         self.index_of_other(Rc::clone(&other)).is_some()        
     }
@@ -108,42 +119,4 @@ impl PolarCell {
             }
         })
     }
-
-    // pub fn link(_self: PolarCellLinkStrong, other: PolarCellLinkStrong, bidir: bool) {    
-    //     let newlink: PolarCellLinkWeak = Rc::downgrade(&other);
-    //     _self.borrow_mut().links.push(Some(newlink));
-    //     if bidir {
-    //         PolarCell::link(Rc::clone(&other), Rc::clone(&_self), false);
-    //     }
-    // }
-
-    // pub fn neighbors(&self) -> Vec<PolarCellLinkWeak> {
-    //     let mut vec: Vec<PolarCellLinkWeak> = vec![];
-
-    //     if let Some(ref cw) = self.cw {
-    //         vec.push(cw.clone());
-    //     }
-
-    //     if let Some(ref ccw) = self.ccw {
-    //         vec.push(ccw.clone());
-    //     }
-
-    //     if let Some(ref inward) = self.inward {
-    //         vec.push(inward.clone());
-    //     }
-
-    //     let o: Vec<PolarCellLinkWeak>  = self.outward.iter()
-    //         .fold(vec![], |mut acc, x| {
-    //             if let Some(x) = x {
-    //                 acc.push(Rc::downgrade(&Rc::clone(&x.upgrade().unwrap())));
-    //             }
-    //             acc
-    //         });
-
-    //     let v: Vec<PolarCellLinkWeak> = vec.iter().chain(o.iter())
-    //         .map(|x| {
-    //                 Rc::downgrade(&Rc::clone(&x.upgrade().unwrap()))
-    //             }).collect();
-    //     v
-    // }
 }
