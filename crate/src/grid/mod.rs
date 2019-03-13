@@ -1,8 +1,7 @@
-use crate::grid::cell::ICellStrong;
 use crate::rng::RngWrapper;
+use crate::cells::{ICellStrong};
 use web_sys::{Element, Document};
 
-pub mod cell;
 pub mod grid_web;
 pub mod distances;
 pub mod mask;
@@ -11,7 +10,7 @@ pub mod standard_grid;
 pub mod grid_base;
 pub mod canvas;
 pub mod polar_grid;
-pub mod polar_cell;
+pub mod hex_grid;
 
 pub trait CellFormatter {
     fn contents_of(&self, cell: &ICellStrong) -> String;
@@ -30,4 +29,10 @@ pub trait Grid {
     fn to_string(&self, contents: &dyn CellFormatter) -> String;
     fn size(&self) -> usize;
     fn to_web(&self, document: &Document, grid_container: &Element, formatter: &dyn CellFormatter, colorize: bool);
+}
+
+pub enum GridType {
+    StandardGrid,
+    PolarGrid,
+    HexGrid,
 }

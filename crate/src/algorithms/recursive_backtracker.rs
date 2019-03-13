@@ -1,4 +1,4 @@
-use crate::grid::cell::{ICellStrong};
+use crate::cells::ICellStrong;
 use std::rc::Rc;
 use crate::grid::{Grid};
 use crate::algorithms::rand_element;

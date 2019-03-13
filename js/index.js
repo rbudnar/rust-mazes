@@ -9,11 +9,14 @@ import("../crate/pkg").then(module => {
 
 const sizeSelector = document.querySelector("#size-selector");
 const algorithmSelector = document.querySelector("#algorithm-selector");
+const typeSelector = document.querySelector("#type-selector");
 const generateNew = document.querySelector("#new-maze");
 
 const renderMaze = () => {
     let alg = parseInt(algorithmSelector.value);
     let size = parseInt(sizeSelector.value);
+    
+
     switch (alg) {
         // case 1: 
         //     maze_generator.basic_binary_tree(size, size);
@@ -43,6 +46,24 @@ const renderMaze = () => {
 sizeSelector.addEventListener("change", () => renderMaze());
 algorithmSelector.addEventListener("change", () => renderMaze());
 generateNew.addEventListener("click", () => renderMaze());
+typeSelector.addEventListener("change", () => {
+    
+    let typeval = parseInt(typeSelector.value);
+    let type;
+    switch(typeval)  {
+        case 1: 
+            type = "polar"; 
+            break;
+        case 2: 
+            type = "hex";
+            break;
+        default:
+            type = "polar";
+            break;
+    }
+    maze_generator.on_grid_type_change(type);
+    renderMaze();
+});
 
 const colorize =  document.querySelector("#colorize");
 colorize.addEventListener("click", () => {

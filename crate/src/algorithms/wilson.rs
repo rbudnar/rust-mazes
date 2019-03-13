@@ -1,4 +1,4 @@
-use crate::grid::cell::ICellStrong;
+use crate::cells::ICellStrong;
 use crate::grid::{Grid};
 use crate::rng::RngWrapper;
 use crate::algorithms::{MazeAlgorithm, rand_element};

@@ -6,20 +6,23 @@
 #[macro_use]
 extern crate cfg_if;
 extern crate test;
-// use crate::grid::polar_grid::grid_to_web_polar;
+mod algorithms;
+mod rng;
+mod grid;
+mod cells;
+
+use crate::grid::GridType;
 use crate::grid::{Grid,
     standard_grid::StandardGrid,
     distances::DistanceGrid, 
     grid_web::*,
     canvas::*,
     grid_base::GridBase,
-    polar_grid::*
+    polar_grid::*,
+    hex_grid::*
 };
 
-mod algorithms;
-mod rng;
-mod grid;
-
+use crate::cells::{ICellStrong};
 use crate::algorithms::{MazeAlgorithm, recursive_backtracker::*, aldous_broder::*, hunt_and_kill::*, wilson::*};
 use crate::rng::wasm_rng;
 use wasm_bindgen::prelude::*;
@@ -82,6 +85,10 @@ static mut GRID: StandardGrid = StandardGrid {
 
 static mut COLORIZE: bool = true;
 
+static mut SECONDARY_GRID_TYPE: GridType = GridType::PolarGrid;
+
+static mut SECONDARY_GRID:  Option<Box<dyn Grid>> = None;
+
 
 /****** ALGORITHMS ******/
 
@@ -135,6 +142,25 @@ pub fn on_colorize_change(colorize: bool) {
 }
 
 #[wasm_bindgen]
+pub fn on_grid_type_change(grid_type: &str) {
+    unsafe {
+        if let Some(_) = &SECONDARY_GRID {
+            match SECONDARY_GRID_TYPE {
+                GridType::PolarGrid => cleanup_old_canvas(POLAR_GRID),
+                GridType::HexGrid => cleanup_old_canvas(HEX_GRID),
+                _ => ()
+            }            
+        }
+
+        SECONDARY_GRID_TYPE = match grid_type {
+            "polar" => GridType::PolarGrid,
+            "hex" => GridType::HexGrid,
+            _ => GridType::PolarGrid
+        };        
+    }
+}
+
+#[wasm_bindgen]
 pub fn add_canvas() {
     append_canvas();
 }
@@ -143,23 +169,59 @@ pub fn add_canvas() {
 pub fn apply_mask() {
     canvas_to_mask();
 }
-
 /****** HELPERS ******/
+use std::boxed::Box;
 
 fn build_and_display_grid(alg: impl MazeAlgorithm, rows: usize, columns: usize) {
     unsafe {        
         GRID = StandardGrid::new(rows, columns);
         let wasm_generator = wasm_rng::WasmRng;
         alg.on(&GRID, &wasm_generator);
-
         let distance_grid = prepare_distance_grid(&GRID);
-        let polar_grid = PolarGrid::new(rows, columns);
-        alg.on(&polar_grid, &wasm_generator);
-        let polar_distance_grid = prepare_distance_grid(&GRID);
-        grid_to_web_polar(&polar_grid, &polar_distance_grid, COLORIZE);
-        grid_to_web(&GRID, &distance_grid, COLORIZE);
-        
+
+        // let secondary_grid = match SECONDARY_GRID_TYPE {
+        //     GridType::PolarGrid => PolarGrid::new(rows, columns),
+        //     GridType::HexGrid => HexGrid::new(rows, columns),
+        //     GridType::StandardGrid => StandardGrid::new(rows, columns)
+        // };
+
+        // let polar_grid = PolarGrid::new(rows, columns);
+        // alg.on(&polar_grid, &wasm_generator);
+        // let polar_distance_grid = prepare_distance_grid(&polar_grid);
+        // render_maze_web(&polar_grid, &polar_distance_grid, COLORIZE);
+
+        // let hex_grid = HexGrid::new(rows, columns);
+        // alg.on(&hex_grid, &wasm_generator);
+        // let hex_distance_grid = prepare_distance_grid(&hex_grid);
+        // render_maze_web(&hex_grid, &hex_distance_grid, COLORIZE);
+
+        // match SECONDARY_GRID_TYPE {
+        //     GridType::PolarGrid => render_secondary_grid(&PolarGrid::new(rows, columns), alg),
+        //     GridType::HexGrid => render_secondary_grid(&HexGrid::new(rows, columns), alg),
+        //     GridType::StandardGrid => render_secondary_grid(&StandardGrid::new(rows, columns), alg),
+        // };
+
+        SECONDARY_GRID = match SECONDARY_GRID_TYPE {
+            GridType::PolarGrid => Some(Box::new(PolarGrid::new(rows, columns))),
+            GridType::HexGrid => Some(Box::new(HexGrid::new(rows, columns))),
+            GridType::StandardGrid => Some(Box::new(StandardGrid::new(rows, columns))),
+        };
+
+        unsafe {
+            if let Some(grid) = &SECONDARY_GRID {
+                render_secondary_grid(&**grid, alg);
+            }
+        }
+
+        grid_to_web(&GRID, &distance_grid, COLORIZE);        
     }
+}
+
+fn render_secondary_grid(grid: &dyn Grid, alg: impl MazeAlgorithm) {
+    let wasm_generator = wasm_rng::WasmRng;
+    alg.on(grid, &wasm_generator);
+    let distance_grid = prepare_distance_grid(grid);
+    render_maze_web(grid, &distance_grid, false);
 }
 
 fn prepare_distance_grid(grid: &dyn Grid) -> DistanceGrid {   
@@ -175,7 +237,7 @@ fn prepare_distance_grid(grid: &dyn Grid) -> DistanceGrid {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::grid::{CellFormatter, cell::ICellStrong, mask::Mask, masked_grid::MaskedGrid};
+    use crate::grid::{CellFormatter, mask::Mask, masked_grid::MaskedGrid};
     use crate::rng::{thread_rng};
     // use crate::test::Bencher;
     use std::fs;

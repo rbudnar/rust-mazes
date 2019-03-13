@@ -1,12 +1,11 @@
-use crate::grid::cell::{Cell};
+use crate::grid::CellFormatter;
 use crate::grid::grid_web::add_bg_color;
 use web_sys::{HtmlElement, Node};
 use wasm_bindgen::JsCast;
 use crate::grid::grid_web::add_class;
 use web_sys::Element;
 use web_sys::Document;
-use crate::grid::cell::ICellStrong;
-use crate::grid::{cell::CellLinkStrong, CellFormatter};
+use crate::cells::{ICellStrong, ICell, cell::{CellLinkStrong, Cell}};
 use crate::rng::RngWrapper;
 use std::rc::{Rc};
 

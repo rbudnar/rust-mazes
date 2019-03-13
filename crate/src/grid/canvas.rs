@@ -1,4 +1,6 @@
 
+use crate::grid::CellFormatter;
+use crate::grid::Grid;
 use crate::grid::grid_web::grid_to_web;
 use crate::prepare_distance_grid;
 use web_sys::ImageData;
@@ -17,9 +19,11 @@ static mut INVERT_MASK: bool = false;
 static mut START_X: i32 = 0;
 static mut START_Y: i32 = 0;
 static mut IMG_DATA: Option<ImageData> = None;
+static MASK_CANVAS: &str = "mask_canvas";
+
 
 pub fn append_canvas() {
-    cleanup_old_canvas();
+    cleanup_old_canvas(MASK_CANVAS);
     let document = web_sys::window().unwrap().document().unwrap();
     let body = Node::from(document.body().unwrap());
     let canvas_container = document.create_element("div").unwrap();
@@ -94,7 +98,6 @@ fn setup_clear_button(document: &web_sys::Document, container: &web_sys::Element
     cb.forget();
     Ok(())
 }
-
 
 fn setup_apply_button(document: &web_sys::Document, container: &web_sys::Element) -> Result<(), JsValue> {
     let apply_btn = document.create_element("button")?;
@@ -208,17 +211,9 @@ fn setup_drawing(canvas: HtmlCanvasElement) -> Result<(), JsValue> {
     Ok(())
 }
 
-fn cleanup_old_canvas() {
-    let document = web_sys::window().unwrap().document().unwrap();
-    let old_canvas = document.get_element_by_id("mask_canvas");
-    if let Some(old_canvas) = old_canvas {
-        old_canvas.remove();
-    }
-}
-
 pub fn canvas_to_mask() {
     let document = web_sys::window().unwrap().document().unwrap();
-    let canvas = document.get_element_by_id("mask_canvas").unwrap();
+    let canvas = document.get_element_by_id(MASK_CANVAS).unwrap();
     
     let canvas = canvas.dyn_into::<HtmlCanvasElement>()
         .map_err(|_| ())
@@ -269,3 +264,52 @@ pub fn canvas_to_mask() {
     let distance_grid = prepare_distance_grid(&masked_grid);
     grid_to_web(&masked_grid, &distance_grid, false);    
 }
+
+pub fn render_maze_web(grid: &dyn Grid, formatter: &dyn CellFormatter, colorize: bool) {
+    let document = web_sys::window().unwrap().document().unwrap();
+    let grid_container = document.create_element("div").unwrap();
+    grid.to_web(&document, &grid_container, formatter, colorize);
+}
+
+pub fn setup_canvas(element_id: &str) -> Result<CanvasRenderingContext2d, JsValue> {
+    let document = web_sys::window().unwrap().document().unwrap();
+    let body = Node::from(document.body().unwrap());
+    let canvas_container = document.create_element("div").unwrap();
+    body.append_child(&canvas_container)?;
+    let canvas = document.create_element("canvas").unwrap();
+    canvas_container.append_child(&canvas).unwrap();    
+    
+    canvas.set_attribute("height", "600px").unwrap();
+    canvas.set_attribute("width", "600px").unwrap();
+    canvas.set_attribute("id", element_id).unwrap();
+
+    {
+        let canvas_html = canvas.dyn_ref::<HtmlElement>().unwrap();
+        canvas_html.style().set_property("background-color", "rgb(239, 239, 239)").unwrap();
+        canvas_html.style().set_property("outline", "1px solid black").unwrap();
+    }
+
+    let canvas = canvas.dyn_into::<HtmlCanvasElement>().ok().unwrap();
+
+    let context = canvas.get_context("2d")?
+        .unwrap()
+        .dyn_into::<CanvasRenderingContext2d>()?;
+
+    Ok(context)
+}
+
+pub fn cleanup_old_canvas(element_id: &str) {
+    let document = web_sys::window().unwrap().document().unwrap();
+    let old_canvas = document.get_element_by_id(element_id);
+    if let Some(old_canvas) = old_canvas {
+        old_canvas.remove();
+    }
+}
+
+pub fn draw_cv_line(ctx: &CanvasRenderingContext2d, x1: f64, y1: f64, x2: f64, y2: f64) {
+    ctx.begin_path();
+    ctx.move_to(x1, y1);
+    ctx.line_to(x2, y2);
+    ctx.stroke();
+}
+

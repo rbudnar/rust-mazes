@@ -1,7 +1,6 @@
 
-use crate::grid::cell::ICellStrong;
+use crate::cells::{ICellStrong, ICell};
 use std::any::Any;
-use crate::grid::cell::ICell;
 use std::rc::{Rc, Weak};
 use std::cell::RefCell;
 

@@ -1,22 +1,22 @@
-use crate::grid::cell::ICellStrong;
-use crate::grid::polar_cell::PolarCellLinkStrong;
+use crate::grid::canvas::{setup_canvas, cleanup_old_canvas};
+use crate::cells::{ICellStrong, polar_cell::{PolarCellLinkStrong, PolarCell}};
 use crate::grid::CellFormatter;
 use crate::rng::RngWrapper;
-use crate::grid::polar_cell::PolarCell;
 use crate::grid::Grid;
 use std::rc::Rc;
 use std::f64::consts::PI;
 use web_sys::*;
 use wasm_bindgen::prelude::JsValue;
-use wasm_bindgen::JsCast;
 use math::round;
+
+pub static POLAR_GRID: &str = "polar_grid";
 
 
 pub struct PolarGrid {
     pub cells: Vec<Vec<Option<PolarCellLinkStrong>>>,
     pub rows: usize, 
     pub columns: usize,
-    pub cells_: Option<Vec<Vec<Option<ICellStrong>>>>
+    pub _cells: Option<Vec<Vec<Option<ICellStrong>>>>
 }
 
 impl PolarGrid {
@@ -24,7 +24,7 @@ impl PolarGrid {
         let mut grid = PolarGrid {
             cells: Vec::new(),
             rows, columns,
-            cells_: None
+            _cells: None
         };
         grid.prepare_grid();
         grid.configure_cells();
@@ -34,11 +34,11 @@ impl PolarGrid {
     }
 
     fn create_cells(&mut self) {
-        if self.cells_.is_some() {
+        if self._cells.is_some() {
             return;
         }
 
-        self.cells_ = Some(
+        self._cells = Some(
             self.cells.iter().map(|row| 
                 row.iter().map(|c| {
                     if let Some(c) = c {
@@ -156,7 +156,7 @@ impl Grid for PolarGrid {
     }
 
     fn cells(&self) -> &Vec<Vec<Option<ICellStrong>>> {
-        self.cells_.as_ref().unwrap()
+        self._cells.as_ref().unwrap()
     }
     
     fn get_cell(&self, row: usize, column: usize) -> Option<ICellStrong> {        
@@ -180,12 +180,12 @@ impl Grid for PolarGrid {
         self.rows * self.columns
     }
 
-    fn to_web(&self, document: &Document, grid_container: &Element, formatter: &dyn CellFormatter, colorize: bool) {
+    fn to_web(&self, _document: &Document, _grid_container: &Element, _formatter: &dyn CellFormatter, _colorize: bool) {
         let cell_size = 20;
 
         let img_size = 2 * self.rows * cell_size;
-        cleanup_old_canvas();
-        let context = setup_canvas().unwrap();
+        cleanup_old_canvas(POLAR_GRID);
+        let context = setup_canvas(POLAR_GRID).unwrap();
         context.set_fill_style(&JsValue::from_str("black"));
         context.set_stroke_style(&JsValue::from_str("black"));
 
@@ -200,10 +200,10 @@ impl Grid for PolarGrid {
                 let theta_ccw = cell.column as f64 * theta;
                 let theta_cw = (cell.column + 1) as f64 * theta;
 
-                let ax = (center as f64 + (inner_radius * theta_ccw.cos()) ) as f64;
-                let ay = (center as f64 + (inner_radius * theta_ccw.sin()) ) as f64;
-                let bx = (center as f64 + (outer_radius * theta_ccw.cos()) ) as f64;
-                let by = (center as f64 + (outer_radius * theta_ccw.sin()) ) as f64;
+                // let ax = (center as f64 + (inner_radius * theta_ccw.cos()) ) as f64;
+                // let ay = (center as f64 + (inner_radius * theta_ccw.sin()) ) as f64;
+                // let bx = (center as f64 + (outer_radius * theta_ccw.cos()) ) as f64;
+                // let by = (center as f64 + (outer_radius * theta_ccw.sin()) ) as f64;
                 let cx = (center as f64 + (inner_radius * theta_cw.cos()) ) as f64;
                 let cy = (center as f64 + (inner_radius * theta_cw.sin()) ) as f64;
                 let dx = (center as f64 + (outer_radius * theta_cw.cos()) ) as f64;
@@ -233,47 +233,4 @@ impl Grid for PolarGrid {
         context.arc(center as f64, center as f64, (self.rows() * cell_size) as f64, 0.0, PI * 2.0).unwrap();
         context.stroke();
     }
-
 }
-
-pub fn grid_to_web_polar(grid: &dyn Grid, formatter: &dyn CellFormatter, colorize: bool) {
-    let document = web_sys::window().unwrap().document().unwrap();
-    let grid_container = document.create_element("div").unwrap();
-    grid.to_web(&document, &grid_container, formatter, colorize);
-}
-
-fn setup_canvas() -> Result<CanvasRenderingContext2d, JsValue> {
-    let document = web_sys::window().unwrap().document().unwrap();
-    let body = Node::from(document.body().unwrap());
-    let canvas_container = document.create_element("div").unwrap();
-    body.append_child(&canvas_container)?;
-    let canvas = document.create_element("canvas").unwrap();
-    canvas_container.append_child(&canvas).unwrap();    
-    
-    canvas.set_attribute("height", "600px").unwrap();
-    canvas.set_attribute("width", "600px").unwrap();
-    canvas.set_attribute("id", "polar_grid").unwrap();
-
-    {
-        let canvas_html = canvas.dyn_ref::<HtmlElement>().unwrap();
-        canvas_html.style().set_property("background-color", "rgb(239, 239, 239)").unwrap();
-        canvas_html.style().set_property("outline", "1px solid black").unwrap();
-    }
-
-    let canvas = canvas.dyn_into::<HtmlCanvasElement>().ok().unwrap();
-
-    let context = canvas.get_context("2d")?
-        .unwrap()
-        .dyn_into::<CanvasRenderingContext2d>()?;
-
-    Ok(context)
-}
-
-fn cleanup_old_canvas() {
-    let document = web_sys::window().unwrap().document().unwrap();
-    let old_canvas = document.get_element_by_id("polar_grid");
-    if let Some(old_canvas) = old_canvas {
-        old_canvas.remove();
-    }
-}
-

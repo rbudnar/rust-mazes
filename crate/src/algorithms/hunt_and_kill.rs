@@ -1,5 +1,6 @@
 use crate::algorithms::{rand_element, MazeAlgorithm};
-use crate::grid::{cell::*, Grid};
+use crate::cells::ICellStrong;
+use crate::grid::{Grid};
 use std::rc::{Rc};
 use crate::rng::RngWrapper;
 

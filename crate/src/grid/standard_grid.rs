@@ -1,5 +1,5 @@
-use crate::grid::cell::ICellStrong;
-use crate::grid::{grid_base::GridBase, Grid, CellFormatter, cell::{CellLinkStrong, Cell}};
+use crate::cells::{ICellStrong, cell::{Cell, CellLinkStrong}};
+use crate::grid::{grid_base::GridBase, Grid, CellFormatter};
 use crate::rng::RngWrapper;
 use std::rc::{Rc};
 use web_sys::{Element, Document};
