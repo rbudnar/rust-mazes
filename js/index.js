@@ -57,6 +57,9 @@ typeSelector.addEventListener("change", () => {
         case 2: 
             type = "hex";
             break;
+        case 3: 
+            type = "triangle";
+            break;
         default:
             type = "polar";
             break;

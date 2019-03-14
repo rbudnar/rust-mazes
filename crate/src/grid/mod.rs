@@ -11,6 +11,7 @@ pub mod grid_base;
 pub mod canvas;
 pub mod polar_grid;
 pub mod hex_grid;
+pub mod triangle_grid;
 
 pub trait CellFormatter {
     fn contents_of(&self, cell: &ICellStrong) -> String;
@@ -35,4 +36,5 @@ pub enum GridType {
     StandardGrid,
     PolarGrid,
     HexGrid,
+    TriangleGrid
 }

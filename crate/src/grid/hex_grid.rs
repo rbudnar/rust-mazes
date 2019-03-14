@@ -1,5 +1,5 @@
-use crate::grid::canvas::draw_cv_line;
-use crate::grid::canvas::{cleanup_old_canvas, setup_canvas};
+use crate::grid::canvas::draw_shape;
+use crate::grid::canvas::{cleanup_old_canvas, setup_canvas, draw_cv_line, DrawMode};
 use crate::grid::Grid;
 use web_sys::{Document, Element};
 use crate::grid::CellFormatter;
@@ -99,48 +99,62 @@ impl Grid for HexGrid {
         let img_width = (3_f64 * a_size * (self.columns as f64) + a_size + 0.5_f64).trunc() as usize;
         let img_height = (height * (self.rows as f64) + b_size + 0.5_f64).trunc() as usize;
 
-        for cell in self.each_hex_cell().iter() {
-            if let Some(cell) = cell {
-                let cx = size + 3_f64 * (cell.borrow().column as f64) * a_size;
-                let mut cy = b_size + (cell.borrow().row as f64) * height;
-                if cell.borrow().column % 2 != 0 {
-                    cy += b_size;
-                }
+        for mode in [DrawMode::Background, DrawMode::Line].iter() {
+            for cell in self.each_hex_cell().iter() {
+                if let Some(cell) = cell {
+                    let cx = size + 3_f64 * (cell.borrow().column as f64) * a_size;
+                    let mut cy = b_size + (cell.borrow().row as f64) * height;
+                    if cell.borrow().column % 2 != 0 {
+                        cy += b_size;
+                    }
 
-                // f/n = far/near
-                // n/s/e/w = north/south/east/west
-                // m = middle
-                let x_fw = (cx - size).trunc();
-                let x_nw = (cx - a_size).trunc();
-                let x_ne = (cx + a_size).trunc();
-                let x_fe = (cx + size).trunc();
+                    // f/n = far/near
+                    // n/s/e/w = north/south/east/west
+                    // m = middle
+                    let x_fw = (cx - size).trunc();
+                    let x_nw = (cx - a_size).trunc();
+                    let x_ne = (cx + a_size).trunc();
+                    let x_fe = (cx + size).trunc();
 
-                let y_n = (cy - b_size).trunc();
-                let y_m = cy.trunc();
-                let y_s = (cy + b_size).trunc();
+                    let y_n = (cy - b_size).trunc();
+                    let y_m = cy.trunc();
+                    let y_s = (cy + b_size).trunc();
 
-                if cell.borrow().southwest.is_none() {
-                    draw_cv_line(&context, x_fw, y_m, x_nw, y_s);
-                }
+                    match mode {
+                        DrawMode::Background => {
+                            if colorize {
+                                let points = vec![(x_fw, y_m), (x_nw, y_n), (x_ne, y_n), (x_fe, y_m), (x_ne, y_s), (x_nw, y_s)];
+                                let ics: ICellStrong =  Rc::clone(cell) as ICellStrong;
+                                let color = formatter.background_color(&ics);
+                                draw_shape(&context, points, &color);
+                            }
+                        },
+                        DrawMode::Line => {
+                            if cell.borrow().southwest.is_none() {
+                                draw_cv_line(&context, x_fw, y_m, x_nw, y_s);
+                            }
 
-                if cell.borrow().northwest.is_none() {
-                    draw_cv_line(&context, x_fw, y_m, x_nw, y_n);
-                }
+                            if cell.borrow().northwest.is_none() {
+                                draw_cv_line(&context, x_fw, y_m, x_nw, y_n);
+                            }
 
-                if cell.borrow().north.is_none() {
-                    draw_cv_line(&context, x_nw, y_n, x_ne, y_n);
-                }
+                            if cell.borrow().north.is_none() {
+                                draw_cv_line(&context, x_nw, y_n, x_ne, y_n);
+                            }
 
-                if is_not_linked(cell, &cell.borrow().northeast) {
-                    draw_cv_line(&context, x_ne, y_n, x_fe, y_m);
-                }
-                
-                if is_not_linked(cell, &cell.borrow().southeast) {
-                    draw_cv_line(&context, x_fe, y_m, x_ne, y_s);
-                }
+                            if is_not_linked(cell, &cell.borrow().northeast) {
+                                draw_cv_line(&context, x_ne, y_n, x_fe, y_m);
+                            }
+                            
+                            if is_not_linked(cell, &cell.borrow().southeast) {
+                                draw_cv_line(&context, x_fe, y_m, x_ne, y_s);
+                            }
 
-                if is_not_linked(cell, &cell.borrow().south) {
-                    draw_cv_line(&context, x_ne, y_s, x_nw, y_s);
+                            if is_not_linked(cell, &cell.borrow().south) {
+                                draw_cv_line(&context, x_ne, y_s, x_nw, y_s);
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -1,13 +1,11 @@
-use crate::grid::canvas::{setup_canvas, cleanup_old_canvas};
-use crate::cells::{ICellStrong, polar_cell::{PolarCellLinkStrong, PolarCell}};
-use crate::grid::CellFormatter;
-use crate::rng::RngWrapper;
-use crate::grid::Grid;
 use std::rc::Rc;
 use std::f64::consts::PI;
 use web_sys::*;
 use wasm_bindgen::prelude::JsValue;
 use math::round;
+use crate::grid::{Grid, CellFormatter, canvas::{setup_canvas, cleanup_old_canvas, draw_cv_line, DrawMode}};
+use crate::cells::{ICellStrong, polar_cell::{PolarCellLinkStrong, PolarCell}};
+use crate::rng::RngWrapper;
 
 pub static POLAR_GRID: &str = "polar_grid";
 
@@ -180,7 +178,7 @@ impl Grid for PolarGrid {
         self.rows * self.columns
     }
 
-    fn to_web(&self, _document: &Document, _grid_container: &Element, _formatter: &dyn CellFormatter, _colorize: bool) {
+    fn to_web(&self, _document: &Document, _grid_container: &Element, formatter: &dyn CellFormatter, colorize: bool) {
         let cell_size = 20;
 
         let img_size = 2 * self.rows * cell_size;
@@ -191,40 +189,68 @@ impl Grid for PolarGrid {
 
         let center = img_size / 2;
 
-        for (i, cell) in self.each_polar_cell().iter().enumerate() {
-            if let Some(cell) = cell {
-                let cell = cell.as_ref().borrow();
-                let theta = 2.0 * PI / self.cells[cell.row].len() as f64;
-                let inner_radius = (cell.row * cell_size) as f64;
-                let outer_radius = ((cell.row + 1) * cell_size) as f64;
-                let theta_ccw = cell.column as f64 * theta;
-                let theta_cw = (cell.column + 1) as f64 * theta;
+        for mode in [DrawMode::Background, DrawMode::Line].iter() {
+            for cell in self.each_polar_cell().iter() {
+                if let Some(cell) = cell {
+                    let c = cell.as_ref().borrow();
+                    
 
-                // let ax = (center as f64 + (inner_radius * theta_ccw.cos()) ) as f64;
-                // let ay = (center as f64 + (inner_radius * theta_ccw.sin()) ) as f64;
-                // let bx = (center as f64 + (outer_radius * theta_ccw.cos()) ) as f64;
-                // let by = (center as f64 + (outer_radius * theta_ccw.sin()) ) as f64;
-                let cx = (center as f64 + (inner_radius * theta_cw.cos()) ) as f64;
-                let cy = (center as f64 + (inner_radius * theta_cw.sin()) ) as f64;
-                let dx = (center as f64 + (outer_radius * theta_cw.cos()) ) as f64;
-                let dy = (center as f64 + (outer_radius * theta_cw.sin()) ) as f64;
+                    let theta = 2.0 * PI / self.cells[c.row].len() as f64;
+                    let inner_radius = (c.row * cell_size) as f64;
+                    let outer_radius = ((c.row + 1) * cell_size) as f64;
+                    let theta_ccw = c.column as f64 * theta;
+                    let theta_cw = (c.column + 1) as f64 * theta;
 
-                // web_sys::console::log_1(&JsValue::from_str(
-                //     &format!("cr: {} {}, t: {}, a: {} {}, b: {} {}, c: {} {}, d: {} {}", cell.row, cell.column, theta, ax, ay, bx, by, cx, cy, dx, dy)));
-                
-                if cell.cw.is_none() || (cell.cw.is_some() && !cell.is_linked(cell.cw.as_ref().unwrap().upgrade().unwrap().clone())) {
-                    context.begin_path();
-                    context.move_to(cx, cy);
-                    context.line_to(dx, dy);
-                    context.stroke();
-                }
+                    let ax = (center as f64 + (inner_radius * theta_ccw.cos()) ) as f64;
+                    let ay = (center as f64 + (inner_radius * theta_ccw.sin()) ) as f64;
+                    let bx = (center as f64 + (outer_radius * theta_ccw.cos()) ) as f64;
+                    let by = (center as f64 + (outer_radius * theta_ccw.sin()) ) as f64;
+                    let cx = (center as f64 + (inner_radius * theta_cw.cos()) ) as f64;
+                    let cy = (center as f64 + (inner_radius * theta_cw.sin()) ) as f64;
+                    let dx = (center as f64 + (outer_radius * theta_cw.cos()) ) as f64;
+                    let dy = (center as f64 + (outer_radius * theta_cw.sin()) ) as f64;
 
-                // web_sys::console::log_1(&JsValue::from_str(
-                //     &format!("cr: {} {}, t: {} {} {}", cell.row, cell.column, theta, theta_ccw, theta_cw)));
-                if cell.inward.is_none() || (cell.inward.is_some() && !cell.is_linked(cell.inward.as_ref().unwrap().upgrade().unwrap().clone())) {
-                    context.begin_path();
-                    context.arc(center as f64, center as f64, inner_radius, theta_ccw, theta_cw).unwrap();
-                    context.stroke();
+                    // web_sys::console::log_1(&JsValue::from_str(
+                    //     &format!("cr: {} {}, t: {}, a: {} {}, b: {} {}, c: {} {}, d: {} {}", cell.row, cell.column, theta, ax, ay, bx, by, cx, cy, dx, dy)));
+
+                    match mode {
+                        DrawMode::Background => {
+                            if colorize {
+                                // let points = vec![(ax, ay), (bx, by), (cx, cy), (dx, dy)];
+                                let ics: ICellStrong =  Rc::clone(cell) as ICellStrong;
+                                let color = formatter.background_color(&ics).to_string();
+ 
+                                context.set_fill_style(&JsValue::from_str(&color));
+                                context.set_stroke_style(&JsValue::from_str(&color));
+                                
+                                context.begin_path();
+                                // arc(x, y, radius, startAngle, endAngle, anticlockwise)
+                                context.arc(center as f64, center as f64, inner_radius, theta_ccw, theta_cw).unwrap();
+                                context.arc_with_anticlockwise(center as f64, center as f64, outer_radius, theta_cw, theta_ccw, true).unwrap();
+
+                                context.fill();
+                                context.stroke();
+                                context.set_fill_style(&JsValue::from_str("black"));
+                                context.set_stroke_style(&JsValue::from_str("black"));
+                            }
+                        },
+                        DrawMode::Line => {
+                            if c.row == 0 {
+                                // Hide the line in the middle. Not really needed but makes it a little prettier.
+                                continue; 
+                            }
+                            if c.cw.is_none() || (c.cw.is_some() && !c.is_linked(c.cw.as_ref().unwrap().upgrade().unwrap().clone())) {
+                                draw_cv_line(&context, cx, cy, dx, dy);
+                            }
+                            
+                            if c.inward.is_none() || (c.inward.is_some() && !c.is_linked(c.inward.as_ref().unwrap().upgrade().unwrap().clone())) {
+                                context.begin_path();
+                                context.arc(center as f64, center as f64, inner_radius, theta_ccw, theta_cw).unwrap();
+                                context.stroke();
+                            }                                     
+                        }
+                    }                
+                    
                 }
             }
         }

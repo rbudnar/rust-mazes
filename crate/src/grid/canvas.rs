@@ -1,18 +1,12 @@
 
-use crate::grid::CellFormatter;
-use crate::grid::Grid;
-use crate::grid::grid_web::grid_to_web;
-use crate::prepare_distance_grid;
-use web_sys::ImageData;
-use web_sys::EventTarget;
-// use crate::grid::grid_web::grid_to_web;
-use crate::rng::wasm_rng::WasmRng;
-use wasm_bindgen::prelude::*;
-use wasm_bindgen::JsCast;
+use web_sys::{EventTarget, ImageData};
+use wasm_bindgen::{JsCast, prelude::*};
 use web_sys::{HtmlElement, Node, HtmlCanvasElement, CanvasRenderingContext2d};
-use crate::algorithms::{MazeAlgorithm, recursive_backtracker::RecursiveBacktracker};
-use crate::grid::{mask::Mask, masked_grid::MaskedGrid};
 use std::rc::Rc;
+use crate::grid::{grid_web::grid_to_web, Grid, CellFormatter, mask::Mask, masked_grid::MaskedGrid};
+use crate::algorithms::{MazeAlgorithm, recursive_backtracker::RecursiveBacktracker};
+use crate::prepare_distance_grid;
+use crate::rng::wasm_rng::WasmRng;
 
 static SAMPLE_RESOLUTION: usize = 5;
 static mut INVERT_MASK: bool = false;
@@ -313,3 +307,29 @@ pub fn draw_cv_line(ctx: &CanvasRenderingContext2d, x1: f64, y1: f64, x2: f64, y
     ctx.stroke();
 }
 
+pub fn draw_shape(ctx: &CanvasRenderingContext2d, xys: Vec<(f64,f64)>, color: &str) {
+    if xys.len() == 0 {
+        return;
+    }
+
+    ctx.begin_path();
+    ctx.set_fill_style(&JsValue::from_str(color));
+    ctx.set_stroke_style(&JsValue::from_str(color));
+
+    for (i, (x, y)) in xys.iter().enumerate() {
+        if i == 0 {
+            ctx.move_to(*x, *y);
+        } else {
+            ctx.line_to(*x, *y);
+        }
+    }
+
+    ctx.fill();
+    ctx.set_fill_style(&JsValue::from_str("black"));
+    ctx.set_stroke_style(&JsValue::from_str("black"));
+}
+
+pub enum DrawMode {
+    Line,
+    Background
+}

@@ -1,6 +1,7 @@
 pub mod cell;
 pub mod polar_cell;
 pub mod hex_cell;
+pub mod triangle_cell;
 use std::any::Any;
 use std::rc::{Rc, Weak};
 use std::cell::RefCell;

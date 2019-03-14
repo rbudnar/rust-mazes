@@ -52,7 +52,7 @@ impl ICell for HexCell {
             vec.push(south as ICellStrong);
         }
 
-        if let Some(ref northeast) = self.southeast {
+        if let Some(ref northeast) = self.northeast {
             let northeast = northeast.upgrade().unwrap();
             vec.push(northeast as ICellStrong);
         }
@@ -128,16 +128,4 @@ impl HexCell {
             }
         })
     }
-
-    // pub fn unlink(_self: HexCellStrong, other: HexCellStrong, bidir: bool) {
-    //     let index = _self.borrow().index_of_other(Rc::clone(&other));
-
-    //     if let Some(i) = index {
-    //         _self.borrow_mut().links.remove(i);
-    //     }
-
-    //     if bidir {
-    //         Cell::unlink(Rc::clone(&other), Rc::clone(&_self), false);
-    //     }
-    // }    
 }

@@ -2,7 +2,7 @@ use crate::grid::Grid;
 use std::fmt::Debug;
 use crate::rng::RngWrapper;
 
-// pub mod binary_tree;
+pub mod binary_tree;
 // pub mod sidewinder;
 pub mod aldous_broder;
 pub mod wilson;
