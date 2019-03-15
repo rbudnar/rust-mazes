@@ -51,13 +51,16 @@ typeSelector.addEventListener("change", () => {
     let typeval = parseInt(typeSelector.value);
     let type;
     switch(typeval)  {
-        case 1: 
-            type = "polar"; 
+        case 1:
+            type = "standard";
             break;
         case 2: 
-            type = "hex";
+            type = "polar"; 
             break;
         case 3: 
+            type = "hex";
+            break;
+        case 4: 
             type = "triangle";
             break;
         default:

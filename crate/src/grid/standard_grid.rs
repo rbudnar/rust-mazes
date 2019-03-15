@@ -4,6 +4,8 @@ use crate::rng::RngWrapper;
 use std::rc::{Rc};
 use web_sys::{Element, Document};
 
+pub static STANDARD_GRID: &str = "standard_grid";
+
 pub struct StandardGrid {
     pub grid: GridBase,
 }

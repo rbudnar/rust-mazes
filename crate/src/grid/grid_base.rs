@@ -1,3 +1,7 @@
+use crate::grid::canvas::draw_cv_line;
+use crate::grid::standard_grid::STANDARD_GRID;
+use crate::grid::canvas::setup_canvas;
+use crate::grid::canvas::cleanup_old_canvas;
 use crate::grid::CellFormatter;
 use crate::grid::grid_web::add_bg_color;
 use web_sys::{HtmlElement, Node};
@@ -8,6 +12,7 @@ use web_sys::Document;
 use crate::cells::{ICellStrong, ICell, cell::{CellLinkStrong, Cell}};
 use crate::rng::RngWrapper;
 use std::rc::{Rc};
+use wasm_bindgen::prelude::JsValue;
 
 
 #[derive(Debug)]
@@ -147,6 +152,20 @@ impl GridBase {
             .collect() 
     }
 
+    pub fn each_std_cell(&self) -> Vec<Option<CellLinkStrong>> {     
+        self.cells.iter()
+            .flatten()
+            .map(|x| {
+                if let Some(x) = x {
+                    Some(Rc::clone(x))
+                }
+                else {
+                    None
+                }
+            })                            
+            .collect() 
+    }
+
     pub fn configure_cells(&mut self) {
         for row in &mut self.cells.iter() {
             for cell in &mut row.iter() {
@@ -244,59 +263,142 @@ impl GridBase {
     //         .collect()
     // }
 
-    pub fn to_web(&self, document: &Document, grid_container: &Element, formatter: &dyn CellFormatter, colorize: bool) {
-        let cells = self.cells();
+    // pub fn to_web(&self, document: &Document, grid_container: &Element, formatter: &dyn CellFormatter, colorize: bool) {
+    //     let cells = self.cells();
 
-        for (i, row) in cells.iter().enumerate() {
+    //     for (i, row) in cells.iter().enumerate() {
+    //         for (j, cell) in row.iter().enumerate() {    
+    //             if let Some(cell) = cell {
+    //                 let html_cell = document.create_element("div").unwrap();
+    //                 add_class(&html_cell, "cell");
+
+    //                 // Top of maze
+    //                 if i == 0 || (i > 0 && self.cells()[i-1][j].is_none()) {
+    //                     add_class(&html_cell, "bt");
+    //                 }
+
+    //                 // bottom of maze
+    //                 if i == self.rows - 1 {
+    //                     add_class(&html_cell, "bb");
+    //                 }
+    //                 // left side 
+    //                 if j == 0  || ( j > 0 && self.cells()[i][j-1].is_none()) {
+    //                     add_class(&html_cell, "bl");
+    //                 }
+
+    //                 // right side
+    //                 if j == self.columns -1 {
+    //                     add_class(&html_cell, "br");
+    //                 }
+
+    //                 if let Some(c) = cell.borrow().as_any().downcast_ref::<Cell>() {
+    //                     let east = c.east.as_ref();
+    //                     if !(east.is_some() && c.is_linked(east.unwrap().upgrade().unwrap())) {
+    //                         add_class(&html_cell, "br");            
+    //                     }
+
+    //                     let south = c.south.as_ref();
+    //                     if !(south.is_some() && c.is_linked(south.unwrap().upgrade().unwrap())) {
+    //                         add_class(&html_cell, "bb");            
+    //                     }
+    //                 }
+
+    //                 let c = html_cell.dyn_ref::<HtmlElement>().unwrap().clone();
+    //                 if colorize {
+    //                     add_bg_color(&c, cell, formatter);
+    //                 }
+    //                 grid_container.append_child(&Node::from(html_cell)).unwrap();
+    //             }
+    //             else {
+    //                 // web_sys::console::log_1(&JsValue::from_str("else no cell"));
+    //                 let html_cell = document.create_element("div").unwrap();
+    //                 add_class(&html_cell, "cell");
+                
+    //                 html_cell.dyn_ref::<HtmlElement>().unwrap().style().set_property("background-color", "white").unwrap();
+    //                 grid_container.append_child(&Node::from(html_cell)).unwrap();
+    //             }
+    //         }
+    //     }
+    // }
+
+    pub fn to_web(&self, document: &Document, grid_container: &Element, formatter: &dyn CellFormatter, colorize: bool) {
+        cleanup_old_canvas(STANDARD_GRID);
+        let context = setup_canvas(STANDARD_GRID).unwrap();
+        context.set_fill_style(&JsValue::from_str("black"));
+        context.set_stroke_style(&JsValue::from_str("black"));
+        
+        let size = 30_f64;
+
+        // let cells = self.cells;
+
+        for (i, row) in self.cells.iter().enumerate() {
             for (j, cell) in row.iter().enumerate() {    
                 if let Some(cell) = cell {
-                    let html_cell = document.create_element("div").unwrap();
-                    add_class(&html_cell, "cell");
-
-                    // Top of maze
+                    // let html_cell = document.create_element("div").unwrap();
+                    // add_class(&html_cell, "cell");
+                    let x_ln = (cell.borrow().row as f64) * size;
+                    let y_ln = (cell.borrow().column as f64) * size;
+                    let x_rn = (cell.borrow().row as f64) * size + size;
+                    let y_rn = (cell.borrow().column as f64) * size;
+                    
+                    let x_ls = ((cell.borrow().row) as f64) * size;
+                    let y_ls = ((cell.borrow().column) as f64) * size + size;
+                    let x_rs = ((cell.borrow().row) as f64) * size + size;
+                    let y_rs = ((cell.borrow().column) as f64) * size + size;
+                    
+                    // Top of maze                    
                     if i == 0 || (i > 0 && self.cells()[i-1][j].is_none()) {
-                        add_class(&html_cell, "bt");
+                        // add_class(&html_cell, "bt");
+                        draw_cv_line(&context, x_ln, y_ln, x_rn, y_rn);
                     }
-
+                    
+                    // draw_cv_line(&context, x_rn, y_rn, x_rs, y_rs);
+                    // draw_cv_line(&context, x_rs, y_rs, x_ls, y_ls);
+                    // draw_cv_line(&context, x_ls, y_ls, x_ln, y_ln);
                     // bottom of maze
                     if i == self.rows - 1 {
-                        add_class(&html_cell, "bb");
+                        // add_class(&html_cell, "bb");
+                        draw_cv_line(&context, x_rs, y_rs, x_ls, y_ls);
                     }
                     // left side 
                     if j == 0  || ( j > 0 && self.cells()[i][j-1].is_none()) {
-                        add_class(&html_cell, "bl");
+                        // add_class(&html_cell, "bl");
+                        draw_cv_line(&context, x_ls, y_ls, x_ln, y_ln);
                     }
 
                     // right side
                     if j == self.columns -1 {
-                        add_class(&html_cell, "br");
+                        // add_class(&html_cell, "br");
+                        draw_cv_line(&context, x_rn, y_rn, x_rs, y_rs);
                     }
 
                     if let Some(c) = cell.borrow().as_any().downcast_ref::<Cell>() {
                         let east = c.east.as_ref();
                         if !(east.is_some() && c.is_linked(east.unwrap().upgrade().unwrap())) {
-                            add_class(&html_cell, "br");            
+                            // add_class(&html_cell, "br");   
+                            draw_cv_line(&context, x_rn, y_rn, x_rs, y_rs);         
                         }
 
                         let south = c.south.as_ref();
                         if !(south.is_some() && c.is_linked(south.unwrap().upgrade().unwrap())) {
-                            add_class(&html_cell, "bb");            
+                            // add_class(&html_cell, "bb");            
+                            draw_cv_line(&context, x_rs, y_rs, x_ls, y_ls);
                         }
                     }
 
-                    let c = html_cell.dyn_ref::<HtmlElement>().unwrap().clone();
+                    // let c = html_cell.dyn_ref::<HtmlElement>().unwrap().clone();
                     if colorize {
-                        add_bg_color(&c, cell, formatter);
+                        // add_bg_color(&c, cell, formatter);
                     }
-                    grid_container.append_child(&Node::from(html_cell)).unwrap();
+                    // grid_container.append_child(&Node::from(html_cell)).unwrap();
                 }
                 else {
                     // web_sys::console::log_1(&JsValue::from_str("else no cell"));
-                    let html_cell = document.create_element("div").unwrap();
-                    add_class(&html_cell, "cell");
+                    // let html_cell = document.create_element("div").unwrap();
+                    // add_class(&html_cell, "cell");
                 
-                    html_cell.dyn_ref::<HtmlElement>().unwrap().style().set_property("background-color", "white").unwrap();
-                    grid_container.append_child(&Node::from(html_cell)).unwrap();
+                    // html_cell.dyn_ref::<HtmlElement>().unwrap().style().set_property("background-color", "white").unwrap();
+                    // grid_container.append_child(&Node::from(html_cell)).unwrap();
                 }
             }
         }
