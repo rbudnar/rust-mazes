@@ -1,8 +1,7 @@
-use crate::cells::{ICellStrong, cell::{Cell, CellLinkStrong}};
-use crate::grid::{grid_base::GridBase, Grid, CellFormatter};
-use crate::rng::RngWrapper;
 use std::rc::{Rc};
-use web_sys::{Element, Document};
+use super::{grid_base::GridBase, Grid, CellFormatter};
+use crate::cells::{ICellStrong, cell::{Cell, CellLinkStrong}};
+use crate::rng::RngWrapper;
 
 pub static STANDARD_GRID: &str = "standard_grid";
 

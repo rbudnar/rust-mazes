@@ -132,6 +132,6 @@ impl TriangleCell {
         } else {
             return true;
         }    
-        return false;
+        false
     }
 }

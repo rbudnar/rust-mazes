@@ -3,7 +3,7 @@ var maze_generator;
 
 import("../crate/pkg").then(module => {
     maze_generator = module;
-    maze_generator.add_canvas();
+    maze_generator.add_mask_canvas();
     maze_generator.recursive_backtracker(8,8);
 });
 

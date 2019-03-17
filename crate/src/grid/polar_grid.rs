@@ -1,9 +1,8 @@
-use crate::grid::canvas::set_canvas_size;
 use std::rc::Rc;
 use std::f64::consts::PI;
 use wasm_bindgen::prelude::JsValue;
 use math::round;
-use crate::grid::{Grid, CellFormatter, canvas::{setup_canvas, remove_old_canvas, draw_cv_line, DrawMode}};
+use crate::grid::{Grid, CellFormatter, canvas::{setup_grid_canvas, remove_old_canvas, draw_line, DrawMode, set_canvas_size}};
 use crate::cells::{ICellStrong, polar_cell::{PolarCellLinkStrong, PolarCell}};
 use crate::rng::RngWrapper;
 
@@ -163,18 +162,17 @@ impl Grid for PolarGrid {
         if let Some(cell) = self.cells[row][column % self.cells[row].len()].clone() {
             return Some(Rc::clone(&cell) as ICellStrong);
         }
-        web_sys::console::log_1(&JsValue::from_str(&format!("get ICellStrong")));
         None
     }
 
 
-    fn to_string(&self, contents: &dyn CellFormatter) -> String {
+    fn to_string(&self, _contents: &dyn CellFormatter) -> String {
         // Not sure how to make this a text string...
         "".to_string()
     }
 
     fn size(&self) -> usize {
-        self.rows * self.columns
+        self.cells.iter().fold(0, |acc, r| acc + r.len())
     }
 
     fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool) {
@@ -182,7 +180,7 @@ impl Grid for PolarGrid {
         let img_size = 2 * self.rows * size;
 
         remove_old_canvas(POLAR_GRID);
-        let context = setup_canvas(POLAR_GRID).unwrap();
+        let context = setup_grid_canvas(POLAR_GRID).unwrap();
         set_canvas_size(POLAR_GRID, img_size, img_size);
         
         context.set_fill_style(&JsValue::from_str("black"));
@@ -202,10 +200,10 @@ impl Grid for PolarGrid {
                     let theta_ccw = c.column as f64 * theta;
                     let theta_cw = (c.column + 1) as f64 * theta;
 
-                    let ax = (center as f64 + (inner_radius * theta_ccw.cos()) ) as f64;
-                    let ay = (center as f64 + (inner_radius * theta_ccw.sin()) ) as f64;
-                    let bx = (center as f64 + (outer_radius * theta_ccw.cos()) ) as f64;
-                    let by = (center as f64 + (outer_radius * theta_ccw.sin()) ) as f64;
+                    // let ax = (center as f64 + (inner_radius * theta_ccw.cos()) ) as f64;
+                    // let ay = (center as f64 + (inner_radius * theta_ccw.sin()) ) as f64;
+                    // let bx = (center as f64 + (outer_radius * theta_ccw.cos()) ) as f64;
+                    // let by = (center as f64 + (outer_radius * theta_ccw.sin()) ) as f64;
                     let cx = (center as f64 + (inner_radius * theta_cw.cos()) ) as f64;
                     let cy = (center as f64 + (inner_radius * theta_cw.sin()) ) as f64;
                     let dx = (center as f64 + (outer_radius * theta_cw.cos()) ) as f64;
@@ -241,7 +239,7 @@ impl Grid for PolarGrid {
                                 continue; 
                             }
                             if c.cw.is_none() || (c.cw.is_some() && !c.is_linked(c.cw.as_ref().unwrap().upgrade().unwrap().clone())) {
-                                draw_cv_line(&context, cx, cy, dx, dy);
+                                draw_line(&context, cx, cy, dx, dy);
                             }
                             
                             if c.inward.is_none() || (c.inward.is_some() && !c.is_linked(c.inward.as_ref().unwrap().upgrade().unwrap().clone())) {

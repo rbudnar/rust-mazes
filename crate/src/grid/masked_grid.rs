@@ -1,11 +1,8 @@
-use crate::cells::{ICellStrong, cell::{CellLinkStrong, Cell}};
-use crate::grid::CellFormatter;
-use crate::grid::grid_base::GridBase;
-use crate::rng::RngWrapper;
-use crate::grid::{Grid, mask::Mask};
 use std::rc::Rc;
 use std::cell::RefCell;
-use web_sys::{Element, Document};
+use super::{Grid, mask::Mask, CellFormatter, grid_base::GridBase};
+use crate::cells::{ICellStrong, cell::{CellLinkStrong, Cell}};
+use crate::rng::RngWrapper;
 
 pub struct MaskedGrid {
     mask: Rc<RefCell<Mask>>,

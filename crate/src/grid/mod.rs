@@ -1,9 +1,9 @@
 use crate::rng::RngWrapper;
 use crate::cells::{ICellStrong};
-use web_sys::{Element, Document};
 
 pub mod distances;
 pub mod mask;
+pub mod mask_canvas;
 pub mod masked_grid;
 pub mod standard_grid;
 pub mod grid_base;

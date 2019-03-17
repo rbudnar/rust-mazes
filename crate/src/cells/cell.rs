@@ -123,7 +123,7 @@ impl Cell {
         } else {
             return true;
         }    
-        return false;
+        false
     }
 
     // pub fn unlink(_self: CellLinkStrong, other: CellLinkStrong, bidir: bool) {

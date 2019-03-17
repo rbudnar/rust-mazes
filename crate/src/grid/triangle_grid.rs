@@ -1,7 +1,6 @@
-use crate::grid::canvas::set_canvas_size;
-use std::rc::{Rc};
+use std::rc::Rc;
 use wasm_bindgen::prelude::JsValue;
-use crate::grid::{Grid, CellFormatter, canvas::{remove_old_canvas, setup_canvas, draw_shape, draw_cv_line, DrawMode}};
+use super::{Grid, CellFormatter, canvas::{remove_old_canvas, setup_grid_canvas, draw_shape, draw_line, DrawMode, set_canvas_size}};
 use crate::rng::RngWrapper;
 use crate::cells::{ICellStrong, triangle_cell::{TriangleCellStrong, TriangleCellWeak, TriangleCell}};
 
@@ -72,7 +71,7 @@ impl Grid for TriangleGrid {
         None
     }
 
-    fn to_string(&self, contents: &dyn CellFormatter) -> String {
+    fn to_string(&self, _contents: &dyn CellFormatter) -> String {
         "".to_string()
     }
 
@@ -89,7 +88,7 @@ impl Grid for TriangleGrid {
         let img_height = (height * (self.rows as f64)).trunc() as usize;
         
         remove_old_canvas(TRIANGLE_GRID);
-        let context = setup_canvas(TRIANGLE_GRID).unwrap();
+        let context = setup_grid_canvas(TRIANGLE_GRID).unwrap();
         context.set_fill_style(&JsValue::from_str("black"));
         context.set_stroke_style(&JsValue::from_str("black"));
         set_canvas_size(TRIANGLE_GRID, img_width, img_height);
@@ -121,18 +120,18 @@ impl Grid for TriangleGrid {
                         },
                         DrawMode::Line => {
                             if cell.borrow().west.is_none() {
-                                draw_cv_line(&context, west_x, base_y, mid_x, apex_y);
+                                draw_line(&context, west_x, base_y, mid_x, apex_y);
                             }
 
                             if cell.borrow().is_not_linked(&cell.borrow().east){
-                                draw_cv_line(&context, east_x, base_y, mid_x, apex_y);
+                                draw_line(&context, east_x, base_y, mid_x, apex_y);
                             }
 
                             let no_south = cell.borrow().upright() && cell.borrow().south.is_none();
                             let not_linked = !cell.borrow().upright() && cell.borrow().is_not_linked(&cell.borrow().north);
 
                             if no_south || not_linked {
-                                draw_cv_line(&context, east_x, base_y, west_x, base_y);
+                                draw_line(&context, east_x, base_y, west_x, base_y);
                             }                    
                         }
                     }                    
@@ -151,7 +150,7 @@ fn is_not_linked(cell: &TriangleCellStrong, other: &Option<TriangleCellWeak>) ->
     } else {
         return true;
     }    
-    return false;
+    false
 }
 
 impl TriangleGrid {
@@ -193,13 +192,11 @@ impl TriangleGrid {
                             cell.borrow_mut().south = Some(Rc::downgrade(&south));
                         }
                     }
-                } else {
-                    if row > 0 {
-                        if let Some(north) = self.cells[row - 1][col].clone() {
-                            cell.borrow_mut().north = Some(Rc::downgrade(&north));
-                        }
+                } else if row > 0 {
+                    if let Some(north) = self.cells[row - 1][col].clone() {
+                        cell.borrow_mut().north = Some(Rc::downgrade(&north));
                     }
-                }
+                }                
             }
         }
     }

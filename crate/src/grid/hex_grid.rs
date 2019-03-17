@@ -1,12 +1,8 @@
-use crate::grid::canvas::set_canvas_size;
-use crate::grid::canvas::draw_shape;
-use crate::grid::canvas::{remove_old_canvas, setup_canvas, draw_cv_line, DrawMode};
-use crate::grid::Grid;
-use crate::grid::CellFormatter;
-use crate::rng::RngWrapper;
-use crate::cells::{ICellStrong, hex_cell::{HexCellStrong, HexCellWeak, HexCell}};
 use std::rc::{Rc};
 use wasm_bindgen::prelude::JsValue;
+use super::{Grid, CellFormatter, canvas::{remove_old_canvas, setup_grid_canvas, draw_line, DrawMode, draw_shape, set_canvas_size}};
+use crate::rng::RngWrapper;
+use crate::cells::{ICellStrong, hex_cell::{HexCellStrong, HexCellWeak, HexCell}};
 
 pub static HEX_GRID: &str = "hex_grid";
 
@@ -75,7 +71,7 @@ impl Grid for HexGrid {
         None
     }
 
-    fn to_string(&self, contents: &dyn CellFormatter) -> String {
+    fn to_string(&self, _contents: &dyn CellFormatter) -> String {
         "".to_string()
     }
 
@@ -86,18 +82,18 @@ impl Grid for HexGrid {
     fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool) {
         let size = 20;
 
-        let size = size as f64;
+        let size = f64::from(size);
         
         let a_size = size / 2_f64;
         let b_size = size * 3_f64.sqrt() / 2_f64;
-        let width = size * 2_f64;
+        // let width = size * 2_f64;
         let height = b_size * 2_f64;
 
         let img_width = (3_f64 * a_size * (self.columns as f64) + a_size + 0.5_f64).trunc() as usize;
         let img_height = (height * (self.rows as f64) + b_size + 0.5_f64).trunc() as usize;
         
         remove_old_canvas(HEX_GRID);
-        let context = setup_canvas(HEX_GRID).unwrap();
+        let context = setup_grid_canvas(HEX_GRID).unwrap();
         set_canvas_size(HEX_GRID, img_width, img_height);
         context.set_fill_style(&JsValue::from_str("black"));
         context.set_stroke_style(&JsValue::from_str("black"));
@@ -134,27 +130,27 @@ impl Grid for HexGrid {
                         },
                         DrawMode::Line => {
                             if cell.borrow().southwest.is_none() {
-                                draw_cv_line(&context, x_fw, y_m, x_nw, y_s);
+                                draw_line(&context, x_fw, y_m, x_nw, y_s);
                             }
 
                             if cell.borrow().northwest.is_none() {
-                                draw_cv_line(&context, x_fw, y_m, x_nw, y_n);
+                                draw_line(&context, x_fw, y_m, x_nw, y_n);
                             }
 
                             if cell.borrow().north.is_none() {
-                                draw_cv_line(&context, x_nw, y_n, x_ne, y_n);
+                                draw_line(&context, x_nw, y_n, x_ne, y_n);
                             }
 
                             if is_not_linked(cell, &cell.borrow().northeast) {
-                                draw_cv_line(&context, x_ne, y_n, x_fe, y_m);
+                                draw_line(&context, x_ne, y_n, x_fe, y_m);
                             }
                             
                             if is_not_linked(cell, &cell.borrow().southeast) {
-                                draw_cv_line(&context, x_fe, y_m, x_ne, y_s);
+                                draw_line(&context, x_fe, y_m, x_ne, y_s);
                             }
 
                             if is_not_linked(cell, &cell.borrow().south) {
-                                draw_cv_line(&context, x_ne, y_s, x_nw, y_s);
+                                draw_line(&context, x_ne, y_s, x_nw, y_s);
                             }
                         }
                     }
@@ -173,7 +169,7 @@ fn is_not_linked(cell: &HexCellStrong, other: &Option<HexCellWeak>) -> bool {
     } else {
         return true;
     }    
-    return false;
+    false
 }
 
 impl HexGrid {

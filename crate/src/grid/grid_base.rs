@@ -3,7 +3,7 @@ use crate::grid::canvas::draw_shape;
 use wasm_bindgen::JsCast;
 use std::rc::{Rc};
 use wasm_bindgen::prelude::JsValue;
-use crate::grid::{CellFormatter, standard_grid::STANDARD_GRID, canvas::{setup_canvas, DrawMode, draw_cv_line, remove_old_canvas}};
+use crate::grid::{CellFormatter, standard_grid::STANDARD_GRID, canvas::{setup_grid_canvas, DrawMode, draw_line, remove_old_canvas}};
 use crate::cells::{ICellStrong, cell::{CellLinkStrong}};
 use crate::rng::RngWrapper;
 
@@ -24,7 +24,7 @@ impl GridBase {
         }
     }
 
-    pub fn to_string(&self, contents: &dyn CellFormatter) -> String {
+    pub fn to_string(&self, _contents: &dyn CellFormatter) -> String {
         let mut output = String::new();
         output += "\r";
 
@@ -256,7 +256,7 @@ impl GridBase {
 
     pub fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool) {
         remove_old_canvas(STANDARD_GRID);
-        let context = setup_canvas(STANDARD_GRID).unwrap();
+        let context = setup_grid_canvas(STANDARD_GRID).unwrap();
         let size = 15;
         
         set_canvas_size(STANDARD_GRID, size * self.columns, size * self.rows);
@@ -285,19 +285,19 @@ impl GridBase {
                         },
                         DrawMode::Line => {
                             if cell.borrow().north.is_none() {
-                                draw_cv_line(&context, x1, y1, x2, y1);
+                                draw_line(&context, x1, y1, x2, y1);
                             }
                             
                             if cell.borrow().west.is_none() {
-                                draw_cv_line(&context, x1, y1, x1, y2);
+                                draw_line(&context, x1, y1, x1, y2);
                             }
 
                             if cell.borrow().is_not_linked(&cell.borrow().east) {
-                                draw_cv_line(&context, x2, y1, x2, y2);
+                                draw_line(&context, x2, y1, x2, y2);
                             }
 
                             if cell.borrow().is_not_linked(&cell.borrow().south) {
-                                draw_cv_line(&context, x1, y2, x2, y2);
+                                draw_line(&context, x1, y2, x2, y2);
                             }
                         }
                     };
