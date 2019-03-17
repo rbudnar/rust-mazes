@@ -1,7 +1,7 @@
-use web_sys::{Document, Element};
+use crate::grid::canvas::set_canvas_size;
 use std::rc::{Rc};
 use wasm_bindgen::prelude::JsValue;
-use crate::grid::{Grid, CellFormatter, canvas::{cleanup_old_canvas, setup_canvas, draw_shape, draw_cv_line, DrawMode}};
+use crate::grid::{Grid, CellFormatter, canvas::{remove_old_canvas, setup_canvas, draw_shape, draw_cv_line, DrawMode}};
 use crate::rng::RngWrapper;
 use crate::cells::{ICellStrong, triangle_cell::{TriangleCellStrong, TriangleCellWeak, TriangleCell}};
 
@@ -81,15 +81,19 @@ impl Grid for TriangleGrid {
     }
 
     fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool) {
-        cleanup_old_canvas(TRIANGLE_GRID);
-        let context = setup_canvas(TRIANGLE_GRID).unwrap();
-        context.set_fill_style(&JsValue::from_str("black"));
-        context.set_stroke_style(&JsValue::from_str("black"));
         let size = 40_f64;
-
         let half_width = size / 2_f64;
         let height = size * 3_f64.sqrt() / 2_f64;
         let half_height = height / 2_f64;
+        let img_width = (size * ((self.columns as f64) + 1_f64) / 2_f64).trunc() as usize;
+        let img_height = (height * (self.rows as f64)).trunc() as usize;
+        
+        remove_old_canvas(TRIANGLE_GRID);
+        let context = setup_canvas(TRIANGLE_GRID).unwrap();
+        context.set_fill_style(&JsValue::from_str("black"));
+        context.set_stroke_style(&JsValue::from_str("black"));
+        set_canvas_size(TRIANGLE_GRID, img_width, img_height);
+
         for mode in [DrawMode::Background, DrawMode::Line].iter() {
             for cell in self.each_triangle_cell().iter() {
                 if let Some(cell) = cell {

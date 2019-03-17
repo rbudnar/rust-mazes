@@ -1,9 +1,9 @@
+use crate::grid::canvas::set_canvas_size;
 use std::rc::Rc;
 use std::f64::consts::PI;
-use web_sys::*;
 use wasm_bindgen::prelude::JsValue;
 use math::round;
-use crate::grid::{Grid, CellFormatter, canvas::{setup_canvas, cleanup_old_canvas, draw_cv_line, DrawMode}};
+use crate::grid::{Grid, CellFormatter, canvas::{setup_canvas, remove_old_canvas, draw_cv_line, DrawMode}};
 use crate::cells::{ICellStrong, polar_cell::{PolarCellLinkStrong, PolarCell}};
 use crate::rng::RngWrapper;
 
@@ -178,11 +178,13 @@ impl Grid for PolarGrid {
     }
 
     fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool) {
-        let cell_size = 20;
+        let size = 20;
+        let img_size = 2 * self.rows * size;
 
-        let img_size = 2 * self.rows * cell_size;
-        cleanup_old_canvas(POLAR_GRID);
+        remove_old_canvas(POLAR_GRID);
         let context = setup_canvas(POLAR_GRID).unwrap();
+        set_canvas_size(POLAR_GRID, img_size, img_size);
+        
         context.set_fill_style(&JsValue::from_str("black"));
         context.set_stroke_style(&JsValue::from_str("black"));
 
@@ -195,8 +197,8 @@ impl Grid for PolarGrid {
                     
 
                     let theta = 2.0 * PI / self.cells[c.row].len() as f64;
-                    let inner_radius = (c.row * cell_size) as f64;
-                    let outer_radius = ((c.row + 1) * cell_size) as f64;
+                    let inner_radius = (c.row * size) as f64;
+                    let outer_radius = ((c.row + 1) * size) as f64;
                     let theta_ccw = c.column as f64 * theta;
                     let theta_cw = (c.column + 1) as f64 * theta;
 
@@ -255,7 +257,7 @@ impl Grid for PolarGrid {
         }
         
         context.begin_path();
-        context.arc(center as f64, center as f64, (self.rows() * cell_size) as f64, 0.0, PI * 2.0).unwrap();
+        context.arc(center as f64, center as f64, (self.rows() * size) as f64, 0.0, PI * 2.0).unwrap();
         context.stroke();
     }
 }

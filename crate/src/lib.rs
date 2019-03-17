@@ -4,20 +4,16 @@
 #![feature(test)]
 #![allow(dead_code)]
 #[macro_use]
-// extern crate cfg_if;
-// extern crate test;
 mod algorithms;
 mod rng;
 mod grid;
 mod cells;
 
-use crate::grid::standard_grid::STANDARD_GRID;
 use crate::grid::GridType;
 use crate::grid::{Grid,
     standard_grid::StandardGrid,
     distances::DistanceGrid, 
     canvas::*,
-    grid_base::GridBase,
     polar_grid::*,
     hex_grid::*,
     triangle_grid::*
@@ -48,19 +44,9 @@ cfg_if::cfg_if! {
     }
 }
 
-static mut GRID: StandardGrid = StandardGrid {
-    grid: GridBase {
-        cells: Vec::new(),
-        rows: 1, columns: 1,
-        cells_: None
-    },
-};
-
-static mut COLORIZE: bool = true;
-
-static mut SECONDARY_GRID_TYPE: GridType = GridType::StandardGrid;
-
-static mut SECONDARY_GRID:  Option<Box<dyn Grid>> = None;
+pub static mut GRID_TYPE: GridType = GridType::StandardGrid;
+pub static mut COLORIZE: bool = true;
+static mut GRID:  Option<Box<dyn Grid>> = None;
 
 
 /****** ALGORITHMS ******/
@@ -100,14 +86,10 @@ pub fn recursive_backtracker(rows: usize, columns: usize) {
 #[wasm_bindgen]
 pub fn redisplay_grid() {
     unsafe {
-        if let Some(ref grid) = SECONDARY_GRID {
-            let secondary_distance_grid = prepare_distance_grid(&**grid);
-            // render_maze_web(&**grid, &secondary_distance_grid, COLORIZE);
-            grid.to_web(&secondary_distance_grid, COLORIZE);
+        if let Some(ref grid) = GRID {
+            let distance_grid = prepare_distance_grid(&**grid);
+            grid.to_web(&distance_grid, COLORIZE);
         }
-
-        // let distance_grid = prepare_distance_grid(&GRID);
-        // grid_to_web(&GRID, &distance_grid, COLORIZE);
     }
 }
 
@@ -122,17 +104,10 @@ pub fn on_colorize_change(colorize: bool) {
 #[wasm_bindgen]
 pub fn on_grid_type_change(grid_type: &str) {
     unsafe {
-        if let Some(_) = &SECONDARY_GRID {
-            match SECONDARY_GRID_TYPE {
-                GridType::StandardGrid => cleanup_old_canvas(STANDARD_GRID),
-                GridType::PolarGrid => cleanup_old_canvas(POLAR_GRID),
-                GridType::HexGrid => cleanup_old_canvas(HEX_GRID),
-                GridType::TriangleGrid => cleanup_old_canvas(TRIANGLE_GRID),
-                _ => ()
-            }            
-        }
+        clear_mask();
+        cleanup_canvas(&GRID_TYPE);
 
-        SECONDARY_GRID_TYPE = match grid_type {
+        GRID_TYPE = match grid_type {
             "standard" => GridType::StandardGrid,
             "polar" => GridType::PolarGrid,
             "hex" => GridType::HexGrid,
@@ -147,32 +122,25 @@ pub fn add_canvas() {
     append_canvas();
 }
 
-#[wasm_bindgen]
-pub fn apply_mask() {
-    unsafe{
-        canvas_to_mask(COLORIZE);
-    }
-}
-
 /****** HELPERS ******/
 
 fn build_and_display_grid(alg: impl MazeAlgorithm, rows: usize, columns: usize) {
     set_panic_hook();
     unsafe {        
-        SECONDARY_GRID = match SECONDARY_GRID_TYPE {
+        GRID = match GRID_TYPE {
             GridType::PolarGrid => Some(Box::new(PolarGrid::new(rows, columns))),
             GridType::HexGrid => Some(Box::new(HexGrid::new(rows, columns))),
             GridType::TriangleGrid => Some(Box::new(TriangleGrid::new(rows, columns))),
             GridType::StandardGrid => Some(Box::new(StandardGrid::new(rows, columns))),
         };
 
-        if let Some(ref grid) = SECONDARY_GRID {
-            render_secondary_grid(&**grid, alg);
+        if let Some(ref grid) = GRID {
+            render_grid(&**grid, alg);
         }
     }
 }
 
-fn render_secondary_grid(grid: &dyn Grid, alg: impl MazeAlgorithm) {
+fn render_grid(grid: &dyn Grid, alg: impl MazeAlgorithm) {
     let wasm_generator = wasm_rng::WasmRng;
     alg.on(grid, &wasm_generator);
     let distance_grid = prepare_distance_grid(grid);

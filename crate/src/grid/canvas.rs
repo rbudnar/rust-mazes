@@ -1,9 +1,16 @@
 
+use crate::COLORIZE;
+use crate::GRID_TYPE;
+use crate::grid::triangle_grid::TRIANGLE_GRID;
+use crate::grid::hex_grid::HEX_GRID;
+use crate::grid::polar_grid::POLAR_GRID;
+use crate::grid::standard_grid::STANDARD_GRID;
+use crate::grid::GridType;
 use web_sys::{EventTarget, ImageData};
 use wasm_bindgen::{JsCast, prelude::*};
 use web_sys::{HtmlElement, Node, HtmlCanvasElement, CanvasRenderingContext2d};
 use std::rc::Rc;
-use crate::grid::{Grid, CellFormatter, mask::Mask, masked_grid::MaskedGrid};
+use crate::grid::{Grid, mask::Mask, masked_grid::MaskedGrid};
 use crate::algorithms::{MazeAlgorithm, recursive_backtracker::RecursiveBacktracker};
 use crate::prepare_distance_grid;
 use crate::rng::wasm_rng::WasmRng;
@@ -15,9 +22,8 @@ static mut START_Y: i32 = 0;
 static mut IMG_DATA: Option<ImageData> = None;
 static MASK_CANVAS: &str = "mask_canvas";
 
-
 pub fn append_canvas() {
-    cleanup_old_canvas(MASK_CANVAS);
+    remove_old_canvas(MASK_CANVAS);
     let document = web_sys::window().unwrap().document().unwrap();
     let body = Node::from(document.body().unwrap());
     let canvas_container = document.create_element("div").unwrap();
@@ -59,29 +65,7 @@ fn setup_clear_button(document: &web_sys::Document, container: &web_sys::Element
     let clear_btn = clear_btn.dyn_ref::<HtmlElement>().unwrap();
     clear_btn.set_inner_text("Clear Mask");
 
-    let cb = Closure::wrap(Box::new(|| {
-        let document = web_sys::window().unwrap().document().unwrap();
-        
-        let canvas = document.get_element_by_id("mask_canvas").unwrap().dyn_into::<HtmlCanvasElement>().unwrap();
-        let context = canvas.get_context("2d")
-            .unwrap()
-            .unwrap()
-            .dyn_into::<CanvasRenderingContext2d>().unwrap();
-
-        // set canvas back to white, reset fill style for next drawing
-        context.set_fill_style(&JsValue::from_str("white"));    
-        context.fill_rect(0.0, 0.0, 400.0, 400.0);
-        context.set_fill_style(&JsValue::from_str("black"));
-
-        // Reset the invert mask button. If the entire canvas is "masked", then the algorithms will currently loop infinitely looking for cells. 
-        // TODO: Need to put in a fail safe for the above. The user can still apply a mask to the whole canvas if they really want to.
-        unsafe {
-            INVERT_MASK = false;
-        }
-        let invert_checkbox = document.get_element_by_id("invert_chk").unwrap();
-        let invert_checkbox = invert_checkbox.dyn_ref::<web_sys::HtmlInputElement>().unwrap();
-        invert_checkbox.set_checked(false);
-    }) as Box<dyn Fn()>);
+    let cb = Closure::wrap(Box::new(|| clear_mask()) as Box<dyn Fn()>);
 
     let b = clear_btn.dyn_ref::<EventTarget>().unwrap();
     b.add_event_listener_with_callback("click", cb.as_ref().unchecked_ref())?;
@@ -93,12 +77,41 @@ fn setup_clear_button(document: &web_sys::Document, container: &web_sys::Element
     Ok(())
 }
 
+pub fn clear_mask() {
+    let document = web_sys::window().unwrap().document().unwrap();    
+    let canvas = document.get_element_by_id("mask_canvas").unwrap().dyn_into::<HtmlCanvasElement>().unwrap();
+    let context = canvas.get_context("2d")
+        .unwrap()
+        .unwrap()
+        .dyn_into::<CanvasRenderingContext2d>().unwrap();
+
+    // set canvas back to white, reset fill style for next drawing
+    context.set_fill_style(&JsValue::from_str("white"));    
+    context.fill_rect(0.0, 0.0, 400.0, 400.0);
+    context.set_fill_style(&JsValue::from_str("black"));
+
+    // Reset the invert mask button. If the entire canvas is "masked", then the algorithms will currently loop infinitely looking for cells. 
+    // TODO: Need to put in a fail safe for the above. The user can still apply a mask to the whole canvas if they really want to.
+    unsafe {
+        INVERT_MASK = false;
+    }
+    let invert_checkbox = document.get_element_by_id("invert_chk").unwrap();
+    let invert_checkbox = invert_checkbox.dyn_ref::<web_sys::HtmlInputElement>().unwrap();
+    invert_checkbox.set_checked(false);
+}
+
 fn setup_apply_button(document: &web_sys::Document, container: &web_sys::Element) -> Result<(), JsValue> {
     let apply_btn = document.create_element("button")?;
     let apply_btn = apply_btn.dyn_ref::<HtmlElement>().unwrap();
     apply_btn.set_inner_text("Apply Mask");
 
-    let cb = Closure::wrap(Box::new(|| {canvas_to_mask(true)}) as Box<dyn Fn()>);
+    let cb = Closure::wrap(Box::new(|| {
+        unsafe{
+            cleanup_canvas(&GRID_TYPE);
+            GRID_TYPE = GridType::StandardGrid;
+            canvas_to_mask(COLORIZE);
+        }
+    }) as Box<dyn Fn()>);
     let b = apply_btn.dyn_ref::<EventTarget>().unwrap();
     b.add_event_listener_with_callback("click", cb.as_ref().unchecked_ref())?;
     container.append_child(&apply_btn)?;
@@ -205,6 +218,16 @@ fn setup_drawing(canvas: HtmlCanvasElement) -> Result<(), JsValue> {
     Ok(())
 }
 
+pub fn cleanup_canvas(grid_type: &GridType) {
+    match grid_type {
+        GridType::StandardGrid => remove_old_canvas(STANDARD_GRID),
+        GridType::PolarGrid => remove_old_canvas(POLAR_GRID),
+        GridType::HexGrid => remove_old_canvas(HEX_GRID),
+        GridType::TriangleGrid => remove_old_canvas(TRIANGLE_GRID),
+        _ => ()
+    }            
+}
+
 pub fn canvas_to_mask(colorize: bool) {
     let document = web_sys::window().unwrap().document().unwrap();
     let canvas = document.get_element_by_id(MASK_CANVAS).unwrap();
@@ -288,11 +311,20 @@ pub fn setup_canvas(element_id: &str) -> Result<CanvasRenderingContext2d, JsValu
     Ok(context)
 }
 
-pub fn cleanup_old_canvas(element_id: &str) {
+pub fn remove_old_canvas(element_id: &str) {
     let document = web_sys::window().unwrap().document().unwrap();
     let old_canvas = document.get_element_by_id(element_id);
     if let Some(old_canvas) = old_canvas {
         old_canvas.remove();
+    }
+}
+
+pub fn set_canvas_size(element_id: &str, width: usize, height: usize) {
+    let document = web_sys::window().unwrap().document().unwrap();
+    let canvas = document.get_element_by_id(element_id);
+    if let Some(canvas) = canvas {
+        canvas.set_attribute("height", &height.to_string()).unwrap();
+        canvas.set_attribute("width", &width.to_string()).unwrap();
     }
 }
 

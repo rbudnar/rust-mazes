@@ -1,7 +1,7 @@
+use crate::grid::canvas::set_canvas_size;
 use crate::grid::canvas::draw_shape;
-use crate::grid::canvas::{cleanup_old_canvas, setup_canvas, draw_cv_line, DrawMode};
+use crate::grid::canvas::{remove_old_canvas, setup_canvas, draw_cv_line, DrawMode};
 use crate::grid::Grid;
-use web_sys::{Document, Element};
 use crate::grid::CellFormatter;
 use crate::rng::RngWrapper;
 use crate::cells::{ICellStrong, hex_cell::{HexCellStrong, HexCellWeak, HexCell}};
@@ -84,13 +84,10 @@ impl Grid for HexGrid {
     }
 
     fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool) {
-        cleanup_old_canvas(HEX_GRID);
-        let context = setup_canvas(HEX_GRID).unwrap();
-        context.set_fill_style(&JsValue::from_str("black"));
-        context.set_stroke_style(&JsValue::from_str("black"));
+        let size = 20;
 
-
-        let size = 20_f64;
+        let size = size as f64;
+        
         let a_size = size / 2_f64;
         let b_size = size * 3_f64.sqrt() / 2_f64;
         let width = size * 2_f64;
@@ -98,6 +95,12 @@ impl Grid for HexGrid {
 
         let img_width = (3_f64 * a_size * (self.columns as f64) + a_size + 0.5_f64).trunc() as usize;
         let img_height = (height * (self.rows as f64) + b_size + 0.5_f64).trunc() as usize;
+        
+        remove_old_canvas(HEX_GRID);
+        let context = setup_canvas(HEX_GRID).unwrap();
+        set_canvas_size(HEX_GRID, img_width, img_height);
+        context.set_fill_style(&JsValue::from_str("black"));
+        context.set_stroke_style(&JsValue::from_str("black"));
 
         for mode in [DrawMode::Background, DrawMode::Line].iter() {
             for cell in self.each_hex_cell().iter() {

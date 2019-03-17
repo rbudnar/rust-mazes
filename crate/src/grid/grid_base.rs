@@ -1,12 +1,11 @@
+use crate::grid::canvas::set_canvas_size;
 use crate::grid::canvas::draw_shape;
-use web_sys::{Element, Document};
 use wasm_bindgen::JsCast;
 use std::rc::{Rc};
 use wasm_bindgen::prelude::JsValue;
-use crate::grid::{CellFormatter, standard_grid::STANDARD_GRID, canvas::{setup_canvas, DrawMode, draw_cv_line, cleanup_old_canvas}};
+use crate::grid::{CellFormatter, standard_grid::STANDARD_GRID, canvas::{setup_canvas, DrawMode, draw_cv_line, remove_old_canvas}};
 use crate::cells::{ICellStrong, cell::{CellLinkStrong}};
 use crate::rng::RngWrapper;
-
 
 #[derive(Debug)]
 pub struct GridBase {
@@ -195,7 +194,6 @@ impl GridBase {
         }
 
         self.create_cells();
-
     }
 
     pub fn cells(&self) -> &Vec<Vec<Option<ICellStrong>>> {
@@ -257,14 +255,15 @@ impl GridBase {
     // }
 
     pub fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool) {
-        cleanup_old_canvas(STANDARD_GRID);
+        remove_old_canvas(STANDARD_GRID);
         let context = setup_canvas(STANDARD_GRID).unwrap();
+        let size = 15;
+        
+        set_canvas_size(STANDARD_GRID, size * self.columns, size * self.rows);
+        let size = size as f64;
         context.set_fill_style(&JsValue::from_str("black"));
         context.set_stroke_style(&JsValue::from_str("black"));
-        
-        let size = 7_f64;
 
-        // for (j, row) in self.cells.iter().enumerate() {
         for mode in [DrawMode::Background, DrawMode::Line].iter() {
             for cell in self.each_std_cell() {    
                 if let Some(cell) = cell {
@@ -302,14 +301,6 @@ impl GridBase {
                             }
                         }
                     };
-                }
-                else {
-                    // web_sys::console::log_1(&JsValue::from_str("else no cell"));
-                    // let html_cell = document.create_element("div").unwrap();
-                    // add_class(&html_cell, "cell");
-                
-                    // html_cell.dyn_ref::<HtmlElement>().unwrap().style().set_property("background-color", "white").unwrap();
-                    // grid_container.append_child(&Node::from(html_cell)).unwrap();
                 }
             }
         }
