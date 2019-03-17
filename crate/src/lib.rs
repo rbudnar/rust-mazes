@@ -16,7 +16,6 @@ use crate::grid::GridType;
 use crate::grid::{Grid,
     standard_grid::StandardGrid,
     distances::DistanceGrid, 
-    grid_web::*,
     canvas::*,
     grid_base::GridBase,
     polar_grid::*,
@@ -61,7 +60,7 @@ static mut GRID: StandardGrid = StandardGrid {
 
 static mut COLORIZE: bool = true;
 
-static mut SECONDARY_GRID_TYPE: GridType = GridType::PolarGrid;
+static mut SECONDARY_GRID_TYPE: GridType = GridType::StandardGrid;
 
 static mut SECONDARY_GRID:  Option<Box<dyn Grid>> = None;
 
@@ -105,11 +104,12 @@ pub fn redisplay_grid() {
     unsafe {
         if let Some(ref grid) = SECONDARY_GRID {
             let secondary_distance_grid = prepare_distance_grid(&**grid);
-            render_maze_web(&**grid, &secondary_distance_grid, COLORIZE);
+            // render_maze_web(&**grid, &secondary_distance_grid, COLORIZE);
+            grid.to_web(&secondary_distance_grid, COLORIZE);
         }
 
-        let distance_grid = prepare_distance_grid(&GRID);
-        grid_to_web(&GRID, &distance_grid, COLORIZE);
+        // let distance_grid = prepare_distance_grid(&GRID);
+        // grid_to_web(&GRID, &distance_grid, COLORIZE);
     }
 }
 
@@ -151,7 +151,9 @@ pub fn add_canvas() {
 
 #[wasm_bindgen]
 pub fn apply_mask() {
-    canvas_to_mask();
+    unsafe{
+        canvas_to_mask(COLORIZE);
+    }
 }
 
 /****** HELPERS ******/
@@ -159,11 +161,6 @@ pub fn apply_mask() {
 fn build_and_display_grid(alg: impl MazeAlgorithm, rows: usize, columns: usize) {
     set_panic_hook();
     unsafe {        
-        // GRID = StandardGrid::new(rows, columns);
-        // let wasm_generator = wasm_rng::WasmRng;
-        // alg.on(&GRID, &wasm_generator);
-        // let distance_grid = prepare_distance_grid(&GRID);
-
         SECONDARY_GRID = match SECONDARY_GRID_TYPE {
             GridType::PolarGrid => Some(Box::new(PolarGrid::new(rows, columns))),
             GridType::HexGrid => Some(Box::new(HexGrid::new(rows, columns))),
@@ -174,9 +171,6 @@ fn build_and_display_grid(alg: impl MazeAlgorithm, rows: usize, columns: usize) 
         if let Some(ref grid) = SECONDARY_GRID {
             render_secondary_grid(&**grid, alg);
         }
-        
-
-        // grid_to_web(&GRID, &distance_grid, COLORIZE);        
     }
 }
 
@@ -185,7 +179,7 @@ fn render_secondary_grid(grid: &dyn Grid, alg: impl MazeAlgorithm) {
     alg.on(grid, &wasm_generator);
     let distance_grid = prepare_distance_grid(grid);
     unsafe {
-        render_maze_web(grid, &distance_grid, COLORIZE);
+        grid.to_web(&distance_grid, COLORIZE);
     }
 }
 

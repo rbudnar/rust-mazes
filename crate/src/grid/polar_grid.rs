@@ -9,7 +9,6 @@ use crate::rng::RngWrapper;
 
 pub static POLAR_GRID: &str = "polar_grid";
 
-
 pub struct PolarGrid {
     pub cells: Vec<Vec<Option<PolarCellLinkStrong>>>,
     pub rows: usize, 
@@ -100,7 +99,7 @@ impl PolarGrid {
 
 impl Grid for PolarGrid {
     fn new_cell(&self, row: usize, column: usize) -> ICellStrong {
-        PolarCell::new(0,0)
+        PolarCell::new(row, column)
     }
 
     fn prepare_grid(&mut self) {
@@ -178,7 +177,7 @@ impl Grid for PolarGrid {
         self.rows * self.columns
     }
 
-    fn to_web(&self, _document: &Document, _grid_container: &Element, formatter: &dyn CellFormatter, colorize: bool) {
+    fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool) {
         let cell_size = 20;
 
         let img_size = 2 * self.rows * cell_size;

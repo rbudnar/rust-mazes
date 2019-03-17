@@ -83,7 +83,7 @@ impl Grid for HexGrid {
         self.rows * self.columns
     }
 
-    fn to_web(&self, document: &Document, grid_container: &Element, formatter: &dyn CellFormatter, colorize: bool) {
+    fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool) {
         cleanup_old_canvas(HEX_GRID);
         let context = setup_canvas(HEX_GRID).unwrap();
         context.set_fill_style(&JsValue::from_str("black"));

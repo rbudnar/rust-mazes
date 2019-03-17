@@ -76,7 +76,7 @@ impl Grid for StandardGrid {
         self.grid.rows * self.grid.columns
     }
 
-    fn to_web(&self, document: &Document, grid_container: &Element, formatter: &dyn CellFormatter, colorize: bool) {
-        self.grid.to_web(document, grid_container, formatter, colorize);
+    fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool) {
+        self.grid.to_web(formatter, colorize);
     }
 }

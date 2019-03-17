@@ -3,7 +3,7 @@ use web_sys::{EventTarget, ImageData};
 use wasm_bindgen::{JsCast, prelude::*};
 use web_sys::{HtmlElement, Node, HtmlCanvasElement, CanvasRenderingContext2d};
 use std::rc::Rc;
-use crate::grid::{grid_web::grid_to_web, Grid, CellFormatter, mask::Mask, masked_grid::MaskedGrid};
+use crate::grid::{Grid, CellFormatter, mask::Mask, masked_grid::MaskedGrid};
 use crate::algorithms::{MazeAlgorithm, recursive_backtracker::RecursiveBacktracker};
 use crate::prepare_distance_grid;
 use crate::rng::wasm_rng::WasmRng;
@@ -98,7 +98,7 @@ fn setup_apply_button(document: &web_sys::Document, container: &web_sys::Element
     let apply_btn = apply_btn.dyn_ref::<HtmlElement>().unwrap();
     apply_btn.set_inner_text("Apply Mask");
 
-    let cb = Closure::wrap(Box::new(|| {canvas_to_mask()}) as Box<dyn Fn()>);
+    let cb = Closure::wrap(Box::new(|| {canvas_to_mask(true)}) as Box<dyn Fn()>);
     let b = apply_btn.dyn_ref::<EventTarget>().unwrap();
     b.add_event_listener_with_callback("click", cb.as_ref().unchecked_ref())?;
     container.append_child(&apply_btn)?;
@@ -205,7 +205,7 @@ fn setup_drawing(canvas: HtmlCanvasElement) -> Result<(), JsValue> {
     Ok(())
 }
 
-pub fn canvas_to_mask() {
+pub fn canvas_to_mask(colorize: bool) {
     let document = web_sys::window().unwrap().document().unwrap();
     let canvas = document.get_element_by_id(MASK_CANVAS).unwrap();
     
@@ -256,13 +256,9 @@ pub fn canvas_to_mask() {
     let masked_grid = MaskedGrid::new(mask);
     RecursiveBacktracker.on(&masked_grid, &WasmRng);
     let distance_grid = prepare_distance_grid(&masked_grid);
-    grid_to_web(&masked_grid, &distance_grid, false);    
-}
-
-pub fn render_maze_web(grid: &dyn Grid, formatter: &dyn CellFormatter, colorize: bool) {
-    let document = web_sys::window().unwrap().document().unwrap();
-    let grid_container = document.create_element("div").unwrap();
-    grid.to_web(&document, &grid_container, formatter, colorize);
+    // grid_to_web(&masked_grid, &distance_grid, false);    
+    // render_maze_web(&masked_grid, &distance_grid, colorize);
+    masked_grid.to_web(&distance_grid, colorize);
 }
 
 pub fn setup_canvas(element_id: &str) -> Result<CanvasRenderingContext2d, JsValue> {

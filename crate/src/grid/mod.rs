@@ -2,7 +2,6 @@ use crate::rng::RngWrapper;
 use crate::cells::{ICellStrong};
 use web_sys::{Element, Document};
 
-pub mod grid_web;
 pub mod distances;
 pub mod mask;
 pub mod masked_grid;
@@ -29,7 +28,7 @@ pub trait Grid {
     fn get_cell(&self, row: usize, column: usize) -> Option<ICellStrong>;
     fn to_string(&self, contents: &dyn CellFormatter) -> String;
     fn size(&self) -> usize;
-    fn to_web(&self, document: &Document, grid_container: &Element, formatter: &dyn CellFormatter, colorize: bool);
+    fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool);
 }
 
 pub enum GridType {

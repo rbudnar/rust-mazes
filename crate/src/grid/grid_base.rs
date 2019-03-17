@@ -1,18 +1,11 @@
-use crate::grid::canvas::draw_cv_line;
-use crate::grid::standard_grid::STANDARD_GRID;
-use crate::grid::canvas::setup_canvas;
-use crate::grid::canvas::cleanup_old_canvas;
-use crate::grid::CellFormatter;
-use crate::grid::grid_web::add_bg_color;
-use web_sys::{HtmlElement, Node};
+use crate::grid::canvas::draw_shape;
+use web_sys::{Element, Document};
 use wasm_bindgen::JsCast;
-use crate::grid::grid_web::add_class;
-use web_sys::Element;
-use web_sys::Document;
-use crate::cells::{ICellStrong, ICell, cell::{CellLinkStrong, Cell}};
-use crate::rng::RngWrapper;
 use std::rc::{Rc};
 use wasm_bindgen::prelude::JsValue;
+use crate::grid::{CellFormatter, standard_grid::STANDARD_GRID, canvas::{setup_canvas, DrawMode, draw_cv_line, cleanup_old_canvas}};
+use crate::cells::{ICellStrong, cell::{CellLinkStrong}};
+use crate::rng::RngWrapper;
 
 
 #[derive(Debug)]
@@ -263,134 +256,52 @@ impl GridBase {
     //         .collect()
     // }
 
-    // pub fn to_web(&self, document: &Document, grid_container: &Element, formatter: &dyn CellFormatter, colorize: bool) {
-    //     let cells = self.cells();
-
-    //     for (i, row) in cells.iter().enumerate() {
-    //         for (j, cell) in row.iter().enumerate() {    
-    //             if let Some(cell) = cell {
-    //                 let html_cell = document.create_element("div").unwrap();
-    //                 add_class(&html_cell, "cell");
-
-    //                 // Top of maze
-    //                 if i == 0 || (i > 0 && self.cells()[i-1][j].is_none()) {
-    //                     add_class(&html_cell, "bt");
-    //                 }
-
-    //                 // bottom of maze
-    //                 if i == self.rows - 1 {
-    //                     add_class(&html_cell, "bb");
-    //                 }
-    //                 // left side 
-    //                 if j == 0  || ( j > 0 && self.cells()[i][j-1].is_none()) {
-    //                     add_class(&html_cell, "bl");
-    //                 }
-
-    //                 // right side
-    //                 if j == self.columns -1 {
-    //                     add_class(&html_cell, "br");
-    //                 }
-
-    //                 if let Some(c) = cell.borrow().as_any().downcast_ref::<Cell>() {
-    //                     let east = c.east.as_ref();
-    //                     if !(east.is_some() && c.is_linked(east.unwrap().upgrade().unwrap())) {
-    //                         add_class(&html_cell, "br");            
-    //                     }
-
-    //                     let south = c.south.as_ref();
-    //                     if !(south.is_some() && c.is_linked(south.unwrap().upgrade().unwrap())) {
-    //                         add_class(&html_cell, "bb");            
-    //                     }
-    //                 }
-
-    //                 let c = html_cell.dyn_ref::<HtmlElement>().unwrap().clone();
-    //                 if colorize {
-    //                     add_bg_color(&c, cell, formatter);
-    //                 }
-    //                 grid_container.append_child(&Node::from(html_cell)).unwrap();
-    //             }
-    //             else {
-    //                 // web_sys::console::log_1(&JsValue::from_str("else no cell"));
-    //                 let html_cell = document.create_element("div").unwrap();
-    //                 add_class(&html_cell, "cell");
-                
-    //                 html_cell.dyn_ref::<HtmlElement>().unwrap().style().set_property("background-color", "white").unwrap();
-    //                 grid_container.append_child(&Node::from(html_cell)).unwrap();
-    //             }
-    //         }
-    //     }
-    // }
-
-    pub fn to_web(&self, document: &Document, grid_container: &Element, formatter: &dyn CellFormatter, colorize: bool) {
+    pub fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool) {
         cleanup_old_canvas(STANDARD_GRID);
         let context = setup_canvas(STANDARD_GRID).unwrap();
         context.set_fill_style(&JsValue::from_str("black"));
         context.set_stroke_style(&JsValue::from_str("black"));
         
-        let size = 30_f64;
+        let size = 7_f64;
 
-        // let cells = self.cells;
-
-        for (i, row) in self.cells.iter().enumerate() {
-            for (j, cell) in row.iter().enumerate() {    
+        // for (j, row) in self.cells.iter().enumerate() {
+        for mode in [DrawMode::Background, DrawMode::Line].iter() {
+            for cell in self.each_std_cell() {    
                 if let Some(cell) = cell {
-                    // let html_cell = document.create_element("div").unwrap();
-                    // add_class(&html_cell, "cell");
-                    let x_ln = (cell.borrow().row as f64) * size;
-                    let y_ln = (cell.borrow().column as f64) * size;
-                    let x_rn = (cell.borrow().row as f64) * size + size;
-                    let y_rn = (cell.borrow().column as f64) * size;
-                    
-                    let x_ls = ((cell.borrow().row) as f64) * size;
-                    let y_ls = ((cell.borrow().column) as f64) * size + size;
-                    let x_rs = ((cell.borrow().row) as f64) * size + size;
-                    let y_rs = ((cell.borrow().column) as f64) * size + size;
-                    
-                    // Top of maze                    
-                    if i == 0 || (i > 0 && self.cells()[i-1][j].is_none()) {
-                        // add_class(&html_cell, "bt");
-                        draw_cv_line(&context, x_ln, y_ln, x_rn, y_rn);
-                    }
-                    
-                    // draw_cv_line(&context, x_rn, y_rn, x_rs, y_rs);
-                    // draw_cv_line(&context, x_rs, y_rs, x_ls, y_ls);
-                    // draw_cv_line(&context, x_ls, y_ls, x_ln, y_ln);
-                    // bottom of maze
-                    if i == self.rows - 1 {
-                        // add_class(&html_cell, "bb");
-                        draw_cv_line(&context, x_rs, y_rs, x_ls, y_ls);
-                    }
-                    // left side 
-                    if j == 0  || ( j > 0 && self.cells()[i][j-1].is_none()) {
-                        // add_class(&html_cell, "bl");
-                        draw_cv_line(&context, x_ls, y_ls, x_ln, y_ln);
-                    }
 
-                    // right side
-                    if j == self.columns -1 {
-                        // add_class(&html_cell, "br");
-                        draw_cv_line(&context, x_rn, y_rn, x_rs, y_rs);
-                    }
+                    let x1 = (cell.borrow().column as f64) * size;
+                    let y1 = (cell.borrow().row as f64) * size;
+                    let x2 = (cell.borrow().column as f64) * size + size;
+                    let y2 = (cell.borrow().row as f64) * size + size;
 
-                    if let Some(c) = cell.borrow().as_any().downcast_ref::<Cell>() {
-                        let east = c.east.as_ref();
-                        if !(east.is_some() && c.is_linked(east.unwrap().upgrade().unwrap())) {
-                            // add_class(&html_cell, "br");   
-                            draw_cv_line(&context, x_rn, y_rn, x_rs, y_rs);         
+
+                    match mode {
+                        DrawMode::Background => { 
+                            if colorize {
+                                let points = vec![(x1, y1), (x2, y1), (x2, y2), (x1, y2)];
+                                let ics: ICellStrong =  Rc::clone(&cell) as ICellStrong;
+                                let color = formatter.background_color(&ics);
+                                draw_shape(&context, points, &color);
+                            }
+                        },
+                        DrawMode::Line => {
+                            if cell.borrow().north.is_none() {
+                                draw_cv_line(&context, x1, y1, x2, y1);
+                            }
+                            
+                            if cell.borrow().west.is_none() {
+                                draw_cv_line(&context, x1, y1, x1, y2);
+                            }
+
+                            if cell.borrow().is_not_linked(&cell.borrow().east) {
+                                draw_cv_line(&context, x2, y1, x2, y2);
+                            }
+
+                            if cell.borrow().is_not_linked(&cell.borrow().south) {
+                                draw_cv_line(&context, x1, y2, x2, y2);
+                            }
                         }
-
-                        let south = c.south.as_ref();
-                        if !(south.is_some() && c.is_linked(south.unwrap().upgrade().unwrap())) {
-                            // add_class(&html_cell, "bb");            
-                            draw_cv_line(&context, x_rs, y_rs, x_ls, y_ls);
-                        }
-                    }
-
-                    // let c = html_cell.dyn_ref::<HtmlElement>().unwrap().clone();
-                    if colorize {
-                        // add_bg_color(&c, cell, formatter);
-                    }
-                    // grid_container.append_child(&Node::from(html_cell)).unwrap();
+                    };
                 }
                 else {
                     // web_sys::console::log_1(&JsValue::from_str("else no cell"));

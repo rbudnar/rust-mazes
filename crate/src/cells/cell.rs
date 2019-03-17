@@ -114,6 +114,18 @@ impl Cell {
         })
     }
 
+    pub fn is_not_linked(&self, other: &Option<CellLinkWeak>) -> bool {
+        if let Some(other) = other.clone() {
+            let other = other.upgrade();
+            if !self.is_linked(other.unwrap()) {
+                return true;
+            }
+        } else {
+            return true;
+        }    
+        return false;
+    }
+
     // pub fn unlink(_self: CellLinkStrong, other: CellLinkStrong, bidir: bool) {
     //     let index = _self.borrow().index_of_other(Rc::clone(&other));
 
