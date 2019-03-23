@@ -1,3 +1,4 @@
+use crate::cells::ICellStrong;
 use crate::algorithms::MazeAlgorithm;
 use crate::rng::RngWrapper;
 use crate::grid::{Grid};
@@ -13,7 +14,7 @@ pub struct AldousBroder;
 /// #3b if that neighbor HAS been visited, set the neighbor as the current cell, but do not link.
 /// Repeat until every cell has been visited.
 impl MazeAlgorithm for AldousBroder {
-    fn on(&self, grid: &dyn Grid, rng_generator: &dyn RngWrapper) {
+    fn on(&self, grid: &dyn Grid, rng_generator: &dyn RngWrapper<Shuffle=ICellStrong>) {
 
         let mut cell = grid.random_cell(rng_generator).unwrap();
        

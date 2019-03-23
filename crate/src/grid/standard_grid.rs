@@ -38,7 +38,7 @@ impl Grid for StandardGrid {
         }   
     }
 
-    fn random_cell(&self, rng: &dyn RngWrapper) -> Option<ICellStrong> {
+    fn random_cell(&self, rng: &dyn RngWrapper<Shuffle=ICellStrong>) -> Option<ICellStrong> {
         let row: usize = rng.gen_range(0, self.grid.rows);
         let col: usize = rng.gen_range(0, self.grid.columns);
         self.get_cell(row, col)

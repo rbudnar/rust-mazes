@@ -8,7 +8,7 @@ use std::rc::{Rc};
 pub struct Wilson;
 
 impl MazeAlgorithm for Wilson {
-    fn on(&self, grid: &dyn Grid, rng_generator: &dyn RngWrapper) {
+    fn on(&self, grid: &dyn Grid, rng_generator: &dyn RngWrapper<Shuffle=ICellStrong>) {
         let mut unvisited: Vec<ICellStrong> = vec![];
 
         for cell in grid.each_cell().iter() {

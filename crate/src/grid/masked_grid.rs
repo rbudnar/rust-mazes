@@ -46,7 +46,7 @@ impl Grid for MaskedGrid {
         }   
     }
 
-    fn random_cell(&self, rng: &dyn RngWrapper) -> Option<ICellStrong> {
+    fn random_cell(&self, rng: &dyn RngWrapper<Shuffle=ICellStrong>) -> Option<ICellStrong> {
         let (row, col) = self.mask.borrow().rand_location(rng);
         
         if let Some(c) = self.grid.cells[row][col].clone() {

@@ -13,7 +13,7 @@ pub struct HuntAndKill;
 /// 3) From top left corner of maze, scan left to right for the first unvisited cell
 /// 4) Link and continue until all cells are visited
 impl MazeAlgorithm for HuntAndKill {
-    fn on(&self, grid: &dyn Grid, rng_generator: &dyn RngWrapper) {
+    fn on(&self, grid: &dyn Grid, rng_generator: &dyn RngWrapper<Shuffle=ICellStrong>) {
         let mut current = grid.random_cell(rng_generator);
         while current.is_some() {
             let c = current.clone().unwrap();

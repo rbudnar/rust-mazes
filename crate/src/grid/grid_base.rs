@@ -1,11 +1,11 @@
-use crate::grid::canvas::set_canvas_size;
-use crate::grid::canvas::draw_shape;
-use wasm_bindgen::JsCast;
 use std::rc::{Rc};
-use wasm_bindgen::prelude::JsValue;
-use crate::grid::{CellFormatter, standard_grid::STANDARD_GRID, canvas::{setup_grid_canvas, DrawMode, draw_line, remove_old_canvas}};
-use crate::cells::{ICellStrong, cell::{CellLinkStrong}};
+use wbg_rand::{Rng, wasm_rng};
+use wasm_bindgen::{prelude::JsValue, JsCast};
+use crate::grid::{CellFormatter, standard_grid::STANDARD_GRID, canvas::{setup_grid_canvas, DrawMode, draw_line, remove_old_canvas, set_canvas_size, draw_shape}};
+use crate::cells::{ICellStrong, cell::{CellLinkStrong}, ICell};
 use crate::rng::RngWrapper;
+use crate::cells::cell::Cell;
+// Not sure how to get around explicitly using wasm_rng.
 
 #[derive(Debug)]
 pub struct GridBase {
@@ -124,7 +124,7 @@ impl GridBase {
         output
     }
 
-    pub fn random_cell(&self, rng: &dyn RngWrapper) -> Option<ICellStrong> {
+    pub fn random_cell(&self, rng: &dyn RngWrapper<Shuffle=ICellStrong>) -> Option<ICellStrong> {
         let row: usize = rng.gen_range(0, self.rows);
         let col: usize = rng.gen_range(0, self.columns);
         self.get_cell(row, col)
@@ -234,8 +234,23 @@ impl GridBase {
         self.cells[row][column].clone()
     }
 
-    // pub fn dead_ends(&self) -> Vec<Option<CellLinkStrong>> {
-    //     self.each_cell().iter()
+    pub fn dead_ends(&self) -> Vec<ICellStrong> {
+        self.each_cell().iter()
+            .filter(|c| {
+                if let Some(c) = c {
+                    c.borrow().links().len() == 1
+                } else {
+                    false
+                }
+            })
+            .map(|x| {
+                Rc::clone(x.as_ref().unwrap())
+            })
+            .collect()
+    }
+
+    // pub fn dead_ends(&self) -> Vec<CellLinkStrong> {
+    //     self.each_std_cell().iter()
     //         .filter(|c| {
     //             if let Some(c) = c {
     //                 c.borrow().links.len() == 1
@@ -244,15 +259,43 @@ impl GridBase {
     //             }
     //         })
     //         .map(|x| {
-    //             if let Some(x) = x {
-    //                 Some(Rc::clone(x))
-    //             }
-    //             else {
-    //                 None
-    //             }
+    //             Rc::clone(&x.as_ref().unwrap())
     //         })
     //         .collect()
     // }
+
+    
+
+    pub fn braid(&self, rng: &dyn RngWrapper<Shuffle=ICellStrong>) {
+        let p = 1_f64;
+        let mut dead_ends = self.dead_ends();
+        rng.shuffle(&mut dead_ends);
+        let rand: f64 = wasm_rng().gen_range(0_f64, 1_f64);
+
+        // for cell in to_cls(&dead_ends).iter() {
+        //     let cell = cell.borrow();
+        //     if cell.links.len() != 1 || p > rand {
+        //         continue;
+        //     }
+
+        //     let neighbors = cell.neighbors_std();
+        //     let neighbors: Vec<CellLinkStrong> = neighbors.iter().filter(|c| {
+        //         let c = Rc::clone(c);
+        //         !cell.is_linked(c)
+        //     }).map(|c| Rc::clone(c)).collect();
+
+        //     let mut best: Vec<CellLinkStrong> = neighbors.iter()
+        //         .filter(|c| c.borrow().links.len() == 1)
+        //         .map(|x| Rc::clone(x))
+        //         .collect();
+
+        //     if best.is_empty() {
+        //         best = neighbors;
+        //     }
+
+        // }
+
+    }
 
     pub fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool) {
         remove_old_canvas(STANDARD_GRID);
@@ -306,3 +349,11 @@ impl GridBase {
         }
     }
 }
+
+// pub fn to_cls(vec: &Vec<ICellStrong>) -> Vec<CellLinkStrong> {
+//     vec.iter()
+//         .map(|x| { 
+//             let cell = x.borrow().as_any().downcast_ref::<Cell>().unwrap();
+//             Rc::clone(&cell.self_rc.upgrade().unwrap())            
+//         }).collect()
+// }

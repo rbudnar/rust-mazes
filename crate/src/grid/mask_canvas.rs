@@ -1,5 +1,6 @@
 use web_sys::{EventTarget, ImageData};
 use std::rc::Rc;
+use std::cell::RefCell;
 use wasm_bindgen::{JsCast, prelude::*};
 use web_sys::{HtmlElement, Node, HtmlCanvasElement, CanvasRenderingContext2d};
 
@@ -7,15 +8,49 @@ use super::{Grid, mask::Mask, masked_grid::MaskedGrid, GridType, canvas::{remove
 use crate::algorithms::{MazeAlgorithm, recursive_backtracker::RecursiveBacktracker};
 use crate::prepare_distance_grid;
 use crate::rng::wasm_rng::WasmRng;
-use crate::COLORIZE;
-use crate::GRID_TYPE;
+use crate::{get_colorize, get_grid_type, set_grid_Type};
 
 static SAMPLE_RESOLUTION: usize = 5;
-static mut INVERT_MASK: bool = false;
-static mut START_X: i32 = 0;
-static mut START_Y: i32 = 0;
-static mut IMG_DATA: Option<ImageData> = None;
 static MASK_CANVAS: &str = "mask_canvas";
+
+thread_local! {
+    static INVERT_MASK: RefCell<bool> = RefCell::new(false);
+    static START_X: RefCell<f64> = RefCell::new(0.0);
+    static START_Y: RefCell<f64> = RefCell::new(0.0);
+    static IMG_DATA: RefCell<Option<ImageData>> = RefCell::new(None);
+}
+
+fn get_invert_mask() -> bool {
+    INVERT_MASK.with(|m| *m.borrow())
+}
+
+fn get_start_x() -> f64 {
+    START_X.with(|x| *x.borrow())
+}
+
+fn get_start_y() -> f64 {
+    START_Y.with(|y| *y.borrow())
+}
+
+fn get_img_data() -> Option<ImageData> {
+    IMG_DATA.with(|img| img.borrow().clone())
+}
+
+fn set_invert_mask(value: bool) {
+    INVERT_MASK.with(|m| *m.borrow_mut() = value);
+}
+
+fn set_start_x(value: f64) {
+    START_X.with(|x| *x.borrow_mut() = value);
+}
+
+fn set_start_y(value: f64) {
+    START_Y.with(|y| *y.borrow_mut() = value);
+}
+
+fn set_img_data(img_data: Option<ImageData>) {
+    IMG_DATA.with(|img| *img.borrow_mut() = img_data);
+}
 
 pub fn append_mask_canvas() {
     remove_old_canvas(MASK_CANVAS);
@@ -87,9 +122,7 @@ pub fn clear_mask() {
 
     // Reset the invert mask button. If the entire canvas is "masked", then the algorithms will currently loop infinitely looking for cells. 
     // TODO: Need to put in a fail safe for the above. The user can still apply a mask to the whole canvas if they really want to.
-    unsafe {
-        INVERT_MASK = false;
-    }
+    set_invert_mask(false);
     let invert_checkbox = document.get_element_by_id("invert_chk").unwrap();
     let invert_checkbox = invert_checkbox.dyn_ref::<web_sys::HtmlInputElement>().unwrap();
     invert_checkbox.set_checked(false);
@@ -101,11 +134,9 @@ fn setup_apply_button(document: &web_sys::Document, container: &web_sys::Element
     apply_btn.set_inner_text("Apply Mask");
 
     let cb = Closure::wrap(Box::new(|| {
-        unsafe{
-            cleanup_canvas(&GRID_TYPE);
-            GRID_TYPE = GridType::StandardGrid;
-            canvas_to_mask(COLORIZE);
-        }
+        cleanup_canvas(&get_grid_type());
+        set_grid_Type(GridType::StandardGrid);
+        canvas_to_mask(get_colorize());
     }) as Box<dyn Fn()>);
     let b = apply_btn.dyn_ref::<EventTarget>().unwrap();
     b.add_event_listener_with_callback("click", cb.as_ref().unchecked_ref())?;
@@ -131,12 +162,10 @@ fn setup_invert_box(document: &web_sys::Document, container: &web_sys::Element) 
     flex_container.append_child(&label)?;
     container.append_child(&flex_container)?;
     let cb = Closure::wrap(Box::new(|event: web_sys::Event| {
-        unsafe {
-            if let Some(target) = event.target() {
-                if let Some(input_el) = wasm_bindgen::JsCast::dyn_ref::<web_sys::HtmlInputElement>(&target)
-                {
-                    INVERT_MASK = input_el.checked();                    
-                }
+        if let Some(target) = event.target() {
+            if let Some(input_el) = wasm_bindgen::JsCast::dyn_ref::<web_sys::HtmlInputElement>(&target)
+            {
+                set_invert_mask(input_el.checked());                    
             }
         }
     }) as Box<dyn Fn(_)>);
@@ -169,15 +198,15 @@ fn setup_drawing(canvas: HtmlCanvasElement) -> Result<(), JsValue> {
     let cv4 = canvas.clone();
 
     let mouse_move = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
-        let end_x = event.offset_x();
-        let end_y = event.offset_y();
+        let end_x = f64::from(event.offset_x());
+        let end_y = f64::from(event.offset_y());
 
-        unsafe{
-            context.clear_rect(0.0,0.0,400.0,400.0);
-            context.put_image_data(IMG_DATA.as_ref().unwrap(), 0.0, 0.0).unwrap();
-            context.fill_rect(f64::from(START_X), f64::from(START_Y), f64::from(end_x - START_X), f64::from(end_y - START_Y));
+        context.clear_rect(0.0,0.0,400.0,400.0);
+        context.put_image_data(&get_img_data().unwrap(), 0.0, 0.0).unwrap();
+        let start_x = get_start_x();
+        let start_y = get_start_y();
+        context.fill_rect(start_x, start_y, end_x - start_x, end_y - start_y);
             // web_sys::console::log_1(&JsValue::from_str(&format!("move {} {}", START_X, START_Y)));
-        }
 
     }) as Box<dyn FnMut(_)>);
 
@@ -185,11 +214,9 @@ fn setup_drawing(canvas: HtmlCanvasElement) -> Result<(), JsValue> {
     let mm1 = mm.clone();
     
     let mouse_down = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
-        unsafe {
-            IMG_DATA = context2.get_image_data(0.0, 0.0, 400.0, 400.0).ok();
-            START_X = event.offset_x();
-            START_Y = event.offset_y();
-        }
+        set_img_data(context2.get_image_data(0.0, 0.0, 400.0, 400.0).ok());
+        set_start_x(f64::from(event.offset_x()));
+        set_start_y(f64::from(event.offset_y()));
         cv.add_event_listener_with_callback("mousemove", (*mm).as_ref().unchecked_ref()).unwrap();
 
     }) as Box<dyn FnMut(_)>);
@@ -198,13 +225,12 @@ fn setup_drawing(canvas: HtmlCanvasElement) -> Result<(), JsValue> {
     mouse_down.forget();
 
     let mouse_up = Closure::wrap(Box::new(move |event: web_sys::MouseEvent| {
-        let end_x = event.offset_x();
-        let end_y = event.offset_y();
-
-        unsafe{
-            context3.fill_rect(f64::from(START_X), f64::from(START_Y), f64::from(end_x - START_X), f64::from(end_y - START_Y));
-            cv4.remove_event_listener_with_callback("mousemove", (*mm1).as_ref().unchecked_ref()).unwrap();
-        }
+        let end_x = f64::from(event.offset_x());
+        let end_y = f64::from(event.offset_y());
+        let start_x = get_start_x();
+        let start_y = get_start_y();
+        context3.fill_rect(start_x, start_y, end_x - start_x, end_y - start_y);
+        cv4.remove_event_listener_with_callback("mousemove", (*mm1).as_ref().unchecked_ref()).unwrap();
     }) as Box<dyn FnMut(_)>);
     
     cv3.add_event_listener_with_callback("mouseup", mouse_up.as_ref().unchecked_ref())?;
@@ -238,13 +264,11 @@ pub fn canvas_to_mask(colorize: bool) {
     let mut mask = Mask::new(height / SAMPLE_RESOLUTION, width / SAMPLE_RESOLUTION);
     let data = &img_data.data();
 
-    let mut color = 0;
-
-    unsafe {
-        if INVERT_MASK {
-            color = 255;
-        }
-    }
+    let color = if get_invert_mask() {
+        0 
+    } else {
+        255
+    };
     
     for i in 0..mask.bits.len() {
         let columns = mask.bits[i].len();

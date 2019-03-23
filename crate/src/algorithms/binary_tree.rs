@@ -8,7 +8,7 @@ use crate::algorithms::{MazeAlgorithm, rand_element};
 pub struct BinaryTree;
 
 impl MazeAlgorithm for BinaryTree {
-    fn on(&self, grid: &dyn Grid, rng_generator: &dyn RngWrapper) {
+    fn on(&self, grid: &dyn Grid, rng_generator: &dyn RngWrapper<Shuffle=ICellStrong>) {
         for cell in grid.each_cell().iter() {
             if let Some(cell) = cell {
                 let mut neighbors: Vec<ICellStrong> = vec![];

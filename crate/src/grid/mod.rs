@@ -20,7 +20,7 @@ pub trait CellFormatter {
 pub trait Grid {
     fn new_cell(&self, row: usize, column: usize) -> ICellStrong;
     fn prepare_grid(&mut self);
-    fn random_cell(&self, rng: &dyn RngWrapper) -> Option<ICellStrong>;
+    fn random_cell(&self, rng: &dyn RngWrapper<Shuffle=ICellStrong>) -> Option<ICellStrong>;
     fn each_cell(&self) -> Vec<Option<ICellStrong>>;
     fn rows(&self) -> usize;
     fn columns(&self) -> usize;
@@ -31,6 +31,7 @@ pub trait Grid {
     fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool);
 }
 
+#[derive(Clone)]
 pub enum GridType {
     StandardGrid,
     PolarGrid,

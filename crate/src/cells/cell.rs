@@ -15,7 +15,7 @@ pub struct Cell {
     pub south: Option<CellLinkWeak>,
     pub east: Option<CellLinkWeak>,
     pub west: Option<CellLinkWeak>,
-    self_rc: CellLinkWeak,
+    pub self_rc: CellLinkWeak,
 }
 
 impl PartialEq for Cell {
@@ -124,6 +124,32 @@ impl Cell {
             return true;
         }    
         false
+    }
+
+    pub fn neighbors_std(&self) -> Vec<CellLinkStrong> {
+        let mut vec: Vec<CellLinkStrong> = vec![];
+
+        if let Some(ref north) = self.north {
+            let north = north.upgrade().unwrap();
+            vec.push(north);
+        }
+
+        if let Some(ref south) = self.south {
+            let south = south.upgrade().unwrap();
+            vec.push(south);
+        }
+
+        if let Some(ref east) = self.east {
+            let east = east.upgrade().unwrap();
+            vec.push(east);
+        }
+
+        if let Some(ref west) = self.west {
+            let west = west.upgrade().unwrap();
+            vec.push(west);
+        }
+
+        vec
     }
 
     // pub fn unlink(_self: CellLinkStrong, other: CellLinkStrong, bidir: bool) {

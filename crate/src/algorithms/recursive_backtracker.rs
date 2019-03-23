@@ -14,7 +14,7 @@ pub struct RecursiveBacktracker;
 /// 3) When a cell with no unvisited neighbors is reached, pop stack until you get to a cell with unvisited neighbors
 /// 4) repeat until stack is empty
 impl MazeAlgorithm for RecursiveBacktracker {
-    fn on(&self, grid: &dyn Grid, rng_generator: &dyn RngWrapper) {
+    fn on(&self, grid: &dyn Grid, rng_generator: &dyn RngWrapper<Shuffle=ICellStrong>) {
         let cells = grid.each_cell();
         let mut stack: Vec<ICellStrong> = vec![];
         let mut start = rand_element(&cells, rng_generator);
