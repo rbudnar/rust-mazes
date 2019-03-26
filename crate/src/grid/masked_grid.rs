@@ -83,6 +83,10 @@ impl Grid for MaskedGrid {
         self.mask.borrow().count()
     }
 
+    fn braid(&self, p: f64, rng: &dyn RngWrapper<Shuffle=ICellStrong>) {
+        self.grid.braid(p, rng);
+    }
+
     fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool) {
         self.grid.to_web(formatter, colorize);
     }

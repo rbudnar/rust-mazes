@@ -1,3 +1,4 @@
+use crate::algorithms::rand_element;
 use std::rc::{Rc};
 use wbg_rand::{Rng, wasm_rng};
 use wasm_bindgen::{prelude::JsValue, JsCast};
@@ -266,36 +267,49 @@ impl GridBase {
 
     
 
-    pub fn braid(&self, rng: &dyn RngWrapper<Shuffle=ICellStrong>) {
-        let p = 1_f64;
+    pub fn braid(&self, p: f64, rng: &dyn RngWrapper<Shuffle=ICellStrong>) {
         let mut dead_ends = self.dead_ends();
         rng.shuffle(&mut dead_ends);
-        let rand: f64 = wasm_rng().gen_range(0_f64, 1_f64);
 
-        // for cell in to_cls(&dead_ends).iter() {
-        //     let cell = cell.borrow();
-        //     if cell.links.len() != 1 || p > rand {
-        //         continue;
-        //     }
+        for cell in to_cls(&dead_ends).iter() {
+            let rand: f64 = wasm_rng().gen_range(0_f64, 1_f64);
 
-        //     let neighbors = cell.neighbors_std();
-        //     let neighbors: Vec<CellLinkStrong> = neighbors.iter().filter(|c| {
-        //         let c = Rc::clone(c);
-        //         !cell.is_linked(c)
-        //     }).map(|c| Rc::clone(c)).collect();
+            if cell.borrow().links.len() != 1 || p > rand {
+                continue;
+            }
 
-        //     let mut best: Vec<CellLinkStrong> = neighbors.iter()
-        //         .filter(|c| c.borrow().links.len() == 1)
-        //         .map(|x| Rc::clone(x))
-        //         .collect();
+            let best = {
+                let cell = cell.borrow();
+                let neighbors = cell.neighbors_std();
+                let neighbors: Vec<CellLinkStrong> = neighbors.iter().filter(|c| {
+                    let c = Rc::clone(c);
+                    !cell.is_linked(c)
+                }).map(|c| Rc::clone(c)).collect();
 
-        //     if best.is_empty() {
-        //         best = neighbors;
-        //     }
+                let mut best: Vec<CellLinkStrong> = neighbors.iter()
+                    .filter(|c| c.borrow().links.len() == 1)
+                    .map(|x| Rc::clone(x))
+                    .collect();
 
-        // }
+                if best.is_empty() {
+                    best = neighbors;
+                }
 
+                best
+            };            
+
+            let neighbor_to_link: CellLinkStrong = rand_element(&best, rng).clone();
+
+            // web_sys::console::log_1(&JsValue::from_str(&format!("borrowing")));
+            // web_sys::console::log_1(&JsValue::from_str(&format!("borrowed")));
+            // web_sys::console::log_1(&JsValue::from_str(&format!("last time")));
+            // web_sys::console::log_1(&JsValue::from_str(&format!("done")));
+
+            cell.borrow_mut().link(neighbor_to_link.clone());
+            neighbor_to_link.borrow_mut().link(cell.clone());
+        }
     }
+    
 
     pub fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool) {
         remove_old_canvas(STANDARD_GRID);
@@ -350,10 +364,31 @@ impl GridBase {
     }
 }
 
-// pub fn to_cls(vec: &Vec<ICellStrong>) -> Vec<CellLinkStrong> {
-//     vec.iter()
-//         .map(|x| { 
-//             let cell = x.borrow().as_any().downcast_ref::<Cell>().unwrap();
-//             Rc::clone(&cell.self_rc.upgrade().unwrap())            
-//         }).collect()
-// }
+pub fn to_cls(vec: &Vec<ICellStrong>) -> Vec<CellLinkStrong> {
+    vec.iter()
+        .map(|x| { 
+            let cell = x.borrow();
+            let cell = cell.as_any().downcast_ref::<Cell>().unwrap();
+            Rc::clone(&cell.self_rc.upgrade().unwrap())            
+        }).collect()
+}
+
+fn do_stuff(cell: CellLinkStrong) -> Vec<CellLinkStrong> {
+    let cell = cell.borrow();
+    let neighbors = cell.neighbors_std();
+    let neighbors: Vec<CellLinkStrong> = neighbors.iter().filter(|c| {
+        let c = Rc::clone(c);
+        !cell.is_linked(c)
+    }).map(|c| Rc::clone(c)).collect();
+
+    let mut best: Vec<CellLinkStrong> = neighbors.iter()
+        .filter(|c| c.borrow().links.len() == 1)
+        .map(|x| Rc::clone(x))
+        .collect();
+
+    if best.is_empty() {
+        best = neighbors;
+    }
+
+    best
+}

@@ -120,7 +120,7 @@ pub fn on_grid_type_change(grid_type: &str) {
         _ => GridType::PolarGrid
     };
 
-    set_grid_Type(grid_type);
+    set_grid_type(grid_type);
 }
 
 #[wasm_bindgen]
@@ -154,7 +154,7 @@ pub fn get_grid_type() -> GridType {
     GRID_TYPE.with(|t| t.borrow().clone())
 }
 
-pub fn set_grid_Type(new_type: GridType) {
+pub fn set_grid_type(new_type: GridType) {
     GRID_TYPE.with(|t| {
         *t.borrow_mut() = new_type;
     });
@@ -163,6 +163,7 @@ pub fn set_grid_Type(new_type: GridType) {
 fn render_grid(grid: &dyn Grid, alg: impl MazeAlgorithm) {
     let wasm_generator = wasm_rng::WasmRng;
     alg.on(grid, &wasm_generator);
+    grid.braid(0.1f64, &wasm_generator);
     let distance_grid = prepare_distance_grid(grid);
     
     grid.to_web(&distance_grid, get_colorize());

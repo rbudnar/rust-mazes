@@ -165,7 +165,6 @@ impl Grid for PolarGrid {
         None
     }
 
-
     fn to_string(&self, _contents: &dyn CellFormatter) -> String {
         // Not sure how to make this a text string...
         "".to_string()
@@ -173,6 +172,10 @@ impl Grid for PolarGrid {
 
     fn size(&self) -> usize {
         self.cells.iter().fold(0, |acc, r| acc + r.len())
+    }
+
+    fn braid(&self, p: f64, rng: &dyn RngWrapper<Shuffle=ICellStrong>) {
+        // TODO: not yet implemented
     }
 
     fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool) {

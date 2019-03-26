@@ -14,7 +14,7 @@ pub trait MazeAlgorithm: Debug {
     fn on(&self, grid: &dyn Grid, rng_generator: &dyn RngWrapper<Shuffle=ICellStrong>);
 }
 
-fn rand_element<'a, T>(list: &'a [T], rng: &dyn RngWrapper<Shuffle=ICellStrong>) -> &'a T {
+pub fn rand_element<'a, T>(list: &'a [T], rng: &dyn RngWrapper<Shuffle=ICellStrong>) -> &'a T {
     let index = rng.gen_range(0, list.len());
     &list[index]
 }

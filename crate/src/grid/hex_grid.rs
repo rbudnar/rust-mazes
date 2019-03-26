@@ -79,6 +79,11 @@ impl Grid for HexGrid {
         self.rows * self.columns
     }
 
+
+    fn braid(&self, p: f64, rng: &dyn RngWrapper<Shuffle=ICellStrong>) {
+        // TODO: not yet implemented
+    }
+
     fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool) {
         let size = 20;
 

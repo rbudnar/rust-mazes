@@ -8,7 +8,7 @@ use super::{Grid, mask::Mask, masked_grid::MaskedGrid, GridType, canvas::{remove
 use crate::algorithms::{MazeAlgorithm, recursive_backtracker::RecursiveBacktracker};
 use crate::prepare_distance_grid;
 use crate::rng::wasm_rng::WasmRng;
-use crate::{get_colorize, get_grid_type, set_grid_Type};
+use crate::{get_colorize, get_grid_type, set_grid_type};
 
 static SAMPLE_RESOLUTION: usize = 5;
 static MASK_CANVAS: &str = "mask_canvas";
@@ -135,7 +135,7 @@ fn setup_apply_button(document: &web_sys::Document, container: &web_sys::Element
 
     let cb = Closure::wrap(Box::new(|| {
         cleanup_canvas(&get_grid_type());
-        set_grid_Type(GridType::StandardGrid);
+        set_grid_type(GridType::StandardGrid);
         canvas_to_mask(get_colorize());
     }) as Box<dyn Fn()>);
     let b = apply_btn.dyn_ref::<EventTarget>().unwrap();

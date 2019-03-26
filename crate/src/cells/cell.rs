@@ -152,6 +152,12 @@ impl Cell {
         vec
     }
 
+    fn link(&mut self, other: CellLinkStrong) {       
+        let nl = other.borrow();
+        let _other: CellLinkWeak = Rc::downgrade(&Rc::clone(&nl.self_rc.upgrade().unwrap()));
+        self.links.push(Some(_other));        
+    }
+
     // pub fn unlink(_self: CellLinkStrong, other: CellLinkStrong, bidir: bool) {
     //     let index = _self.borrow().index_of_other(Rc::clone(&other));
 
