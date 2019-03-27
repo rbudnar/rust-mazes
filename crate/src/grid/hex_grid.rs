@@ -84,7 +84,7 @@ impl Grid for HexGrid {
         // TODO: not yet implemented
     }
 
-    fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool) {
+    fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool, inset: f64) {
         let size = 20;
 
         let size = f64::from(size);

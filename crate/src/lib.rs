@@ -94,7 +94,7 @@ pub fn redisplay_grid() {
             let grid = grid_ref.as_ref().unwrap();
 
             let distance_grid = prepare_distance_grid(&**grid);
-            grid.to_web(&distance_grid, get_colorize());
+            grid.to_web(&distance_grid, get_colorize(), 0.1);
         }
     })
 }
@@ -166,7 +166,7 @@ fn render_grid(grid: &dyn Grid, alg: impl MazeAlgorithm) {
     grid.braid(0.1f64, &wasm_generator);
     let distance_grid = prepare_distance_grid(grid);
     
-    grid.to_web(&distance_grid, get_colorize());
+    grid.to_web(&distance_grid, get_colorize(), 0.1);
 }
 
 fn prepare_distance_grid(grid: &dyn Grid) -> DistanceGrid {   

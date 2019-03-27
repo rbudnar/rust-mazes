@@ -79,7 +79,7 @@ impl Grid for StandardGrid {
         self.grid.braid(p, rng);
     }
 
-    fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool) {
-        self.grid.to_web(formatter, colorize);
+    fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool, inset: f64) {
+        self.grid.to_web(formatter, colorize, inset);
     }
 }

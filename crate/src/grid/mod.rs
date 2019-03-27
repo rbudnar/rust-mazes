@@ -28,7 +28,7 @@ pub trait Grid {
     fn get_cell(&self, row: usize, column: usize) -> Option<ICellStrong>;
     fn to_string(&self, contents: &dyn CellFormatter) -> String;
     fn size(&self) -> usize;
-    fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool);
+    fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool, inset: f64);
     fn braid(&self, p: f64, rng: &dyn RngWrapper<Shuffle=ICellStrong>);
 }
 

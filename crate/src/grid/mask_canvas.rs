@@ -288,5 +288,5 @@ pub fn canvas_to_mask(colorize: bool) {
     let masked_grid = MaskedGrid::new(mask);
     RecursiveBacktracker.on(&masked_grid, &WasmRng);
     let distance_grid = prepare_distance_grid(&masked_grid);
-    masked_grid.to_web(&distance_grid, colorize);
+    masked_grid.to_web(&distance_grid, colorize, 0.1);
 }

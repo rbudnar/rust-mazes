@@ -83,7 +83,7 @@ impl Grid for TriangleGrid {
         // TODO: not yet implemented
     }
 
-    fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool) {
+    fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool, inset: f64) {
         let size = 40_f64;
         let half_width = size / 2_f64;
         let height = size * 3_f64.sqrt() / 2_f64;

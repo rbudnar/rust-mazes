@@ -1,3 +1,4 @@
+use web_sys::CanvasRenderingContext2d;
 use crate::algorithms::rand_element;
 use std::rc::{Rc};
 use wbg_rand::{Rng, wasm_rng};
@@ -300,21 +301,16 @@ impl GridBase {
 
             let neighbor_to_link: CellLinkStrong = rand_element(&best, rng).clone();
 
-            // web_sys::console::log_1(&JsValue::from_str(&format!("borrowing")));
-            // web_sys::console::log_1(&JsValue::from_str(&format!("borrowed")));
-            // web_sys::console::log_1(&JsValue::from_str(&format!("last time")));
-            // web_sys::console::log_1(&JsValue::from_str(&format!("done")));
-
             cell.borrow_mut().link(neighbor_to_link.clone());
             neighbor_to_link.borrow_mut().link(cell.clone());
         }
     }
     
 
-    pub fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool) {
+    pub fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool, inset: f64) {
         remove_old_canvas(STANDARD_GRID);
         let context = setup_grid_canvas(STANDARD_GRID).unwrap();
-        let size = 15;
+        let size = 75;
         
         set_canvas_size(STANDARD_GRID, size * self.columns, size * self.rows);
         let size = size as f64;
@@ -325,44 +321,138 @@ impl GridBase {
             for cell in self.each_std_cell() {    
                 if let Some(cell) = cell {
 
-                    let x1 = (cell.borrow().column as f64) * size;
-                    let y1 = (cell.borrow().row as f64) * size;
-                    let x2 = (cell.borrow().column as f64) * size + size;
-                    let y2 = (cell.borrow().row as f64) * size + size;
+                    // let x1 = (cell.borrow().column as f64) * size;
+                    // let y1 = (cell.borrow().row as f64) * size;
+                    // let x2 = (cell.borrow().column as f64) * size + size;
+                    // let y2 = (cell.borrow().row as f64) * size + size;
+                    let x = (cell.borrow().column as f64) * size;
+                    let y = (cell.borrow().row as f64) * size;
+                    if inset > 0.0 {
+                        draw_with_inset(cell, &context, size, mode, formatter, colorize, x, y, inset * size);
+                    }
+                    else {
+                        draw_no_inset(cell, &context, size, mode, formatter, colorize, x, y);
+                    }
 
-
-                    match mode {
-                        DrawMode::Background => { 
-                            if colorize {
-                                let points = vec![(x1, y1), (x2, y1), (x2, y2), (x1, y2)];
-                                let ics: ICellStrong =  Rc::clone(&cell) as ICellStrong;
-                                let color = formatter.background_color(&ics);
-                                draw_shape(&context, points, &color);
-                            }
-                        },
-                        DrawMode::Line => {
-                            if cell.borrow().north.is_none() {
-                                draw_line(&context, x1, y1, x2, y1);
-                            }
+                    // match mode {
+                    //     DrawMode::Background => { 
+                    //         if colorize {
+                    //             let points = vec![(x1, y1), (x2, y1), (x2, y2), (x1, y2)];
+                    //             let ics: ICellStrong =  Rc::clone(&cell) as ICellStrong;
+                    //             let color = formatter.background_color(&ics);
+                    //             draw_shape(&context, points, &color);
+                    //         }
+                    //     },
+                    //     DrawMode::Line => {
                             
-                            if cell.borrow().west.is_none() {
-                                draw_line(&context, x1, y1, x1, y2);
-                            }
+                    //         // if cell.borrow().north.is_none() {
+                    //         //     draw_line(&context, x1, y1, x2, y1);
+                    //         // }
+                            
+                    //         // if cell.borrow().west.is_none() {
+                    //         //     draw_line(&context, x1, y1, x1, y2);
+                    //         // }
 
-                            if cell.borrow().is_not_linked(&cell.borrow().east) {
-                                draw_line(&context, x2, y1, x2, y2);
-                            }
+                    //         // if cell.borrow().is_not_linked(&cell.borrow().east) {
+                    //         //     draw_line(&context, x2, y1, x2, y2);
+                    //         // }
 
-                            if cell.borrow().is_not_linked(&cell.borrow().south) {
-                                draw_line(&context, x1, y2, x2, y2);
-                            }
-                        }
-                    };
+                    //         // if cell.borrow().is_not_linked(&cell.borrow().south) {
+                    //         //     draw_line(&context, x1, y2, x2, y2);
+                    //         // }
+                    //     }
+                    // };
                 }
             }
         }
     }
 }
+
+fn draw_with_inset(cell: CellLinkStrong, context: &web_sys::CanvasRenderingContext2d, size: f64, mode: &DrawMode, formatter: &dyn CellFormatter, colorize: bool, x: f64, y: f64, inset: f64)  {
+    let (x1, x2, x3, x4, y1, y2, y3, y4) = cell_coords_with_inset(x, y, size, inset);
+
+    match mode {
+        DrawMode::Background => {
+            // nooooot quite right...
+            // let points = vec![(x2, y2), (x3, y2), (x3, y3), (x2, y3)];
+            // let ics: ICellStrong =  Rc::clone(&cell) as ICellStrong;
+            // let color = formatter.background_color(&ics);
+            // draw_shape(&context, points, &color);
+        },
+        DrawMode::Line => {
+            let north = &cell.as_ref().borrow().north;            
+            if north.is_some() && cell.borrow().is_linked(north.as_ref().unwrap().upgrade().unwrap()) {
+                draw_line(&context, x2, y1, x2, y2);
+                draw_line(&context, x3, y1, x3, y2);
+            } else {
+                draw_line(&context, x2, y2, x3, y2);
+            }
+            
+            let south = &cell.as_ref().borrow().south;            
+            if south.is_some() && cell.borrow().is_linked(south.as_ref().unwrap().upgrade().unwrap()) {
+                draw_line(&context, x2, y3, x2, y4);
+                draw_line(&context, x3, y3, x3, y4);
+            } else {
+                draw_line(&context, x2, y3, x3, y3);
+            }
+
+            let west = &cell.as_ref().borrow().west;            
+            if west.is_some() && cell.borrow().is_linked(west.as_ref().unwrap().upgrade().unwrap()) {
+                draw_line(&context, x1, y2, x2, y2);
+                draw_line(&context, x1, y3, x2, y3);
+            } else {
+                draw_line(&context, x2, y2, x2, y3);
+            }
+            
+            let east = &cell.as_ref().borrow().east;            
+            if east.is_some() && cell.borrow().is_linked(east.as_ref().unwrap().upgrade().unwrap()) {
+                draw_line(&context, x3, y2, x4, y2);
+                draw_line(&context, x3, y3, x4, y3);
+            } else {
+                draw_line(&context, x3, y2, x3, y3);
+            }
+        }
+    }
+
+}
+
+fn draw_no_inset(cell: CellLinkStrong, context: &web_sys::CanvasRenderingContext2d, size: f64, mode: &DrawMode, formatter: &dyn CellFormatter, colorize: bool, x: f64, y: f64) {
+    let x1 = x;
+    let y1 = y;
+    let x2 = x1 + size;
+    let y2 = y1 + size;
+
+    match mode {
+        DrawMode::Background => { 
+            if colorize {
+                let points = vec![(x1, y1), (x2, y1), (x2, y2), (x1, y2)];
+                let ics: ICellStrong =  Rc::clone(&cell) as ICellStrong;
+                let color = formatter.background_color(&ics);
+                draw_shape(&context, points, &color);
+            }
+        },
+        DrawMode::Line => {
+            
+            if cell.borrow().north.is_none() {
+                draw_line(&context, x1, y1, x2, y1);
+            }
+            
+            if cell.borrow().west.is_none() {
+                draw_line(&context, x1, y1, x1, y2);
+            }
+
+            if cell.borrow().is_not_linked(&cell.borrow().east) {
+                draw_line(&context, x2, y1, x2, y2);
+            }
+
+            if cell.borrow().is_not_linked(&cell.borrow().south) {
+                draw_line(&context, x1, y2, x2, y2);
+            }
+        }
+    };
+}
+
+
 
 pub fn to_cls(vec: &Vec<ICellStrong>) -> Vec<CellLinkStrong> {
     vec.iter()
@@ -373,22 +463,36 @@ pub fn to_cls(vec: &Vec<ICellStrong>) -> Vec<CellLinkStrong> {
         }).collect()
 }
 
-fn do_stuff(cell: CellLinkStrong) -> Vec<CellLinkStrong> {
-    let cell = cell.borrow();
-    let neighbors = cell.neighbors_std();
-    let neighbors: Vec<CellLinkStrong> = neighbors.iter().filter(|c| {
-        let c = Rc::clone(c);
-        !cell.is_linked(c)
-    }).map(|c| Rc::clone(c)).collect();
+fn cell_coords_with_inset(x: f64, y: f64, size: f64, inset: f64) -> (f64, f64, f64, f64, f64, f64, f64, f64) {
+    let x1 = x;
+    let x4 = x + size;
+    let x2 = x1 + inset;
+    let x3 = x4 - inset;
 
-    let mut best: Vec<CellLinkStrong> = neighbors.iter()
-        .filter(|c| c.borrow().links.len() == 1)
-        .map(|x| Rc::clone(x))
-        .collect();
+    let y1 = y;
+    let y4 = y + size;
+    let y2 = y1 + inset;
+    let y3 = y4 - inset;
 
-    if best.is_empty() {
-        best = neighbors;
-    }
-
-    best
+    (x1, x2, x3, x4, y1, y2, y3, y4)
 }
+
+// fn do_stuff(cell: CellLinkStrong) -> Vec<CellLinkStrong> {
+//     let cell = cell.borrow();
+//     let neighbors = cell.neighbors_std();
+//     let neighbors: Vec<CellLinkStrong> = neighbors.iter().filter(|c| {
+//         let c = Rc::clone(c);
+//         !cell.is_linked(c)
+//     }).map(|c| Rc::clone(c)).collect();
+
+//     let mut best: Vec<CellLinkStrong> = neighbors.iter()
+//         .filter(|c| c.borrow().links.len() == 1)
+//         .map(|x| Rc::clone(x))
+//         .collect();
+
+//     if best.is_empty() {
+//         best = neighbors;
+//     }
+
+//     best
+// }
