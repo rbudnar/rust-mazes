@@ -63,6 +63,9 @@ typeSelector.addEventListener("change", () => {
         case 4: 
             type = "triangle";
             break;
+        case 5: 
+            type = "weave";
+            break;
         default:
             type = "polar";
             break;

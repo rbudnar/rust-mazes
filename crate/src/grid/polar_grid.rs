@@ -1,3 +1,4 @@
+use std::any::Any;
 use std::rc::Rc;
 use std::f64::consts::PI;
 use wasm_bindgen::prelude::JsValue;
@@ -97,6 +98,10 @@ impl PolarGrid {
 }
 
 impl Grid for PolarGrid {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
     fn new_cell(&self, row: usize, column: usize) -> ICellStrong {
         PolarCell::new(row, column)
     }

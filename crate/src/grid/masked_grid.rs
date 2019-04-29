@@ -1,3 +1,4 @@
+use std::any::Any;
 use std::rc::Rc;
 use std::cell::RefCell;
 use super::{Grid, mask::Mask, CellFormatter, grid_base::GridBase};
@@ -28,6 +29,10 @@ impl MaskedGrid {
 }
 
 impl Grid for MaskedGrid {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+    
     fn new_cell(&self, row: usize, column: usize) -> ICellStrong {
         Cell::new(row, column)
     }

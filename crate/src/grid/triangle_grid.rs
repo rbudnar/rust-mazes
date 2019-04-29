@@ -1,3 +1,4 @@
+use std::any::Any;
 use std::rc::Rc;
 use wasm_bindgen::prelude::JsValue;
 use super::{Grid, CellFormatter, canvas::{remove_old_canvas, setup_grid_canvas, draw_shape, draw_line, DrawMode, set_canvas_size}};
@@ -14,6 +15,10 @@ pub struct TriangleGrid {
 }
 
 impl Grid for TriangleGrid {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+    
     fn new_cell(&self, row: usize, column: usize) -> ICellStrong {
         TriangleCell::new(row, column) as ICellStrong
     }

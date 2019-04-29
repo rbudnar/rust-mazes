@@ -1,5 +1,6 @@
 use crate::rng::RngWrapper;
-use crate::cells::{ICellStrong};
+use crate::cells::ICellStrong;
+use std::any::Any;
 
 pub mod distances;
 pub mod mask;
@@ -11,6 +12,7 @@ pub mod canvas;
 pub mod polar_grid;
 pub mod hex_grid;
 pub mod triangle_grid;
+pub mod weave_grid;
 
 pub trait CellFormatter {
     fn contents_of(&self, cell: &ICellStrong) -> String;
@@ -30,6 +32,7 @@ pub trait Grid {
     fn size(&self) -> usize;
     fn to_web(&self, formatter: &dyn CellFormatter, colorize: bool, inset: f64);
     fn braid(&self, p: f64, rng: &dyn RngWrapper<Shuffle=ICellStrong>);
+    fn as_any(&self) -> &dyn Any;
 }
 
 #[derive(Clone)]
@@ -37,5 +40,6 @@ pub enum GridType {
     StandardGrid,
     PolarGrid,
     HexGrid,
-    TriangleGrid
+    TriangleGrid,
+    WeaveGrid
 }

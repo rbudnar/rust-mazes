@@ -1,3 +1,4 @@
+use std::any::Any;
 use std::rc::{Rc};
 use wasm_bindgen::prelude::JsValue;
 use super::{Grid, CellFormatter, canvas::{remove_old_canvas, setup_grid_canvas, draw_line, DrawMode, draw_shape, set_canvas_size}};
@@ -14,6 +15,10 @@ pub struct HexGrid {
 }
 
 impl Grid for HexGrid {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+    
     fn new_cell(&self, row: usize, column: usize) -> ICellStrong {
         HexCell::new(row, column) as ICellStrong
     }

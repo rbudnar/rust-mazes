@@ -4,6 +4,7 @@
 #![allow(dead_code)]
 #[macro_use]
 use std::cell::RefCell;
+use std::rc::Rc;
 use crate::rng::wasm_rng;
 use wasm_bindgen::prelude::*;
 
@@ -20,6 +21,7 @@ use crate::grid::{Grid,
     polar_grid::*,
     hex_grid::*,
     triangle_grid::*,
+    weave_grid::*,
     GridType,
     mask_canvas::{clear_mask, append_mask_canvas}
 };
@@ -47,7 +49,8 @@ cfg_if::cfg_if! {
 
 
 thread_local! {
-    static GRID: RefCell<Option<Box<dyn Grid>>> = RefCell::new(None);
+    // static GRID: RefCell<Option<Box<dyn Grid>>> = RefCell::new(None);
+    static GRID: RefCell<Option<Rc<RefCell<dyn Grid>>>> = RefCell::new(None); 
     pub static COLORIZE: RefCell<bool> = RefCell::new(true);
     pub static GRID_TYPE: RefCell<GridType> = RefCell::new(GridType::StandardGrid);
 }
@@ -91,9 +94,9 @@ pub fn recursive_backtracker(rows: usize, columns: usize) {
 pub fn redisplay_grid() {
     GRID.with(|slf| match slf.borrow() {
         grid_ref => {
-            let grid = grid_ref.as_ref().unwrap();
+            let grid = grid_ref.as_ref().unwrap().borrow();
 
-            let distance_grid = prepare_distance_grid(&**grid);
+            let distance_grid = prepare_distance_grid(&*grid);
             grid.to_web(&distance_grid, get_colorize(), 0.1);
         }
     })
@@ -117,6 +120,7 @@ pub fn on_grid_type_change(grid_type: &str) {
         "polar" => GridType::PolarGrid,
         "hex" => GridType::HexGrid,
         "triangle" => GridType::TriangleGrid,
+        "weave" => GridType::WeaveGrid,
         _ => GridType::PolarGrid
     };
 
@@ -136,12 +140,19 @@ fn build_and_display_grid(alg: impl MazeAlgorithm, rows: usize, columns: usize) 
     GRID.with(|grid| match grid.borrow_mut() {
         mut grid_mut_ref => {
             *grid_mut_ref = match get_grid_type() {
-                GridType::PolarGrid => Some(Box::new(PolarGrid::new(rows, columns))),
-                GridType::HexGrid => Some(Box::new(HexGrid::new(rows, columns))),
-                GridType::TriangleGrid => Some(Box::new(TriangleGrid::new(rows, columns))),
-                GridType::StandardGrid => Some(Box::new(StandardGrid::new(rows, columns))),
+                // GridType::PolarGrid => Some(Box::new(PolarGrid::new(rows, columns))),
+                // GridType::HexGrid => Some(Box::new(HexGrid::new(rows, columns))),
+                // GridType::TriangleGrid => Some(Box::new(TriangleGrid::new(rows, columns))),
+                // GridType::StandardGrid => Some(Box::new(StandardGrid::new(rows, columns))),
+                GridType::PolarGrid => Some(Rc::new(RefCell::new(PolarGrid::new(rows, columns)))),
+                GridType::HexGrid => Some(Rc::new(RefCell::new(HexGrid::new(rows, columns)))),
+                GridType::TriangleGrid => Some(Rc::new(RefCell::new(TriangleGrid::new(rows, columns)))),
+                GridType::StandardGrid => Some(Rc::new(RefCell::new(StandardGrid::new(rows, columns)))),
+                GridType::WeaveGrid => {
+                    Some(WeaveGrid::new(rows, columns))
+                },
             };
-            render_grid(&**grid_mut_ref.as_ref().unwrap(), alg);
+            render_grid(&*grid_mut_ref.as_ref().unwrap().borrow(), alg);
         }
     });
 }

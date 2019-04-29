@@ -1,3 +1,4 @@
+use std::any::Any;
 use std::rc::{Rc};
 use super::{grid_base::GridBase, Grid, CellFormatter};
 use crate::cells::{ICellStrong, cell::{Cell, CellLinkStrong}};
@@ -22,6 +23,10 @@ impl StandardGrid {
 }
 
 impl Grid for StandardGrid {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
     fn new_cell(&self, row: usize, column: usize) -> ICellStrong {
         Cell::new(row, column)
     }

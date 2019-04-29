@@ -1,13 +1,14 @@
 use wasm_bindgen::{JsCast, prelude::*};
 use web_sys::{HtmlElement, Node, HtmlCanvasElement, CanvasRenderingContext2d};
-use super::{GridType, triangle_grid::TRIANGLE_GRID, hex_grid::HEX_GRID, polar_grid::POLAR_GRID, standard_grid::STANDARD_GRID};
+use super::{GridType, triangle_grid::TRIANGLE_GRID, hex_grid::HEX_GRID, polar_grid::POLAR_GRID, standard_grid::STANDARD_GRID, weave_grid::WEAVE_GRID};
 
 pub fn cleanup_canvas(grid_type: &GridType) {
     match grid_type {
         GridType::StandardGrid => remove_old_canvas(STANDARD_GRID),
         GridType::PolarGrid => remove_old_canvas(POLAR_GRID),
         GridType::HexGrid => remove_old_canvas(HEX_GRID),
-        GridType::TriangleGrid => remove_old_canvas(TRIANGLE_GRID)
+        GridType::TriangleGrid => remove_old_canvas(TRIANGLE_GRID),
+        GridType::WeaveGrid => remove_old_canvas(WEAVE_GRID)
     }            
 }
 

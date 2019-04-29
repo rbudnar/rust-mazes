@@ -463,7 +463,7 @@ pub fn to_cls(vec: &Vec<ICellStrong>) -> Vec<CellLinkStrong> {
         }).collect()
 }
 
-fn cell_coords_with_inset(x: f64, y: f64, size: f64, inset: f64) -> (f64, f64, f64, f64, f64, f64, f64, f64) {
+pub fn cell_coords_with_inset(x: f64, y: f64, size: f64, inset: f64) -> (f64, f64, f64, f64, f64, f64, f64, f64) {
     let x1 = x;
     let x4 = x + size;
     let x2 = x1 + inset;
@@ -476,23 +476,3 @@ fn cell_coords_with_inset(x: f64, y: f64, size: f64, inset: f64) -> (f64, f64, f
 
     (x1, x2, x3, x4, y1, y2, y3, y4)
 }
-
-// fn do_stuff(cell: CellLinkStrong) -> Vec<CellLinkStrong> {
-//     let cell = cell.borrow();
-//     let neighbors = cell.neighbors_std();
-//     let neighbors: Vec<CellLinkStrong> = neighbors.iter().filter(|c| {
-//         let c = Rc::clone(c);
-//         !cell.is_linked(c)
-//     }).map(|c| Rc::clone(c)).collect();
-
-//     let mut best: Vec<CellLinkStrong> = neighbors.iter()
-//         .filter(|c| c.borrow().links.len() == 1)
-//         .map(|x| Rc::clone(x))
-//         .collect();
-
-//     if best.is_empty() {
-//         best = neighbors;
-//     }
-
-//     best
-// }
